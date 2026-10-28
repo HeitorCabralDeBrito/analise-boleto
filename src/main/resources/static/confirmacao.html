@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boleto Seguro — Confirmação Simulada</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/boleto-seguro.css">
+</head>
+<body>
+
+<nav class="navbar-bradesco">
+  <div class="container d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <span class="navbar-brand mb-0">Confirmação</span>
+      <span class="badge-prototipo">Protótipo acadêmico</span>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <span class="usuario-info d-none d-sm-inline">Olá, <b id="usuario-nome"></b></span>
+      <button class="btn-logout" id="btn-logout">Sair</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4" style="max-width:680px;">
+
+  <!-- Stepper -->
+  <div class="stepper">
+    <div class="step done"><div class="step-circle">✓</div><div class="step-label">Dados</div></div>
+    <div class="step-line"></div>
+    <div class="step done"><div class="step-circle">✓</div><div class="step-label">Análise</div></div>
+    <div class="step-line"></div>
+    <div class="step done"><div class="step-circle">✓</div><div class="step-label">Resultado</div></div>
+    <div class="step-line"></div>
+    <div class="step active"><div class="step-circle">4</div><div class="step-label">Confirmar</div></div>
+  </div>
+
+  <!-- Banner de simulação -->
+  <div class="confirmacao-banner">
+    <div class="banner-icon">⚠️</div>
+    <div>
+      <strong>CONFIRMAÇÃO SIMULADA — PROTÓTIPO ACADÊMICO</strong>
+      <p class="mt-1">Nenhum pagamento real será realizado. Esta etapa existe apenas para demonstrar o fluxo completo da aplicação.
+      Em um sistema real, aqui ocorreria a autorização bancária.</p>
+    </div>
+  </div>
+
+  <!-- Aviso risco alto (se aplicável) -->
+  <div id="aviso-risco-alto" class="d-none">
+    <div class="alerta-item critico mb-3">
+      <b>Você está prosseguindo com risco ALTO.</b> Esta ação é registrada no histórico.
+      Em um sistema real, esta operação seria bloqueada ou exigiria autenticação adicional.
+    </div>
+  </div>
+
+  <!-- Resumo do boleto -->
+  <div class="card-bradesco">
+    <div class="card-header">Resumo do boleto</div>
+    <div class="card-body">
+      <div class="row g-2" style="font-size:0.9rem;">
+        <div class="col-12">
+          <div class="text-muted small">Linha digitável:</div>
+          <div class="historico-linha mt-1" id="conf-linha"></div>
+        </div>
+        <div class="col-6">
+          <div class="text-muted small">Valor:</div>
+          <div class="fw-semibold" id="conf-valor"></div>
+        </div>
+        <div class="col-6">
+          <div class="text-muted small">Vencimento:</div>
+          <div class="fw-semibold" id="conf-vencimento"></div>
+        </div>
+        <div class="col-6">
+          <div class="text-muted small">Nível de risco:</div>
+          <div id="conf-risco"></div>
+        </div>
+        <div class="col-6">
+          <div class="text-muted small">Score:</div>
+          <div class="fw-semibold" id="conf-score"></div>
+        </div>
+        <div class="col-12" id="conf-beneficiario-wrap">
+          <div class="text-muted small">Beneficiário declarado:</div>
+          <div class="fw-semibold" id="conf-beneficiario"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tela de sucesso (oculta inicialmente) -->
+  <div class="card-bradesco d-none" id="card-sucesso">
+    <div class="card-body text-center py-4">
+      <div style="width:64px;height:64px;background:#d1fae5;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="3" width="32" height="32">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+      <h4 class="fw-bold" style="color:#059669;">Confirmação registrada!</h4>
+      <p class="text-muted small mb-3">
+        O processo simulado foi concluído com sucesso. Em um sistema real, o pagamento estaria agendado.
+        Este registro foi salvo no seu histórico.
+      </p>
+      <div class="d-flex gap-2 justify-content-center flex-wrap">
+        <a href="/historico.html" class="btn-bradesco-outline text-decoration-none px-4 py-2">Ver histórico</a>
+        <a href="/home.html" class="btn-bradesco-primary text-decoration-none px-4 py-2">Voltar ao início</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ações -->
+  <div id="secao-acoes">
+    <div class="d-flex gap-2 flex-wrap mt-3">
+      <a href="/resultado.html" class="btn-bradesco-outline text-center text-decoration-none py-2 flex-fill">
+        ← Voltar
+      </a>
+      <button class="btn-bradesco-primary flex-fill" id="btn-confirmar-final" onclick="confirmar()">
+        Confirmar (simulado)
+      </button>
+    </div>
+    <div class="d-flex gap-2 flex-wrap mt-2">
+      <a href="/pagar-boleto.html" class="text-center text-decoration-none py-2 flex-fill text-muted small">
+        Cancelar e analisar outro boleto
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+  if (!API.requireAuth()) {}
+
+  const analise = JSON.parse(sessionStorage.getItem('bs_analise') || 'null');
+  if (!analise) { window.location.href = '/pagar-boleto.html'; }
+
+  document.getElementById('conf-linha').textContent = analise.linhaDigitavel || '—';
+  document.getElementById('conf-valor').textContent = analise.valor || 'Não verificado';
+  document.getElementById('conf-vencimento').textContent = analise.vencimento || 'Não verificado';
+  document.getElementById('conf-score').textContent = analise.score + ' / 100';
+
+  if (analise.nomeBeneficiario) {
+    document.getElementById('conf-beneficiario').textContent = analise.nomeBeneficiario;
+  } else {
+    document.getElementById('conf-beneficiario-wrap').classList.add('d-none');
+  }
+
+  const nivel = analise.nivelRisco;
+  const cores = { BAIXO: 'text-success', MEDIO: 'text-warning', ALTO: 'text-danger' };
+  const riscoEl = document.getElementById('conf-risco');
+  riscoEl.innerHTML = `<span class="fw-semibold ${cores[nivel] || ''}">${nivel}</span>`;
+
+  if (nivel === 'ALTO') {
+    document.getElementById('aviso-risco-alto').classList.remove('d-none');
+    document.getElementById('btn-confirmar-final').textContent = 'Confirmar mesmo assim (simulado)';
+    document.getElementById('btn-confirmar-final').classList.add('btn-bradesco-danger');
+    document.getElementById('btn-confirmar-final').classList.remove('btn-bradesco-primary');
+  }
+
+  async function confirmar() {
+    const btn = document.getElementById('btn-confirmar-final');
+    btn.disabled = true;
+    btn.textContent = 'Processando...';
+
+    const { ok } = await API.confirmarBoleto(analise.boletoId);
+
+    if (ok) {
+      document.getElementById('secao-acoes').classList.add('d-none');
+      document.getElementById('card-sucesso').classList.remove('d-none');
+      sessionStorage.removeItem('bs_analise');
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Confirmar (simulado)';
+      alert('Não foi possível registrar a confirmação. Tente novamente.');
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boleto Seguro — Pagar Boleto</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/boleto-seguro.css">
+</head>
+<body>
+
+<nav class="navbar-bradesco">
+  <div class="container d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <a href="/home.html" style="color:rgba(255,255,255,0.7); text-decoration:none; font-size:1.1rem;">&#8592;</a>
+      <span class="navbar-brand mb-0">Pagar Boleto</span>
+      <span class="badge-prototipo">Protótipo acadêmico</span>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <span class="usuario-info d-none d-sm-inline">Olá, <b id="usuario-nome"></b></span>
+      <button class="btn-logout" id="btn-logout">Sair</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4" style="max-width:680px;">
+
+  <!-- Stepper -->
+  <div class="stepper">
+    <div class="step active" id="step-1">
+      <div class="step-circle">1</div>
+      <div class="step-label">Dados</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="step-2">
+      <div class="step-circle">2</div>
+      <div class="step-label">Análise</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="step-3">
+      <div class="step-circle">3</div>
+      <div class="step-label">Resultado</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="step-4">
+      <div class="step-circle">4</div>
+      <div class="step-label">Confirmar</div>
+    </div>
+  </div>
+
+  <!-- Formulário de entrada -->
+  <div id="secao-entrada">
+    <div class="card-bradesco">
+      <div class="card-header">Tipo de entrada</div>
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-12 col-sm-6">
+            <div class="option-card selected" id="opt-manual" onclick="selecionarEntrada('manual')">
+              <div class="option-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="22" height="22">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+              </div>
+              <div>
+                <div class="fw-semibold small">Digitar linha</div>
+                <div class="text-muted" style="font-size:0.77rem;">Informe manualmente</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6">
+            <div class="option-card" id="opt-upload" onclick="selecionarEntrada('upload')">
+              <div class="option-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="22" height="22">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <div>
+                <div class="fw-semibold small">Imagem / PDF</div>
+                <div class="text-muted" style="font-size:0.77rem;">Extração automática</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Entrada manual -->
+    <div class="card-bradesco" id="painel-manual">
+      <div class="card-header">Linha digitável</div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">Linha digitável (47 dígitos)</label>
+          <input type="text" id="linha-digitavel" class="form-control form-control-bradesco"
+            placeholder="00000.00000 00000.000000 00000.000000 0 00000000000000"
+            maxlength="54" inputmode="numeric" autocomplete="off">
+          <div class="form-text">Aceita com ou sem espaços e pontos. Somente boletos bancários de cobrança.</div>
+          <div id="erro-linha" class="text-danger small mt-1 d-none"></div>
+        </div>
+
+        <hr class="my-3">
+        <div class="fw-semibold small mb-2 text-muted">Dados opcionais (melhoram a análise)</div>
+
+        <div class="row g-2 mb-2">
+          <div class="col-12 col-sm-6">
+            <label class="form-label small">Valor do boleto</label>
+            <input type="text" id="valor-declarado" class="form-control form-control-bradesco"
+              placeholder="Ex: 150,00" inputmode="decimal">
+          </div>
+          <div class="col-12 col-sm-6">
+            <label class="form-label small">Vencimento</label>
+            <input type="date" id="vencimento-declarado" class="form-control form-control-bradesco">
+          </div>
+        </div>
+
+        <div class="row g-2 mb-2">
+          <div class="col-12">
+            <label class="form-label small">Nome do beneficiário (quem vai receber)</label>
+            <input type="text" id="nome-beneficiario" class="form-control form-control-bradesco"
+              placeholder="Razão social ou nome completo" maxlength="200">
+          </div>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-12">
+            <label class="form-label small">Origem do boleto</label>
+            <select id="origem" class="form-select form-control-bradesco">
+              <option value="">Não informar</option>
+              <option value="WHATSAPP">WhatsApp</option>
+              <option value="EMAIL">E-mail</option>
+              <option value="SITE">Site / sistema</option>
+              <option value="IMPRESSO">Impresso / correio</option>
+              <option value="OUTRO">Outro</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload -->
+    <div class="card-bradesco d-none" id="painel-upload">
+      <div class="card-header">Enviar imagem ou PDF do boleto</div>
+      <div class="card-body">
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+          </svg>
+          <div class="fw-semibold mt-2">Clique ou arraste aqui</div>
+          <div class="text-muted small">PNG, JPG ou PDF — máx. 10MB</div>
+          <div id="nome-arquivo" class="mt-2 text-bradesco small fw-semibold d-none"></div>
+        </div>
+        <input type="file" id="file-input" accept="image/png,image/jpeg,application/pdf" class="d-none">
+
+        <div id="aviso-ocr" class="alerta-item mt-3">
+          <b>Limitação do protótipo:</b> O OCR funciona melhor com imagens nítidas e boletos impressos em preto e branco.
+          Após o processamento, você poderá corrigir os dados antes de prosseguir.
+          <br><b>Privacidade:</b> a leitura é feita no próprio servidor. Só se ela falhar, a imagem é enviada
+          à IA (OpenAI) para ler a linha digitável.
+        </div>
+
+        <div id="resultado-ocr" class="d-none mt-3">
+          <div class="fw-semibold small mb-2">Linha digitável extraída:</div>
+          <input type="text" id="linha-ocr" class="form-control form-control-bradesco mb-2" placeholder="Linha extraída pelo OCR">
+          <div class="form-text text-warning">
+            <b>Confirme se a linha está correta</b> antes de prosseguir. OCR pode cometer erros.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="erro-geral" class="alert alert-danger d-none" role="alert"></div>
+
+    <div class="d-flex gap-2 mt-3">
+      <a href="/home.html" class="btn-bradesco-outline flex-fill text-center text-decoration-none py-2">Cancelar</a>
+      <button class="btn-bradesco-primary flex-fill" id="btn-analisar" onclick="analisarBoleto()">
+        Analisar Boleto
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="secao-loading" class="d-none text-center py-5">
+    <div class="loading-spinner mx-auto mb-3"></div>
+    <div class="fw-semibold">Analisando boleto...</div>
+    <div class="text-muted small mt-1">Validando estrutura e calculando risco</div>
+  </div>
+
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+  if (!API.requireAuth()) {}
+
+  let tipoEntradaAtual = 'manual';
+
+  function selecionarEntrada(tipo) {
+    tipoEntradaAtual = tipo;
+    document.getElementById('opt-manual').classList.toggle('selected', tipo === 'manual');
+    document.getElementById('opt-upload').classList.toggle('selected', tipo === 'upload');
+    document.getElementById('painel-manual').classList.toggle('d-none', tipo !== 'manual');
+    document.getElementById('painel-upload').classList.toggle('d-none', tipo !== 'upload');
+  }
+
+  // Upload de arquivo
+  const fileInput = document.getElementById('file-input');
+  const uploadZone = document.getElementById('upload-zone');
+
+  fileInput.addEventListener('change', () => processarArquivo(fileInput.files[0]));
+  uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) processarArquivo(e.dataTransfer.files[0]);
+  });
+
+  async function processarArquivo(arquivo) {
+    if (!arquivo) return;
+    const nomeEl = document.getElementById('nome-arquivo');
+    nomeEl.textContent = arquivo.name;
+    nomeEl.classList.remove('d-none');
+    document.getElementById('erro-geral').classList.add('d-none');
+
+    const form = new FormData();
+    form.append('arquivo', arquivo);
+
+    try {
+      const resp = await fetch('/api/boletos/ocr', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${API.getToken()}` },
+        body: form
+      });
+      const data = await resp.json();
+      if (resp.ok && data.linhaDigitavel) {
+        document.getElementById('resultado-ocr').classList.remove('d-none');
+        document.getElementById('linha-ocr').value = data.linhaDigitavel;
+      } else {
+        document.getElementById('resultado-ocr').classList.remove('d-none');
+        document.getElementById('linha-ocr').value = '';
+        document.getElementById('linha-ocr').placeholder = 'OCR não conseguiu extrair — digite manualmente';
+        if (data.erro) {
+          const erroEl = document.getElementById('erro-geral');
+          erroEl.textContent = data.erro;
+          erroEl.classList.remove('d-none');
+        }
+      }
+    } catch {
+      document.getElementById('resultado-ocr').classList.remove('d-none');
+      document.getElementById('linha-ocr').value = '';
+      document.getElementById('linha-ocr').placeholder = 'Erro no OCR — digite a linha manualmente';
+    }
+  }
+
+  async function analisarBoleto() {
+    const erroEl = document.getElementById('erro-geral');
+    const erroLinhaEl = document.getElementById('erro-linha');
+    erroEl.classList.add('d-none');
+    erroLinhaEl.classList.add('d-none');
+
+    let linha;
+    let tipoEntrada;
+
+    if (tipoEntradaAtual === 'manual') {
+      linha = document.getElementById('linha-digitavel').value.trim();
+      tipoEntrada = 'MANUAL';
+    } else {
+      linha = document.getElementById('linha-ocr').value.trim();
+      tipoEntrada = 'IMAGEM';
+    }
+
+    if (!linha) {
+      erroLinhaEl.textContent = 'Informe a linha digitável do boleto.';
+      erroLinhaEl.classList.remove('d-none');
+      return;
+    }
+
+    const payload = {
+      linhaDigitavel: linha,
+      tipoEntrada,
+      origem: document.getElementById('origem')?.value || null,
+      nomeBeneficiarioDeclarado: document.getElementById('nome-beneficiario')?.value?.trim() || null,
+      valorDeclarado: document.getElementById('valor-declarado')?.value?.trim() || null,
+      vencimentoDeclarado: document.getElementById('vencimento-declarado')?.value || null,
+    };
+
+    document.getElementById('secao-entrada').classList.add('d-none');
+    document.getElementById('secao-loading').classList.remove('d-none');
+
+    const { ok, data } = await API.analisarBoleto(payload);
+
+    if (ok) {
+      sessionStorage.setItem('bs_analise', JSON.stringify(data));
+      window.location.href = '/resultado.html';
+    } else {
+      document.getElementById('secao-entrada').classList.remove('d-none');
+      document.getElementById('secao-loading').classList.add('d-none');
+      const msg = data.erro || data.linhaDigitavel || Object.values(data)[0] || 'Erro ao analisar boleto.';
+      erroEl.textContent = msg;
+      erroEl.classList.remove('d-none');
+    }
+  }
+</script>
+</body>
+</html>

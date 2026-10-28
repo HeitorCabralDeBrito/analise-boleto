@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boleto Seguro — Resultado da Análise</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/boleto-seguro.css">
+</head>
+<body>
+
+<nav class="navbar-bradesco">
+  <div class="container d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <span class="navbar-brand mb-0">Resultado da Análise</span>
+      <span class="badge-prototipo">Protótipo acadêmico</span>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <span class="usuario-info d-none d-sm-inline">Olá, <b id="usuario-nome"></b></span>
+      <button class="btn-logout" id="btn-logout">Sair</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4" style="max-width:680px;">
+
+  <!-- Stepper -->
+  <div class="stepper">
+    <div class="step done" id="step-1">
+      <div class="step-circle">✓</div>
+      <div class="step-label">Dados</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step done" id="step-2">
+      <div class="step-circle">✓</div>
+      <div class="step-label">Análise</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step active" id="step-3">
+      <div class="step-circle">3</div>
+      <div class="step-label">Resultado</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="step-4">
+      <div class="step-circle">4</div>
+      <div class="step-label">Confirmar</div>
+    </div>
+  </div>
+
+  <!-- Score principal -->
+  <div class="card-bradesco" id="card-score">
+    <div class="card-body">
+      <div class="score-container" id="score-container">
+        <div class="score-gauge" id="score-gauge">
+          <div class="score-value" id="score-valor"></div>
+          <div class="score-label" id="score-rotulo"></div>
+          <div class="score-bar-wrap mt-3">
+            <div class="score-bar-track">
+              <div class="score-bar-pointer" id="score-pointer"></div>
+            </div>
+            <div class="d-flex justify-content-between mt-1" style="font-size:0.7rem; color:var(--bradesco-muted);">
+              <span>0 BAIXO</span><span>MÉDIO</span><span>ALTO 100</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dados do boleto -->
+  <div class="card-bradesco">
+    <div class="card-header">Dados do boleto</div>
+    <div class="card-body">
+      <div class="row g-2" style="font-size:0.88rem;">
+        <div class="col-12">
+          <span class="text-muted">Linha digitável:</span>
+          <div class="historico-linha mt-1" id="dados-linha"></div>
+        </div>
+        <div class="col-6">
+          <span class="text-muted">Valor codificado:</span>
+          <div class="fw-semibold" id="dados-valor"></div>
+        </div>
+        <div class="col-6">
+          <span class="text-muted">Vencimento codificado:</span>
+          <div class="fw-semibold" id="dados-vencimento"></div>
+        </div>
+        <div class="col-12" id="dados-beneficiario-wrap">
+          <span class="text-muted">Beneficiário declarado:</span>
+          <div class="fw-semibold" id="dados-beneficiario"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alertas -->
+  <div id="secao-alertas" class="d-none">
+    <div class="card-bradesco">
+      <div class="card-header text-danger">⚠ Alertas identificados</div>
+      <div class="card-body" id="lista-alertas"></div>
+    </div>
+  </div>
+
+  <!-- Verificações detalhadas -->
+  <div class="card-bradesco">
+    <div class="card-header">Verificações realizadas</div>
+    <div class="card-body p-0 px-3" id="lista-verificacoes"></div>
+  </div>
+
+  <!-- Explicação da IA (se disponível) -->
+  <div class="card-bradesco d-none" id="card-ia">
+    <div class="card-header d-flex align-items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+      </svg>
+      Orientação da IA
+      <span class="badge bg-secondary ms-auto" style="font-size:0.65rem; font-weight:400;">texto gerado por IA</span>
+    </div>
+    <div class="card-body">
+      <p class="mb-0 small" id="explicacao-ia"></p>
+    </div>
+  </div>
+
+  <!-- Aviso risco ALTO -->
+  <div class="d-none" id="aviso-alto">
+    <div class="alerta-item critico">
+      <b>Risco ALTO detectado.</b> Recomendamos não prosseguir com o pagamento.
+      Entre em contato diretamente com o beneficiário por canal oficial para confirmar a cobrança.
+      Se prosseguir, faça-o com consciência total do risco identificado.
+    </div>
+  </div>
+
+  <!-- Ações -->
+  <div class="d-flex gap-2 mt-3 flex-wrap">
+    <a href="/pagar-boleto.html" class="btn-bradesco-outline text-center text-decoration-none py-2 flex-fill">
+      Analisar outro
+    </a>
+    <button class="btn-bradesco-primary flex-fill" id="btn-prosseguir" onclick="prosseguir()">
+      Prosseguir mesmo assim
+    </button>
+    <button class="btn-bradesco-success flex-fill d-none" id="btn-confirmar" onclick="prosseguir()">
+      Confirmar pagamento
+    </button>
+  </div>
+  <div class="text-center mt-2">
+    <small class="text-muted">A confirmação é uma simulação — nenhum pagamento real será realizado</small>
+  </div>
+
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+  if (!API.requireAuth()) {}
+
+  const analise = JSON.parse(sessionStorage.getItem('bs_analise') || 'null');
+  if (!analise) { window.location.href = '/pagar-boleto.html'; }
+
+  const score = analise.score;
+  const nivel = analise.nivelRisco; // BAIXO, MEDIO, ALTO
+
+  // Score visual
+  const scoreContainer = document.getElementById('score-container');
+  const scoreGauge = document.getElementById('score-gauge');
+  scoreGauge.classList.add('score-' + nivel.toLowerCase().replace('é','e').replace('edio','edio'));
+  document.getElementById('score-valor').textContent = score;
+  const rotuloTexto = { BAIXO: 'Risco Baixo', MEDIO: 'Risco Médio', ALTO: 'Risco Alto' };
+  document.getElementById('score-rotulo').textContent = rotuloTexto[nivel] || nivel;
+  document.getElementById('score-pointer').style.left = `${Math.min(score, 99)}%`;
+
+  // Dados do boleto
+  document.getElementById('dados-linha').textContent = analise.linhaDigitavel || '—';
+  document.getElementById('dados-valor').textContent = analise.valor || 'Não verificado';
+  document.getElementById('dados-vencimento').textContent = analise.vencimento || 'Não verificado';
+  if (analise.nomeBeneficiario) {
+    document.getElementById('dados-beneficiario').textContent = analise.nomeBeneficiario;
+  } else {
+    document.getElementById('dados-beneficiario-wrap').classList.add('d-none');
+  }
+
+  // Alertas
+  if (analise.alertas && analise.alertas.length > 0) {
+    document.getElementById('secao-alertas').classList.remove('d-none');
+    const listaAlertas = document.getElementById('lista-alertas');
+    analise.alertas.forEach(a => {
+      const div = document.createElement('div');
+      div.className = 'alerta-item' + (nivel === 'ALTO' ? ' critico' : '');
+      div.textContent = a;
+      listaAlertas.appendChild(div);
+    });
+  }
+
+  // Verificações
+  const listaVerif = document.getElementById('lista-verificacoes');
+  (analise.verificacoes || []).forEach(v => {
+    const estadoClass = { 'PASSOU': 'v-passou', 'FALHOU': 'v-falhou', 'NAO_VERIFICADO': 'v-nao_verificado' };
+    const estadoLabel = { 'PASSOU': '✓', 'FALHOU': '✗', 'NAO_VERIFICADO': '—' };
+    const div = document.createElement('div');
+    div.className = 'verificacao-item';
+    div.innerHTML = `
+      <div class="verificacao-icon ${estadoClass[v.estado] || 'v-nao_verificado'}">
+        ${estadoLabel[v.estado] || '?'}
+      </div>
+      <div class="flex-grow-1">
+        <div class="verificacao-nome">${v.nome}</div>
+        <div class="verificacao-desc">${v.descricao}</div>
+        ${v.pontosAdicionados > 0 ? `<div class="verificacao-pontos">+${v.pontosAdicionados} pts</div>` : ''}
+      </div>
+    `;
+    listaVerif.appendChild(div);
+  });
+
+  // IA
+  if (analise.iaDisponivel && analise.explicacaoIa) {
+    document.getElementById('card-ia').classList.remove('d-none');
+    document.getElementById('explicacao-ia').textContent = analise.explicacaoIa;
+  }
+
+  // Botões de ação conforme nível de risco
+  if (nivel === 'ALTO') {
+    document.getElementById('aviso-alto').classList.remove('d-none');
+    document.getElementById('btn-prosseguir').textContent = 'Prosseguir mesmo assim (risco alto)';
+    document.getElementById('btn-prosseguir').classList.add('btn-bradesco-danger');
+    document.getElementById('btn-prosseguir').classList.remove('btn-bradesco-primary');
+  } else {
+    document.getElementById('btn-prosseguir').classList.add('d-none');
+    document.getElementById('btn-confirmar').classList.remove('d-none');
+  }
+
+  async function prosseguir() {
+    sessionStorage.setItem('bs_analise', JSON.stringify(analise));
+    window.location.href = '/confirmacao.html';
+  }
+</script>
+</body>
+</html>
