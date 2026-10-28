@@ -104,6 +104,8 @@ public class BoletoServico {
         analise.setScore(resultado.score());
         analise.setNivelRisco(resultado.nivelRisco());
         analise.setStatus(Analise.StatusAnalise.CONCLUIDA);
+        // Salva o texto mostrado ao cliente para poder recuperá-lo depois no histórico
+        analise.setExplicacaoResultado(explicacaoRiscoServico.explicar(resultado));
 
         List<Analise.VerificacaoItem> itens = new ArrayList<>();
         for (VerificacaoDTO v : resultado.verificacoes()) {
@@ -116,6 +118,7 @@ public class BoletoServico {
         }
         analise.setVerificacoes(itens);
         analise = analiseRepositorio.save(analise);
+        boleto.setAnalise(analise); // mantém os dois lados do 1:1 sincronizados
 
         // 5. Persiste alertas
         for (String mensagem : resultado.alertas()) {
@@ -148,7 +151,7 @@ public class BoletoServico {
                 .bloquearPagamento(resultado.nivelRisco() == Analise.NivelRisco.ALTO)
                 .verificacoes(resultado.verificacoes())
                 .alertas(resultado.alertas())
-                .explicacao(explicacaoRiscoServico.explicar(resultado))
+                .explicacao(analise.getExplicacaoResultado())
                 .explicacaoGeradaPorIa(false)
                 .linhaDigitavel(validacao.linhaDigitavelNormalizada())
                 .nomeBeneficiario(boleto.getNomeBeneficiarioDeclarado())
@@ -184,6 +187,7 @@ public class BoletoServico {
                     .tipoEntrada(b.getTipoEntrada().name())
                     .origem(b.getOrigem() != null ? b.getOrigem().name() : null)
                     .pago(Boolean.TRUE.equals(a.getConfirmacaoSimulada()))
+                    .explicacao(a.getExplicacaoResultado())
                     .build());
         }
         return lista;

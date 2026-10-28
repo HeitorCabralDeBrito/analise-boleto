@@ -21,7 +21,8 @@ public class Analise {
     private UUID id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "boleto_id", nullable = false)
+    // Cada boleto tem no máximo uma análise (BOLETO 1:0..1 ANALISE)
+    @JoinColumn(name = "boleto_id", nullable = false, unique = true)
     private Boleto boleto;
 
     @Column(nullable = false)
@@ -31,8 +32,13 @@ public class Analise {
     @Column(nullable = false, length = 10)
     private NivelRisco nivelRisco;
 
+    // Reservado para a integração futura com IA (texto bruto gerado pelo modelo)
     @Column(columnDefinition = "TEXT")
     private String justificativaIa;
+
+    // Explicação efetivamente mostrada ao cliente, gerada por regras ou por IA
+    @Column(columnDefinition = "TEXT")
+    private String explicacaoResultado;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

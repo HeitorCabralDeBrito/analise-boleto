@@ -181,6 +181,19 @@
           ${item.origem ? `<div class="w-100"></div><div class="col-auto text-muted">Origem:</div><div class="col">${item.origem.toLowerCase()}</div>` : ''}
         </div>
       `;
+      // Explicação salva na análise (análises feitas antes desta versão não têm)
+      if (item.explicacao) {
+        const detalhes = document.createElement('details');
+        detalhes.className = 'mt-2';
+        detalhes.style.fontSize = '0.82rem';
+        detalhes.innerHTML = '<summary class="text-bradesco fw-semibold" style="cursor:pointer;">Ver explicação</summary>';
+        const texto = document.createElement('p');
+        texto.className = 'mb-0 mt-1';
+        texto.style.whiteSpace = 'pre-line';
+        texto.textContent = item.explicacao;
+        detalhes.appendChild(texto);
+        div.appendChild(detalhes);
+      }
       lista.appendChild(div);
     });
   }

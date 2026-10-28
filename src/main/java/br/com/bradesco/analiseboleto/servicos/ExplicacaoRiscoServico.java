@@ -19,13 +19,17 @@ public class ExplicacaoRiscoServico {
     public String explicar(MotorRiscoServico.ResultadoRisco resultado) {
         StringBuilder texto = new StringBuilder();
 
+        List<String> motivos = resultado.motivos();
+
         texto.append(switch (resultado.nivelRisco()) {
-            case BAIXO -> "Não encontramos sinais de golpe nas verificações que conseguimos fazer.";
+            // Risco baixo pode ter um ponto de atenção (ex.: origem WhatsApp): não dizer "nenhum sinal" nesse caso
+            case BAIXO -> motivos.isEmpty()
+                ? "Não encontramos sinais de golpe nas verificações que conseguimos fazer."
+                : "O risco é baixo, mas há " + (motivos.size() == 1 ? "um ponto" : "pontos") + " de atenção.";
             case MEDIO -> "Encontramos sinais que pedem atenção antes de pagar este boleto.";
             case ALTO -> "Encontramos sinais fortes de golpe. Recomendamos NÃO pagar este boleto.";
         });
 
-        List<String> motivos = resultado.motivos();
         if (motivos.size() == 1) {
             texto.append(" O motivo: ").append(motivos.get(0)).append('.');
         } else if (!motivos.isEmpty()) {

@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "usuarios")
+// Agência + conta identificam o cliente no login: não pode haver dois usuários com a mesma combinação
+@Table(name = "usuarios", uniqueConstraints = @UniqueConstraint(
+    name = "uk_usuarios_agencia_conta", columnNames = {"agencia", "conta"}))
 @Getter
 @Setter
 public class Usuario {

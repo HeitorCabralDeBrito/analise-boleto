@@ -309,7 +309,8 @@ public class MotorRiscoServico {
         return ResultadoVerificacao.passou(
             "Beneficiário",
             "Beneficiário: " + nome + " — " + (cpf ? "CPF " : "CNPJ ") + DocumentoValidador.formatar(documento) +
-            " válido. Na hora de pagar, confira se o nome mostrado pelo banco é o mesmo.",
+            " com dígitos verificadores corretos. Isso não confirma quem é o titular do documento: " +
+            "na hora de pagar, confira se o nome mostrado pelo banco é o mesmo.",
             0
         );
     }

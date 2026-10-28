@@ -27,6 +27,15 @@ class ExplicacaoRiscoServicoTest {
     }
 
     @Test
+    @DisplayName("Risco baixo com ponto de atenção não diz que não há sinais")
+    void riscoBaixoComPontoDeAtencao() {
+        String texto = explicar(boleto("150.00", "Maria da Silva", "52998224725", Boleto.OrigemBoleto.WHATSAPP));
+        assertTrue(texto.startsWith("O risco é baixo, mas há um ponto de atenção."));
+        assertTrue(texto.contains("WhatsApp"));
+        assertFalse(texto.contains("Não encontramos sinais"));
+    }
+
+    @Test
     @DisplayName("Risco alto: lista os motivos e orienta a não pagar")
     void riscoAlto() {
         // valor divergente (+40) + CPF inválido (+50) = 90

@@ -21,4 +21,5 @@ public class HistoricoItemDTO {
     private String tipoEntrada;
     private String origem;
     private boolean pago; // usuário confirmou o pagamento (simulado) após a análise
+    private String explicacao; // texto mostrado ao cliente no resultado; nulo em análises antigas
 }
