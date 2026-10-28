@@ -70,8 +70,9 @@ Use a linha digitável:
 ```
 23790.91016 23456.789017 23456.000001 3 16260000015000
 ```
+- Beneficiário (obrigatório): nome `Maria da Silva`, CPF `529.982.247-25`
 - Não informe valor/vencimento → verificações ficam como NAO_VERIFICADO
-- Resultado esperado: score ~0, BAIXO risco
+- Resultado esperado: score ~0, BAIXO risco, com a explicação "O que isso significa" logo abaixo da nota
 
 ### Cenário B — Alerta por origem suspeita
 - Mesma linha acima
@@ -94,6 +95,14 @@ Use a linha digitável:
 - Informe um valor diferente do codificado no boleto
 - Resultado esperado: +40 pontos de risco, alerta de divergência
 
+### Cenário F — Beneficiário suspeito
+- Mesma linha do Cenário A
+- CPF com dígito errado (`529.982.247-26`) → +50 pontos (documento inexistente)
+- Nome de empresa com CPF válido (`Condomínio Edifício Primavera` + `529.982.247-25`) → +30 pontos
+- Com CNPJ válido (`Energia Paulista S.A.` + `11.222.333/0001-81`) → sem pontos
+
+Os campos de linha digitável, CPF/CNPJ, valor, agência e conta se formatam enquanto você digita: basta digitar só os números.
+
 ---
 
 ## 6. Rodar os testes
@@ -104,7 +113,24 @@ Use a linha digitável:
 
 ---
 
-## 7. Integração com IA (Fase 6 — opcional)
+## 7. Leitura de prints de baixa resolução (Tesseract — opcional)
+
+Quando as barras do código de barras ficam finas demais (print de celular), o sistema lê os
+**números impressos** da linha digitável com o Tesseract OCR, rodando no próprio computador.
+
+1. Baixe o instalador do Windows (64 bits) em https://github.com/UB-Mannheim/tesseract/wiki
+2. Instale no caminho padrão: `C:\Program Files\Tesseract-OCR`
+3. Reinicie a aplicação. No log não deve aparecer "Tesseract não encontrado"
+
+Se instalar em outro lugar, ajuste `boleto.seguro.tesseract.caminho` no `application.properties`.
+Ordem de leitura de imagens: código de barras → OCR local → IA (só com chave e créditos).
+
+---
+
+## 8. Integração com IA (Fase 6 — opcional)
+
+A explicação do risco em linguagem simples já funciona **sem IA** (gerada pelas regras de análise).
+A IA é usada para ler boletos difíceis e, na versão final, para reescrever essa explicação.
 
 Para ativar a explicação por IA, descomente em `application.properties`:
 ```properties
@@ -120,7 +146,7 @@ Como obter a chave OpenAI:
 
 ---
 
-## 8. Endpoints da API REST
+## 9. Endpoints da API REST
 
 | Método | Endpoint | Descrição | Auth |
 |--------|----------|-----------|------|
@@ -132,7 +158,7 @@ Como obter a chave OpenAI:
 
 ---
 
-## 9. Estrutura do projeto
+## 10. Estrutura do projeto
 
 ```
 src/main/java/br/com/bradesco/analiseboleto/

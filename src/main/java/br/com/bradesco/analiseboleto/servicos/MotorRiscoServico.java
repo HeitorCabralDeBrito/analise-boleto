@@ -6,10 +6,12 @@ import br.com.bradesco.analiseboleto.entidades.Boleto;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Motor determinístico de risco para boletos bancários.
@@ -25,38 +27,32 @@ import java.util.List;
  *   Divergência de vencimento → +30 pontos
  *   Boleto vencido (> 60 dias)→ +20 pontos
  *   Origem de risco (WhatsApp)→ +15 pontos (orientação contextual, não acusação)
+ *   CPF/CNPJ do beneficiário inválido          → +50 pontos
+ *   Nome de empresa recebendo em CPF           → +30 pontos
+ *   Nome do beneficiário incompleto/suspeito   → +20 pontos
  */
 @Service
 public class MotorRiscoServico {
 
     public ResultadoRisco calcular(String codigoBarras, Boleto boleto) {
+        List<ResultadoVerificacao> resultados = List.of(
+            verificarValor(codigoBarras, boleto),        // 1: valor codificado vs. declarado
+            verificarVencimento(codigoBarras, boleto),   // 2: vencimento codificado vs. declarado
+            verificarBoletoVencido(codigoBarras),        // 3: boleto vencido
+            verificarOrigem(boleto),                     // 4: origem de risco elevado
+            verificarBeneficiario(boleto)                // 5: beneficiário (nome + CPF/CNPJ)
+        );
+
         List<VerificacaoDTO> verificacoes = new ArrayList<>();
         List<String> alertas = new ArrayList<>();
+        List<String> motivos = new ArrayList<>();
         int score = 0;
-
-        // --- VERIFICAÇÃO 1: valor codificado vs. valor declarado ---
-        ResultadoVerificacao valorResult = verificarValor(codigoBarras, boleto);
-        verificacoes.add(valorResult.dto());
-        score += valorResult.pontos();
-        if (!valorResult.alertas().isEmpty()) alertas.addAll(valorResult.alertas());
-
-        // --- VERIFICAÇÃO 2: vencimento codificado vs. vencimento declarado ---
-        ResultadoVerificacao vencimentoResult = verificarVencimento(codigoBarras, boleto);
-        verificacoes.add(vencimentoResult.dto());
-        score += vencimentoResult.pontos();
-        if (!vencimentoResult.alertas().isEmpty()) alertas.addAll(vencimentoResult.alertas());
-
-        // --- VERIFICAÇÃO 3: boleto vencido ---
-        ResultadoVerificacao vencidoResult = verificarBoletoVencido(codigoBarras);
-        verificacoes.add(vencidoResult.dto());
-        score += vencidoResult.pontos();
-        if (!vencidoResult.alertas().isEmpty()) alertas.addAll(vencidoResult.alertas());
-
-        // --- VERIFICAÇÃO 4: origem de risco elevado ---
-        ResultadoVerificacao origemResult = verificarOrigem(boleto);
-        verificacoes.add(origemResult.dto());
-        score += origemResult.pontos();
-        if (!origemResult.alertas().isEmpty()) alertas.addAll(origemResult.alertas());
+        for (ResultadoVerificacao r : resultados) {
+            verificacoes.add(r.dto());
+            score += r.pontos();
+            alertas.addAll(r.alertas());
+            if (r.motivo() != null) motivos.add(r.motivo());
+        }
 
         score = Math.min(score, 100);
 
@@ -65,7 +61,7 @@ public class MotorRiscoServico {
         else if (score <= 70) nivel = Analise.NivelRisco.MEDIO;
         else nivel = Analise.NivelRisco.ALTO;
 
-        return new ResultadoRisco(score, nivel, verificacoes, alertas);
+        return new ResultadoRisco(score, nivel, verificacoes, alertas, motivos);
     }
 
     private ResultadoVerificacao verificarValor(String codigoBarras, Boleto boleto) {
@@ -97,6 +93,7 @@ public class MotorRiscoServico {
                 String.format("Valor declarado (R$ %.2f) diverge do valor codificado no boleto (R$ %.2f).",
                     boleto.getValorDeclarado(), valorBoleto),
                 40,
+                "o valor que você informou é diferente do valor gravado no código de barras",
                 List.of("O valor que você informou difere do valor embutido no código de barras. " +
                         "Isso pode indicar adulteração do boleto.")
             );
@@ -150,6 +147,7 @@ public class MotorRiscoServico {
                     boleto.getVencimentoDeclarado().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
                     dataVencimento.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))),
                 30,
+                "a data de vencimento que você informou é diferente da gravada no código de barras",
                 List.of("A data de vencimento que você informou não bate com a embutida no código de barras. " +
                         "Verifique se o boleto foi modificado.")
             );
@@ -190,6 +188,7 @@ public class MotorRiscoServico {
                 "Prazo de validade",
                 "Boleto vencido há " + diasVencido + " dias. Boletos muito vencidos exigem atenção redobrada.",
                 20,
+                "o boleto venceu há mais de 60 dias",
                 List.of("Este boleto venceu há mais de 60 dias. Confirme com o beneficiário antes de pagar.")
             );
         }
@@ -219,6 +218,7 @@ public class MotorRiscoServico {
                 "Origem do boleto",
                 "Boleto recebido via WhatsApp. Esse canal é frequentemente usado em fraudes de boleto.",
                 15,
+                "o boleto chegou pelo WhatsApp, um canal muito usado em golpes",
                 List.of("Atenção: boletos recebidos pelo WhatsApp têm maior risco de adulteração. " +
                         "Sempre prefira gerar o boleto diretamente no site ou app do beneficiário.")
             );
@@ -233,6 +233,85 @@ public class MotorRiscoServico {
                 0
             );
         };
+    }
+
+    // Termos que indicam pessoa jurídica no nome do beneficiário
+    private static final Pattern NOME_EMPRESA = Pattern.compile(
+        "\\b(LTDA|S\\.?A|S/A|EIRELI|EPP|MEI|CIA|COMPANHIA|BANCO|CONDOMINIO|ASSOCIACAO|" +
+        "COOPERATIVA|INSTITUTO|ESCOLA|COLEGIO|FACULDADE|UNIVERSIDADE|ENERGIA|SANEAMENTO|" +
+        "TELECOM|SEGUROS|SEGURADORA|COMERCIO|INDUSTRIA|SERVICOS|PARTICIPACOES|HOLDING)\\b");
+
+    /**
+     * O nome do beneficiário não vem no código de barras: a confirmação oficial só existe
+     * na consulta à base de boletos registrados (CIP/NPC), que o protótipo não acessa.
+     * Aqui validamos o que é verificável localmente: CPF/CNPJ com dígitos válidos e
+     * coerência entre o nome (empresa ou pessoa) e o tipo de documento.
+     */
+    private ResultadoVerificacao verificarBeneficiario(Boleto boleto) {
+        String nome = boleto.getNomeBeneficiarioDeclarado() == null ? "" : boleto.getNomeBeneficiarioDeclarado().trim();
+        String documento = DocumentoValidador.somenteDigitos(boleto.getDocumentoBeneficiarioDeclarado());
+
+        if (nome.isEmpty()) {
+            return ResultadoVerificacao.naoVerificado(
+                "Beneficiário",
+                "Nome do beneficiário não informado.",
+                0
+            );
+        }
+
+        boolean cpf = documento.length() == 11;
+        boolean documentoValido = cpf ? DocumentoValidador.cpfValido(documento)
+                                      : DocumentoValidador.cnpjValido(documento);
+        if (!documento.isEmpty() && !documentoValido) {
+            return ResultadoVerificacao.falhou(
+                "Beneficiário",
+                "O " + (cpf ? "CPF" : "CNPJ") + " informado (" + DocumentoValidador.formatar(documento) +
+                ") não é válido: os dígitos verificadores não conferem.",
+                50,
+                "o CPF/CNPJ de quem vai receber não existe (os números não fecham a conta de verificação)",
+                List.of("O CPF/CNPJ do beneficiário não existe. Boletos falsos costumam trazer documentos inventados. " +
+                        "Confira o número impresso no boleto; se estiver igual, não pague.")
+            );
+        }
+
+        String nomeNormalizado = Normalizer.normalize(nome, Normalizer.Form.NFD)
+            .replaceAll("\\p{M}", "").toUpperCase();
+        if (cpf && NOME_EMPRESA.matcher(nomeNormalizado).find()) {
+            return ResultadoVerificacao.falhou(
+                "Beneficiário",
+                "O beneficiário \"" + nome + "\" parece ser uma empresa, mas o documento é um CPF (pessoa física).",
+                30,
+                "uma empresa está recebendo o pagamento em nome de uma pessoa física (CPF)",
+                List.of("Uma empresa recebendo em nome de uma pessoa física é um sinal clássico de golpe. " +
+                        "Empresas recebem boletos em CNPJ. Confirme com a empresa por um canal oficial.")
+            );
+        }
+
+        long letras = nomeNormalizado.chars().filter(Character::isLetter).count();
+        if (letras < 3 || nomeNormalizado.matches(".*\\d{3,}.*")) {
+            return ResultadoVerificacao.falhou(
+                "Beneficiário",
+                "O nome do beneficiário \"" + nome + "\" está incompleto ou fora do padrão.",
+                20,
+                "o nome de quem vai receber está incompleto ou fora do padrão",
+                List.of("Informe o nome do beneficiário exatamente como aparece no boleto.")
+            );
+        }
+
+        if (documento.isEmpty()) {
+            return ResultadoVerificacao.passou(
+                "Beneficiário",
+                "Beneficiário: " + nome + " (CPF/CNPJ não informado). Confirme que é quem você espera pagar.",
+                0
+            );
+        }
+
+        return ResultadoVerificacao.passou(
+            "Beneficiário",
+            "Beneficiário: " + nome + " — " + (cpf ? "CPF " : "CNPJ ") + DocumentoValidador.formatar(documento) +
+            " válido. Na hora de pagar, confira se o nome mostrado pelo banco é o mesmo.",
+            0
+        );
     }
 
     /**
@@ -256,21 +335,23 @@ public class MotorRiscoServico {
         int score,
         Analise.NivelRisco nivelRisco,
         List<VerificacaoDTO> verificacoes,
-        List<String> alertas
+        List<String> alertas,
+        List<String> motivos
     ) {}
 
-    private record ResultadoVerificacao(VerificacaoDTO dto, int pontos, List<String> alertas) {
+    // motivo: frase curta em linguagem simples para a explicação do risco (só existe quando falha)
+    private record ResultadoVerificacao(VerificacaoDTO dto, int pontos, List<String> alertas, String motivo) {
         static ResultadoVerificacao passou(String nome, String descricao, int pontos) {
             return new ResultadoVerificacao(
-                new VerificacaoDTO(nome, "PASSOU", descricao, pontos), pontos, List.of());
+                new VerificacaoDTO(nome, "PASSOU", descricao, pontos), pontos, List.of(), null);
         }
-        static ResultadoVerificacao falhou(String nome, String descricao, int pontos, List<String> alertas) {
+        static ResultadoVerificacao falhou(String nome, String descricao, int pontos, String motivo, List<String> alertas) {
             return new ResultadoVerificacao(
-                new VerificacaoDTO(nome, "FALHOU", descricao, pontos), pontos, alertas);
+                new VerificacaoDTO(nome, "FALHOU", descricao, pontos), pontos, alertas, motivo);
         }
         static ResultadoVerificacao naoVerificado(String nome, String descricao, int pontos) {
             return new ResultadoVerificacao(
-                new VerificacaoDTO(nome, "NAO_VERIFICADO", descricao, pontos), pontos, List.of());
+                new VerificacaoDTO(nome, "NAO_VERIFICADO", descricao, pontos), pontos, List.of(), null);
         }
     }
 }

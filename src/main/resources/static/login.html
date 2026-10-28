@@ -33,12 +33,12 @@
         <div class="mb-3">
           <label class="form-label fw-semibold small">Agência</label>
           <input type="text" id="agencia" class="form-control form-control-bradesco"
-            placeholder="Ex: 0001" maxlength="10" autocomplete="off" required>
+            placeholder="Ex: 0001" maxlength="4" inputmode="numeric" autocomplete="off" required>
         </div>
         <div class="mb-3">
           <label class="form-label fw-semibold small">Conta</label>
           <input type="text" id="conta" class="form-control form-control-bradesco"
-            placeholder="Ex: 12345-6" maxlength="20" autocomplete="off" required>
+            placeholder="Ex: 12345-6" maxlength="7" inputmode="numeric" autocomplete="off" required>
         </div>
         <div class="mb-4">
           <label class="form-label fw-semibold small">Senha</label>
@@ -77,6 +77,9 @@
 <script>
   // Se já logado, vai para home
   if (API.getToken()) window.location.href = '/home.html';
+
+  Mascara.aplicar(document.getElementById('agencia'), 'agencia');
+  Mascara.aplicar(document.getElementById('conta'), 'conta');
 
   document.getElementById('btn-ver-senha').addEventListener('click', () => {
     const input = document.getElementById('senha');

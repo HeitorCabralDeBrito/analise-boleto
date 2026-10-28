@@ -36,8 +36,16 @@
   <div class="card-bradesco mb-3">
     <div class="card-body py-2 px-3">
       <div class="row g-2 align-items-center">
-        <div class="col-12 col-sm-6">
-          <label class="form-label small mb-1">Filtrar por risco:</label>
+        <div class="col-12 col-sm-3">
+          <label class="form-label small mb-1">Situação:</label>
+          <select id="filtro-pago" class="form-select form-select-sm" onchange="filtrar()">
+            <option value="">Todos</option>
+            <option value="PAGO">Pagos</option>
+            <option value="NAO_PAGO">Não pagos</option>
+          </select>
+        </div>
+        <div class="col-12 col-sm-3">
+          <label class="form-label small mb-1">Risco:</label>
           <select id="filtro-risco" class="form-select form-select-sm" onchange="filtrar()">
             <option value="">Todos</option>
             <option value="BAIXO">Baixo</option>
@@ -103,14 +111,16 @@
 
   function filtrar() {
     const risco = document.getElementById('filtro-risco').value;
+    const situacao = document.getElementById('filtro-pago').value;
     const busca = document.getElementById('filtro-busca').value.toLowerCase();
 
     const filtrados = todosItens.filter(item => {
       const matchRisco = !risco || item.nivelRisco === risco;
+      const matchSituacao = !situacao || (situacao === 'PAGO') === item.pago;
       const matchBusca = !busca ||
         (item.linhaDigitavel || '').toLowerCase().includes(busca) ||
         (item.nomeBeneficiario || '').toLowerCase().includes(busca);
-      return matchRisco && matchBusca;
+      return matchRisco && matchSituacao && matchBusca;
     });
 
     renderizar(filtrados);
@@ -136,6 +146,13 @@
       const riscoLabel = niveisLabel[item.nivelRisco] || item.nivelRisco;
       const tipoLabel = tiposLabel[item.tipoEntrada] || item.tipoEntrada;
 
+      // Pago com risco alto fica em vermelho: o usuário ignorou o alerta
+      const situacao = !item.pago
+        ? { texto: 'Não pago', cor: '#6c757d', bg: '#e9ecef' }
+        : item.nivelRisco === 'ALTO'
+          ? { texto: '✓ Pago apesar do risco alto', cor: '#dc3545', bg: '#fee2e2' }
+          : { texto: '✓ Pago', cor: '#198754', bg: '#d1fae5' };
+
       const div = document.createElement('div');
       div.className = 'historico-item';
       div.innerHTML = `
@@ -146,6 +163,9 @@
             </span>
             <span style="font-size:1.3rem;font-weight:800;color:${riscoCor};">${item.score}<span style="font-size:0.7rem;font-weight:400;color:#999;">/100</span></span>
             <span class="badge-entrada badge-${(item.tipoEntrada || 'manual').toLowerCase()}">${tipoLabel}</span>
+            <span style="background:${situacao.bg};color:${situacao.cor};border-radius:20px;padding:3px 12px;font-size:0.78rem;font-weight:700;">
+              ${situacao.texto}
+            </span>
           </div>
           <div class="text-muted" style="font-size:0.75rem;">${data}</div>
         </div>

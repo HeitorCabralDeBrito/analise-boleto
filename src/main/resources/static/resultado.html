@@ -67,6 +67,20 @@
     </div>
   </div>
 
+  <!-- Explicação do risco em linguagem simples -->
+  <div class="card-bradesco d-none" id="card-ia">
+    <div class="card-header d-flex align-items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+      </svg>
+      O que isso significa
+      <span class="badge bg-secondary ms-auto" style="font-size:0.65rem; font-weight:400;" id="origem-explicacao"></span>
+    </div>
+    <div class="card-body">
+      <p class="mb-0 small" id="explicacao-ia" style="white-space:pre-line;"></p>
+    </div>
+  </div>
+
   <!-- Dados do boleto -->
   <div class="card-bradesco">
     <div class="card-header">Dados do boleto</div>
@@ -106,19 +120,6 @@
     <div class="card-body p-0 px-3" id="lista-verificacoes"></div>
   </div>
 
-  <!-- Explicação da IA (se disponível) -->
-  <div class="card-bradesco d-none" id="card-ia">
-    <div class="card-header d-flex align-items-center gap-2">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-      </svg>
-      Orientação da IA
-      <span class="badge bg-secondary ms-auto" style="font-size:0.65rem; font-weight:400;">texto gerado por IA</span>
-    </div>
-    <div class="card-body">
-      <p class="mb-0 small" id="explicacao-ia"></p>
-    </div>
-  </div>
 
   <!-- Aviso risco ALTO -->
   <div class="d-none" id="aviso-alto">
@@ -171,7 +172,9 @@
   document.getElementById('dados-valor').textContent = analise.valor || 'Não verificado';
   document.getElementById('dados-vencimento').textContent = analise.vencimento || 'Não verificado';
   if (analise.nomeBeneficiario) {
-    document.getElementById('dados-beneficiario').textContent = analise.nomeBeneficiario;
+    document.getElementById('dados-beneficiario').textContent = analise.documentoBeneficiario
+      ? `${analise.nomeBeneficiario} — ${analise.documentoBeneficiario}`
+      : analise.nomeBeneficiario;
   } else {
     document.getElementById('dados-beneficiario-wrap').classList.add('d-none');
   }
@@ -209,9 +212,11 @@
   });
 
   // IA
-  if (analise.iaDisponivel && analise.explicacaoIa) {
+  if (analise.explicacao) {
     document.getElementById('card-ia').classList.remove('d-none');
-    document.getElementById('explicacao-ia').textContent = analise.explicacaoIa;
+    document.getElementById('explicacao-ia').textContent = analise.explicacao;
+    document.getElementById('origem-explicacao').textContent =
+      analise.explicacaoGeradaPorIa ? 'texto gerado por IA' : 'gerada pelas regras de análise';
   }
 
   // Botões de ação conforme nível de risco

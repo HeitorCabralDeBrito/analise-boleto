@@ -93,45 +93,8 @@
           <input type="text" id="linha-digitavel" class="form-control form-control-bradesco"
             placeholder="00000.00000 00000.000000 00000.000000 0 00000000000000"
             maxlength="54" inputmode="numeric" autocomplete="off">
-          <div class="form-text">Aceita com ou sem espaços e pontos. Somente boletos bancários de cobrança.</div>
+          <div class="form-text">Digite só os números: pontos e espaços entram sozinhos. Somente boletos bancários de cobrança.</div>
           <div id="erro-linha" class="text-danger small mt-1 d-none"></div>
-        </div>
-
-        <hr class="my-3">
-        <div class="fw-semibold small mb-2 text-muted">Dados opcionais (melhoram a análise)</div>
-
-        <div class="row g-2 mb-2">
-          <div class="col-12 col-sm-6">
-            <label class="form-label small">Valor do boleto</label>
-            <input type="text" id="valor-declarado" class="form-control form-control-bradesco"
-              placeholder="Ex: 150,00" inputmode="decimal">
-          </div>
-          <div class="col-12 col-sm-6">
-            <label class="form-label small">Vencimento</label>
-            <input type="date" id="vencimento-declarado" class="form-control form-control-bradesco">
-          </div>
-        </div>
-
-        <div class="row g-2 mb-2">
-          <div class="col-12">
-            <label class="form-label small">Nome do beneficiário (quem vai receber)</label>
-            <input type="text" id="nome-beneficiario" class="form-control form-control-bradesco"
-              placeholder="Razão social ou nome completo" maxlength="200">
-          </div>
-        </div>
-
-        <div class="row g-2 mb-3">
-          <div class="col-12">
-            <label class="form-label small">Origem do boleto</label>
-            <select id="origem" class="form-select form-control-bradesco">
-              <option value="">Não informar</option>
-              <option value="WHATSAPP">WhatsApp</option>
-              <option value="EMAIL">E-mail</option>
-              <option value="SITE">Site / sistema</option>
-              <option value="IMPRESSO">Impresso / correio</option>
-              <option value="OUTRO">Outro</option>
-            </select>
-          </div>
         </div>
       </div>
     </div>
@@ -159,9 +122,65 @@
 
         <div id="resultado-ocr" class="d-none mt-3">
           <div class="fw-semibold small mb-2">Linha digitável extraída:</div>
-          <input type="text" id="linha-ocr" class="form-control form-control-bradesco mb-2" placeholder="Linha extraída pelo OCR">
+          <input type="text" id="linha-ocr" class="form-control form-control-bradesco mb-2"
+            placeholder="Linha extraída pelo OCR" maxlength="54" inputmode="numeric" autocomplete="off">
           <div class="form-text text-warning">
             <b>Confirme se a linha está correta</b> antes de prosseguir. OCR pode cometer erros.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Beneficiário e demais dados (vale para digitação e upload) -->
+    <div class="card-bradesco">
+      <div class="card-header">Quem vai receber</div>
+      <div class="card-body">
+        <div class="row g-2 mb-2">
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Nome do beneficiário <span class="text-danger">*</span></label>
+            <input type="text" id="nome-beneficiario" class="form-control form-control-bradesco"
+              placeholder="Exatamente como aparece no boleto" maxlength="200" autocomplete="off">
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">CPF ou CNPJ do beneficiário <span class="text-danger">*</span></label>
+            <input type="text" id="documento-beneficiario" class="form-control form-control-bradesco"
+              placeholder="000.000.000-00 ou 00.000.000/0000-00" maxlength="18" inputmode="numeric" autocomplete="off">
+            <div id="erro-documento" class="text-danger small mt-1 d-none"></div>
+          </div>
+        </div>
+        <div class="form-text mb-2">
+          O nome e o CPF/CNPJ ficam impressos no boleto, no campo "Beneficiário".
+        </div>
+
+        <hr class="my-3">
+        <div class="fw-semibold small mb-2 text-muted">Dados opcionais (melhoram a análise)</div>
+
+        <div class="row g-2 mb-2">
+          <div class="col-12 col-sm-6">
+            <label class="form-label small">Valor do boleto</label>
+            <div class="input-group">
+              <span class="input-group-text">R$</span>
+              <input type="text" id="valor-declarado" class="form-control form-control-bradesco"
+                placeholder="0,00" inputmode="numeric" autocomplete="off">
+            </div>
+          </div>
+          <div class="col-12 col-sm-6">
+            <label class="form-label small">Vencimento</label>
+            <input type="date" id="vencimento-declarado" class="form-control form-control-bradesco">
+          </div>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-12">
+            <label class="form-label small">Origem do boleto</label>
+            <select id="origem" class="form-select form-control-bradesco">
+              <option value="">Não informar</option>
+              <option value="WHATSAPP">WhatsApp</option>
+              <option value="EMAIL">E-mail</option>
+              <option value="SITE">Site / sistema</option>
+              <option value="IMPRESSO">Impresso / correio</option>
+              <option value="OUTRO">Outro</option>
+            </select>
           </div>
         </div>
       </div>
@@ -191,6 +210,41 @@
   if (!API.requireAuth()) {}
 
   let tipoEntradaAtual = 'manual';
+
+  // Máscaras: o usuário digita só os números
+  Mascara.aplicar(document.getElementById('linha-digitavel'), 'linhaDigitavel');
+  Mascara.aplicar(document.getElementById('linha-ocr'), 'linhaDigitavel');
+  Mascara.aplicar(document.getElementById('documento-beneficiario'), Mascara.cpfCnpj, 14);
+  Mascara.aplicar(document.getElementById('valor-declarado'), Mascara.moeda, 12);
+
+  const docInput = document.getElementById('documento-beneficiario');
+  const erroDocEl = document.getElementById('erro-documento');
+
+  // Vazio ou com tamanho errado impede o envio. Dígito verificador errado só avisa:
+  // se o número está igual ao do boleto, o próprio boleto é suspeito e a análise vai apontar isso.
+  function validarDocumento() {
+    const digitos = docInput.value.replace(/\D/g, '');
+    let msg = '';
+    let bloqueia = false;
+    if (!digitos) { msg = 'Informe o CPF ou CNPJ do beneficiário.'; bloqueia = true; }
+    else if (digitos.length !== 11 && digitos.length !== 14) { msg = 'CPF tem 11 dígitos e CNPJ tem 14.'; bloqueia = true; }
+    else if (!Documento.valido(digitos)) {
+      msg = `${digitos.length === 11 ? 'CPF' : 'CNPJ'} inválido. Confira com o boleto: se estiver igual, desconfie.`;
+    }
+    erroDocEl.textContent = msg;
+    erroDocEl.classList.toggle('d-none', !msg);
+    docInput.classList.toggle('is-invalid', !!msg);
+    return !bloqueia;
+  }
+  docInput.addEventListener('blur', () => { if (docInput.value) validarDocumento(); });
+  document.getElementById('nome-beneficiario').addEventListener('input',
+    (e) => e.target.classList.remove('is-invalid'));
+  docInput.addEventListener('input', () => {
+    // Com 14 dígitos o CNPJ está completo; com 11 pode ser CPF ou um CNPJ pela metade,
+    // então o CPF só é conferido ao sair do campo
+    if (docInput.value.replace(/\D/g, '').length === 14) validarDocumento();
+    else { erroDocEl.classList.add('d-none'); docInput.classList.remove('is-invalid'); }
+  });
 
   function selecionarEntrada(tipo) {
     tipoEntradaAtual = tipo;
@@ -233,6 +287,7 @@
       if (resp.ok && data.linhaDigitavel) {
         document.getElementById('resultado-ocr').classList.remove('d-none');
         document.getElementById('linha-ocr').value = data.linhaDigitavel;
+        document.getElementById('linha-ocr').reformatar();
       } else {
         document.getElementById('resultado-ocr').classList.remove('d-none');
         document.getElementById('linha-ocr').value = '';
@@ -268,8 +323,23 @@
     }
 
     if (!linha) {
-      erroLinhaEl.textContent = 'Informe a linha digitável do boleto.';
-      erroLinhaEl.classList.remove('d-none');
+      // No modo upload o aviso da linha fica escondido; usa o alerta geral
+      const alvo = tipoEntradaAtual === 'manual' ? erroLinhaEl : erroEl;
+      alvo.textContent = 'Informe a linha digitável do boleto.';
+      alvo.classList.remove('d-none');
+      return;
+    }
+
+    const nomeInput = document.getElementById('nome-beneficiario');
+    const nome = nomeInput.value.trim();
+    nomeInput.classList.toggle('is-invalid', !nome);
+    const documentoOk = validarDocumento();
+    if (!nome || !documentoOk) {
+      erroEl.textContent = !nome
+        ? 'Informe o nome do beneficiário (quem vai receber o pagamento).'
+        : 'Informe o CPF ou CNPJ completo do beneficiário.';
+      erroEl.classList.remove('d-none');
+      (!nome ? nomeInput : docInput).focus();
       return;
     }
 
@@ -277,7 +347,8 @@
       linhaDigitavel: linha,
       tipoEntrada,
       origem: document.getElementById('origem')?.value || null,
-      nomeBeneficiarioDeclarado: document.getElementById('nome-beneficiario')?.value?.trim() || null,
+      nomeBeneficiarioDeclarado: nome,
+      documentoBeneficiarioDeclarado: docInput.value,
       valorDeclarado: document.getElementById('valor-declarado')?.value?.trim() || null,
       vencimentoDeclarado: document.getElementById('vencimento-declarado')?.value || null,
     };

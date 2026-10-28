@@ -35,19 +35,22 @@ public class BoletoServico {
     private final UsuarioRepositorio usuarioRepositorio;
     private final BoletoValidador boletoValidador;
     private final MotorRiscoServico motorRiscoServico;
+    private final ExplicacaoRiscoServico explicacaoRiscoServico;
 
     public BoletoServico(BoletoRepositorio boletoRepositorio,
                          AnaliseRepositorio analiseRepositorio,
                          AlertaRepositorio alertaRepositorio,
                          UsuarioRepositorio usuarioRepositorio,
                          BoletoValidador boletoValidador,
-                         MotorRiscoServico motorRiscoServico) {
+                         MotorRiscoServico motorRiscoServico,
+                         ExplicacaoRiscoServico explicacaoRiscoServico) {
         this.boletoRepositorio = boletoRepositorio;
         this.analiseRepositorio = analiseRepositorio;
         this.alertaRepositorio = alertaRepositorio;
         this.usuarioRepositorio = usuarioRepositorio;
         this.boletoValidador = boletoValidador;
         this.motorRiscoServico = motorRiscoServico;
+        this.explicacaoRiscoServico = explicacaoRiscoServico;
     }
 
     @Transactional
@@ -69,8 +72,9 @@ public class BoletoServico {
         boleto.setLinhaDigitavel(validacao.linhaDigitavelNormalizada());
         boleto.setTipoEntrada(dto.getTipoEntrada() != null ? dto.getTipoEntrada() : Boleto.TipoEntrada.MANUAL);
         boleto.setOrigem(dto.getOrigem());
-        boleto.setNomeBeneficiarioDeclarado(dto.getNomeBeneficiarioDeclarado());
-        boleto.setDocumentoBeneficiarioDeclarado(dto.getDocumentoBeneficiarioDeclarado());
+        boleto.setNomeBeneficiarioDeclarado(dto.getNomeBeneficiarioDeclarado().trim());
+        boleto.setDocumentoBeneficiarioDeclarado(
+                DocumentoValidador.somenteDigitos(dto.getDocumentoBeneficiarioDeclarado()));
 
         if (dto.getValorDeclarado() != null && !dto.getValorDeclarado().isBlank()) {
             try {
@@ -144,11 +148,11 @@ public class BoletoServico {
                 .bloquearPagamento(resultado.nivelRisco() == Analise.NivelRisco.ALTO)
                 .verificacoes(resultado.verificacoes())
                 .alertas(resultado.alertas())
-                .explicacaoIa(null)
-                .iaDisponivel(false)
+                .explicacao(explicacaoRiscoServico.explicar(resultado))
+                .explicacaoGeradaPorIa(false)
                 .linhaDigitavel(validacao.linhaDigitavelNormalizada())
-                .nomeBeneficiario(dto.getNomeBeneficiarioDeclarado())
-                .documentoBeneficiario(dto.getDocumentoBeneficiarioDeclarado())
+                .nomeBeneficiario(boleto.getNomeBeneficiarioDeclarado())
+                .documentoBeneficiario(DocumentoValidador.formatar(boleto.getDocumentoBeneficiarioDeclarado()))
                 .valor(valorFormatado)
                 .vencimento(vencimentoFormatado)
                 .build();
@@ -179,6 +183,7 @@ public class BoletoServico {
                     .dataSubmissao(b.getDataSubmissao())
                     .tipoEntrada(b.getTipoEntrada().name())
                     .origem(b.getOrigem() != null ? b.getOrigem().name() : null)
+                    .pago(Boolean.TRUE.equals(a.getConfirmacaoSimulada()))
                     .build());
         }
         return lista;

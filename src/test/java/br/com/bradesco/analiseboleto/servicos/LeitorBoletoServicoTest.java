@@ -36,8 +36,9 @@ class LeitorBoletoServicoTest {
     @BeforeEach
     void setUp() {
         validador = new BoletoValidador();
-        // IA desligada (sem chave): os testes usam só a leitura local
-        leitor = new LeitorBoletoServico(validador, new LeitorIaServico(validador, "", "gpt-4o-mini"));
+        // IA (sem chave) e Tesseract (caminho inexistente) desligados: os testes usam só o ZXing/PDFBox
+        leitor = new LeitorBoletoServico(validador, new LeitorIaServico(validador, "", "gpt-4o-mini"),
+            new OcrLocalServico(validador, "tesseract-inexistente.exe"));
     }
 
     @Test

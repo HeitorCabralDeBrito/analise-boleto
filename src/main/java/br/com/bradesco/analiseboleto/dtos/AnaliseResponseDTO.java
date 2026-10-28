@@ -16,8 +16,8 @@ public class AnaliseResponseDTO {
     private boolean bloquearPagamento;
     private List<VerificacaoDTO> verificacoes;
     private List<String> alertas;
-    private String explicacaoIa;
-    private boolean iaDisponivel;
+    private String explicacao;
+    private boolean explicacaoGeradaPorIa;
     private String linhaDigitavel;
     private String nomeBeneficiario;
     private String documentoBeneficiario;

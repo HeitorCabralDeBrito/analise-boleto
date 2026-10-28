@@ -20,4 +20,5 @@ public class HistoricoItemDTO {
     private LocalDateTime dataSubmissao;
     private String tipoEntrada;
     private String origem;
+    private boolean pago; // usuário confirmou o pagamento (simulado) após a análise
 }

@@ -35,6 +35,8 @@ import java.util.regex.Pattern;
  * Estratégias (em ordem):
  *   PDF digital → texto do PDF (PDFBox) procurando a linha digitável impressa
  *   PDF/imagem  → leitura do código de barras ITF de 44 dígitos (ZXing) e reconstrução da linha
+ *   PDF/imagem  → OCR local (Tesseract) dos números impressos, para prints de baixa resolução
+ *   PDF/imagem  → IA (OpenAI), só se tudo acima falhar e houver chave configurada
  *
  * O resultado sempre deve ser conferido pelo usuário antes da análise.
  */
@@ -54,10 +56,12 @@ public class LeitorBoletoServico {
 
     private final BoletoValidador validador;
     private final LeitorIaServico leitorIa;
+    private final OcrLocalServico ocrLocal;
 
-    public LeitorBoletoServico(BoletoValidador validador, LeitorIaServico leitorIa) {
+    public LeitorBoletoServico(BoletoValidador validador, LeitorIaServico leitorIa, OcrLocalServico ocrLocal) {
         this.validador = validador;
         this.leitorIa = leitorIa;
+        this.ocrLocal = ocrLocal;
     }
 
     public ResultadoLeitura ler(MultipartFile arquivo) {
@@ -69,9 +73,17 @@ public class LeitorBoletoServico {
             boolean pdf = "application/pdf".equals(arquivo.getContentType())
                 || (arquivo.getOriginalFilename() != null && arquivo.getOriginalFilename().toLowerCase().endsWith(".pdf"));
 
-            Optional<ResultadoLeitura> resultado = pdf ? lerPdf(bytes) : lerImagem(ImageIO.read(new java.io.ByteArrayInputStream(bytes)));
+            BufferedImage imagem = pdf ? null : ImageIO.read(new java.io.ByteArrayInputStream(bytes));
+            Optional<ResultadoLeitura> resultado = pdf ? lerPdf(bytes) : lerImagem(imagem);
 
-            // Plano B: IA lê a linha digitável impressa (ex.: código de barras coberto ou borrado)
+            // Plano B: OCR local dos números impressos (barras finas demais em prints de baixa resolução)
+            if (resultado.isEmpty() && ocrLocal.disponivel()) {
+                BufferedImage imagemOcr = pdf ? ultimaPagina(bytes, 300) : imagem;
+                resultado = ocrLocal.lerLinhaDigitavel(imagemOcr)
+                    .map(linha -> new ResultadoLeitura(linha, "OCR_LOCAL"));
+            }
+
+            // Plano C: IA lê a linha digitável impressa (ex.: código de barras coberto ou borrado)
             if (resultado.isEmpty() && leitorIa.disponivel()) {
                 byte[] imagemIa = pdf ? ultimaPaginaComoPng(bytes) : bytes;
                 String mime = pdf ? "image/png" : Optional.ofNullable(arquivo.getContentType()).orElse("image/jpeg");
@@ -116,11 +128,14 @@ public class LeitorBoletoServico {
     }
 
     private byte[] ultimaPaginaComoPng(byte[] pdf) throws IOException {
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        ImageIO.write(ultimaPagina(pdf, 150), "png", out);
+        return out.toByteArray();
+    }
+
+    private BufferedImage ultimaPagina(byte[] pdf, int dpi) throws IOException {
         try (PDDocument doc = Loader.loadPDF(pdf)) {
-            BufferedImage pagina = new PDFRenderer(doc).renderImageWithDPI(doc.getNumberOfPages() - 1, 150, ImageType.RGB);
-            java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
-            ImageIO.write(pagina, "png", out);
-            return out.toByteArray();
+            return new PDFRenderer(doc).renderImageWithDPI(doc.getNumberOfPages() - 1, dpi, ImageType.RGB);
         }
     }
 
