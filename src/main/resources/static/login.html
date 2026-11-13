@@ -6,11 +6,16 @@
   <title>Entrar — Boleto Seguro</title>
   <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
   <script src="/js/tema.js"></script>
+  <script src="/js/preferencias.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/boleto-seguro.css">
 </head>
 <body>
 <main class="login-pagina">
+  <div class="login-acess">
+    <div id="login-preferencias"></div>
+    <a href="/acessibilidade.html">Acessibilidade</a>
+  </div>
   <div class="login-card">
 
     <div class="login-logo">
@@ -25,18 +30,18 @@
       <div class="mb-3">
         <label for="agencia" class="form-label fw-semibold">Agência</label>
         <input type="text" id="agencia" class="form-control campo"
-          placeholder="Ex: 0001" maxlength="4" inputmode="numeric" autocomplete="off" required>
+          placeholder="Ex: 0001" maxlength="4" inputmode="numeric" autocomplete="off" required aria-describedby="erro-login">
       </div>
       <div class="mb-3">
         <label for="conta" class="form-label fw-semibold">Conta</label>
         <input type="text" id="conta" class="form-control campo"
-          placeholder="Ex: 12345-6" maxlength="7" inputmode="numeric" autocomplete="off" required>
+          placeholder="Ex: 12345-6" maxlength="7" inputmode="numeric" autocomplete="off" required aria-describedby="erro-login">
       </div>
       <div class="mb-4">
         <label for="senha" class="form-label fw-semibold">Senha</label>
         <div class="input-group">
           <input type="password" id="senha" class="form-control campo"
-            placeholder="Senha de demonstração" autocomplete="current-password" required>
+            placeholder="Senha de demonstração" autocomplete="current-password" required aria-describedby="erro-login">
           <button type="button" class="btn btn-contorno" id="btn-ver-senha" aria-pressed="false"
             style="border-radius:0 var(--radius-sm) var(--radius-sm) 0;">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
@@ -93,6 +98,7 @@
   }
   renderizarMarca();
   document.addEventListener('temachange', renderizarMarca);
+  Preferencias.montarControles(document.getElementById('login-preferencias'));
 
   Tema.config.then((cfg) => {
     if (cfg.academicoDisponivel) document.getElementById('seletor-tema').classList.remove('d-none');
@@ -117,9 +123,14 @@
     const senha = document.getElementById('senha').value;
     const erroEl = document.getElementById('erro-login');
 
-    if (!agencia || !conta || !senha) {
+    // Campos vazios ficam marcados (aria-invalid) e o foco vai para o primeiro deles
+    const vazios = ['agencia', 'conta', 'senha'].filter((id) => !document.getElementById(id).value.trim());
+    ['agencia', 'conta', 'senha'].forEach((id) =>
+      document.getElementById(id).setAttribute('aria-invalid', String(vazios.includes(id))));
+    if (vazios.length) {
       erroEl.textContent = 'Preencha todos os campos.';
       erroEl.classList.remove('d-none');
+      document.getElementById(vazios[0]).focus();
       return;
     }
 

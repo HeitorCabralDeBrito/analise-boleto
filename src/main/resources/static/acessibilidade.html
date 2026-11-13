@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acessibilidade — Boleto Seguro</title>
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <script src="/js/tema.js"></script>
+  <script src="/js/preferencias.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/boleto-seguro.css">
+</head>
+<body data-pagina="acessibilidade">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header class="app-topo" id="app-topo"></header>
+<div class="app-corpo">
+  <nav class="app-menu" id="app-menu" aria-label="Menu principal"></nav>
+  <!-- Página pública: pode ser aberta antes do login (link na tela de entrada) -->
+  <main class="app-principal" id="conteudo" tabindex="-1">
+    <div class="app-conteudo">
+
+      <h1 class="titulo-pagina">Acessibilidade</h1>
+      <p class="subtitulo-pagina">O Boleto Seguro foi feito para ser usado por todas as pessoas: pelo teclado, com leitor de tela, com zoom e no celular.</p>
+
+      <section class="cartao" aria-labelledby="titulo-preferencias">
+        <h2 class="cartao__cabecalho" id="titulo-preferencias">Preferências de leitura</h2>
+        <div class="cartao__corpo">
+          <p>Aumente ou diminua o texto e ative o alto contraste. As preferências ficam salvas neste navegador e valem em todas as telas.
+            Elas também estão no topo de cada página (no celular, dentro do menu ☰).</p>
+          <div id="pagina-preferencias" class="controles-pagina"></div>
+          <p class="small text-muted mt-3 mb-0">Também é possível usar o zoom do próprio navegador (Ctrl e + no computador, gesto de pinça no celular):
+            as telas se reorganizam até 400% de zoom sem precisar rolar para o lado.</p>
+        </div>
+      </section>
+
+      <section class="cartao" aria-labelledby="titulo-teclado">
+        <h2 class="cartao__cabecalho" id="titulo-teclado">Usar pelo teclado</h2>
+        <div class="cartao__corpo">
+          <p>Tudo pode ser feito sem mouse. Não há atalhos obrigatórios: só as teclas de sempre.</p>
+          <table class="table tabela-teclas mb-0">
+            <caption class="visually-hidden">Teclas e o que fazem</caption>
+            <thead><tr><th scope="col">Tecla</th><th scope="col">O que faz</th></tr></thead>
+            <tbody>
+              <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd></td><td>Vai para o próximo / volta para o anterior</td></tr>
+              <tr><td><kbd>Enter</kbd></td><td>Abre links e aciona botões</td></tr>
+              <tr><td><kbd>Espaço</kbd></td><td>Aciona botões e marca caixas de seleção</td></tr>
+              <tr><td>Setas</td><td>Escolhem opções em listas e nas opções de identidade visual</td></tr>
+              <tr><td><kbd>Esc</kbd></td><td>Fecha o menu no celular e para a leitura em voz alta</td></tr>
+            </tbody>
+          </table>
+          <p class="small text-muted mt-3 mb-0">O primeiro <kbd>Tab</kbd> de cada tela mostra o link "Pular para o conteúdo", que evita passar pelo menu toda vez.</p>
+        </div>
+      </section>
+
+      <section class="cartao" aria-labelledby="titulo-voz">
+        <h2 class="cartao__cabecalho" id="titulo-voz">Leitura em voz alta</h2>
+        <div class="cartao__corpo">
+          <p class="mb-2">Na conferência dos dados e no resultado da análise há o botão <b>Ouvir</b>, que lê o conteúdo da tela em português.
+            A leitura só começa quando você pede, e pode ser interrompida a qualquer momento pelo botão <b>Parar leitura</b> ou pela tecla <kbd>Esc</kbd>.</p>
+          <p class="mb-0">Ela é um apoio para quem tem dificuldade de leitura. Quem usa leitor de tela (NVDA, JAWS, TalkBack, VoiceOver)
+            não precisa dela: as telas foram feitas para o leitor de tela ler tudo, incluindo o resumo do que foi lido do boleto.</p>
+          <p class="small text-muted mt-2 mb-0" id="aviso-sem-voz" hidden>Este navegador não oferece leitura em voz alta, por isso o botão Ouvir não aparece.</p>
+        </div>
+      </section>
+
+      <section class="cartao" aria-labelledby="titulo-declaracao">
+        <h2 class="cartao__cabecalho" id="titulo-declaracao">Declaração de acessibilidade</h2>
+        <div class="cartao__corpo">
+          <p><b>Objetivo:</b> atender às Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2, nível AA.
+            Este é um objetivo verificado por testes, <b>não uma certificação</b>.</p>
+
+          <h3 class="fs-6 fw-semibold">Como foi verificado (13/11/2026)</h3>
+          <ul>
+            <li>Análise automática com a ferramenta axe-core em todas as telas, nos dois temas, com alto contraste e com o texto em 150%.</li>
+            <li>Contraste de cores medido por um teste automático do projeto (mínimo 4,5:1 para textos e 3:1 para bordas e foco).</li>
+            <li>Fluxo completo feito somente pelo teclado, do login à confirmação.</li>
+            <li>Telas com 320 px de largura (equivalente a 400% de zoom) sem rolagem para o lado.</li>
+          </ul>
+
+          <h3 class="fs-6 fw-semibold">Ainda não verificado</h3>
+          <ul>
+            <li>Uso com os leitores de tela NVDA (Windows) e TalkBack (Android) por pessoas que os utilizam no dia a dia.</li>
+          </ul>
+
+          <h3 class="fs-6 fw-semibold">Limitações conhecidas</h3>
+          <ul class="mb-0">
+            <li>"Arrastar e soltar" o arquivo só funciona com mouse; pelo teclado, use os botões <b>Fotografar</b> ou <b>Selecionar arquivo</b>, que fazem o mesmo.</li>
+            <li>A leitura automática do boleto depende da qualidade da imagem. Os campos que não forem lidos aparecem como "Não identificado" para você preencher, e é sempre possível digitar tudo.</li>
+            <li>A leitura em voz alta depende das vozes instaladas no aparelho.</li>
+          </ul>
+        </div>
+      </section>
+
+      <p class="text-center small text-muted">Protótipo acadêmico — Universidade Anhembi Morumbi. Nenhuma transação financeira real.</p>
+
+    </div>
+  </main>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/js/leitura-voz.js"></script>
+<script>
+  Preferencias.montarControles(document.getElementById('pagina-preferencias'));
+  if (!LeituraVoz.suportado) document.getElementById('aviso-sem-voz').hidden = false;
+</script>
+</body>
+</html>

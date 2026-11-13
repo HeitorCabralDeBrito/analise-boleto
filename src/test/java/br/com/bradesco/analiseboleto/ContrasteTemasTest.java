@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
- * Mede o contraste dos pares de cores usados nas telas, nos dois temas, a partir dos tokens do CSS real.
+ * Mede o contraste dos pares de cores usados nas telas, nos dois temas e no alto contraste, a partir dos tokens do CSS real.
  * Critérios WCAG 2.2 AA: 4,5:1 para texto (1.4.3) e 3:1 para bordas de campos, foco e componentes (1.4.11).
  */
 class ContrasteTemasTest {
@@ -59,7 +59,7 @@ class ContrasteTemasTest {
     static void lerTokens() throws IOException {
         String css = Files.readString(CSS);
         temas = new HashMap<>();
-        Matcher bloco = Pattern.compile("\\[data-theme=\"(\\w+)\"]\\s*\\{([^}]*)}").matcher(css);
+        Matcher bloco = Pattern.compile("\\[data-(?:theme|contraste)=\"(\\w+)\"]\\s*\\{([^}]*)}").matcher(css);
         while (bloco.find()) {
             Map<String, String> cores = new HashMap<>();
             Matcher token = Pattern.compile("--color-([\\w-]+):\\s*(#[0-9A-Fa-f]{6})\\s*;").matcher(bloco.group(2));
@@ -69,7 +69,8 @@ class ContrasteTemasTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"proprio", "academico"})
+    // "alto" = preferência de alto contraste ([data-contraste="alto"]), que vale sobre os dois temas
+    @ValueSource(strings = {"proprio", "academico", "alto"})
     void paresDeCoresAtendemWcagAA(String tema) {
         Map<String, String> cores = temas.get(tema);
         assertTrue(cores != null && !cores.isEmpty(), "Bloco [data-theme=\"" + tema + "\"] não encontrado no CSS");

@@ -9,6 +9,8 @@ const Layout = {
       icone: '<path d="M4 5v14M7 5v14M10 5v14M14 5v14M17 5v14M20 5v14"/>' },
     { id: 'historico', href: '/historico.html', texto: 'Histórico',
       icone: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>' },
+    { id: 'acessibilidade', href: '/acessibilidade.html', texto: 'Acessibilidade',
+      icone: '<circle cx="12" cy="4.5" r="1.8"/><path d="M5 8.5l7 1.5 7-1.5M12 10v4.5M12 14.5l-3.5 6M12 14.5l3.5 6"/>' },
   ],
 
   icone(conteudo) {
@@ -28,7 +30,7 @@ const Layout = {
   renderizarTopo() {
     const topo = document.getElementById('app-topo');
     if (!topo) return;
-    const usuario = API.getUsuario();
+    const usuario = API.getToken() ? API.getUsuario() : null;
     const nome = usuario ? Html.escapar(usuario.nome.split(' ')[0]) : '';
     topo.innerHTML = `
       <div class="app-topo__barra">
@@ -38,14 +40,19 @@ const Layout = {
         </button>
         <a class="app-topo__marca" href="/home.html" title="Ir para o início">${Layout.marca()}</a>
         <span class="aviso-prototipo app-topo__aviso">Protótipo acadêmico — sem vínculo com contas reais</span>
+        <div class="app-topo__acess" id="topo-acess"></div>
         <div class="app-topo__usuario">
           ${nome ? `<span class="app-topo__ola">Olá, <b>${nome}</b></span>` : ''}
-          <button type="button" class="btn-topo" id="btn-logout">Sair</button>
+          ${usuario
+            ? '<button type="button" class="btn-topo" id="btn-logout">Sair</button>'
+            : '<a class="btn-topo" href="/login.html">Entrar</a>'}
         </div>
       </div>
       <p class="faixa-prototipo mb-0">Protótipo acadêmico — nenhuma transação financeira real</p>`;
-    document.getElementById('btn-logout').addEventListener('click', () => API.logout());
+    const sair = document.getElementById('btn-logout');
+    if (sair) sair.addEventListener('click', () => API.logout());
     document.getElementById('btn-menu').addEventListener('click', () => Layout.abrirMenu());
+    Preferencias.montarControles(document.getElementById('topo-acess'));
   },
 
   renderizarMenu() {
@@ -61,7 +68,12 @@ const Layout = {
           <li><a class="app-menu__link" href="${p.href}"${p.id === atual ? ' aria-current="page"' : ''}>
             ${Layout.icone(p.icone)}<span>${p.texto}</span></a></li>`).join('')}
       </ul>
+      <div class="app-menu__acess">
+        <p class="app-menu__titulo">Preferências de leitura</p>
+        <div id="menu-acess"></div>
+      </div>
       <p class="app-menu__rodape mb-0">Protótipo acadêmico. Nenhuma transação financeira real é realizada.</p>`;
+    Preferencias.montarControles(document.getElementById('menu-acess'));
 
     const fundo = document.createElement('div');
     fundo.className = 'menu-fundo';

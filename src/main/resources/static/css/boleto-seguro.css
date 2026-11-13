@@ -87,6 +87,60 @@
   --color-risk-alto: #B42318;
 }
 
+/* === ALTO CONTRASTE (preferência do usuário; vale sobre qualquer um dos temas) ===
+ * Fica depois dos dois temas: mesma especificidade, então estes valores prevalecem.
+ * Preto e branco, contornos fortes e amarelo para o foco sobre fundos escuros. */
+[data-contraste="alto"] {
+  --color-primary: #000000;
+  --color-on-primary: #FFFFFF;
+  --color-action: #0033A0;
+  --color-action-hover: #001F66;
+  --color-on-action: #FFFFFF;
+  --color-action-soft: #E6ECFA;
+  --color-action-text: #0033A0;
+  --color-bg: #FFFFFF;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #F0F0F0;
+  --color-text: #000000;
+  --color-muted: #1A1A1A;
+  --color-border: #000000;
+  --color-border-strong: #000000;
+  --color-focus: #000000;
+  --color-header-bg: #000000;
+  --color-on-header: #FFFFFF;
+  --color-header-muted: #FFFFFF;
+  --color-header-focus: #FFD400;
+  --color-nav-bg: #000000;
+  --color-nav-text: #FFFFFF;
+  --color-nav-hover: #333333;
+  --color-nav-active-bg: #FFD400;
+  --color-on-nav-active: #000000;
+  --color-nav-focus: #FFD400;
+  --color-success: #005C2E;
+  --color-success-text: #005C2E;
+  --color-success-soft: #E3F5EA;
+  --color-warning-text: #5C3300;
+  --color-warning-soft: #FFF4C2;
+  --color-warning-border: #000000;
+  --color-danger: #A00000;
+  --color-danger-soft: #FDE8E8;
+  --color-risk-baixo: #005C2E;
+  --color-risk-medio: #7A3E00;
+  --color-risk-alto: #A00000;
+}
+[data-contraste="alto"] a:not(.btn-primario):not(.btn-contorno):not(.btn-topo):not(.acao-card):not(.app-menu__link):not(.app-topo__marca) {
+  text-decoration: underline;
+}
+[data-contraste="alto"] .cartao,
+[data-contraste="alto"] .historico-item,
+[data-contraste="alto"] .acao-card,
+[data-contraste="alto"] .option-card,
+[data-contraste="alto"] .login-card { border: 2px solid var(--color-border); box-shadow: none; }
+[data-contraste="alto"] .selo { border: 1px solid currentColor; }
+[data-contraste="alto"] :focus-visible { outline-width: 4px; }
+[data-contraste="alto"] .login-pagina,
+[data-contraste="alto"] .saudacao-card { border: 2px solid #FFFFFF; }
+
 /* === Valores comuns e integração com o Bootstrap === */
 :root {
   --radius: 12px;
@@ -103,6 +157,10 @@
   --bs-link-color: var(--color-action-text);
   --bs-link-hover-color: var(--color-action-hover);
   --bs-danger-text-emphasis: var(--color-danger);
+  /* Estado inválido dos formulários (texto e borda) com o vermelho do tema, que tem contraste medido;
+     o vermelho padrão do Bootstrap (#dc3545) fica abaixo de 4,5:1 sobre fundos cinza */
+  --bs-form-invalid-color: var(--color-danger);
+  --bs-form-invalid-border-color: var(--color-danger);
 }
 
 * { box-sizing: border-box; }
@@ -113,6 +171,9 @@ body {
   color: var(--color-text);
   min-height: 100vh;
   line-height: 1.5;
+  /* Palavra longa demais para o espaço (texto ampliado, tela estreita) quebra em vez de vazar para o lado */
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 a { color: var(--color-action-text); }
@@ -226,6 +287,46 @@ a:hover { color: var(--color-action-hover); }
 }
 .btn-menu:hover { background: rgba(255, 255, 255, 0.12); }
 
+/* Preferências de leitura (A− / A / A+ / alto contraste) */
+.controles-acess { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
+.btn-acess {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1;
+  background: transparent;
+  color: inherit;
+  border: 1px solid currentColor;
+}
+.btn-acess:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-acess[aria-pressed="true"] { background: var(--color-action); color: var(--color-on-action); border-color: var(--color-action); }
+/* No cabeçalho o texto "Alto contraste" vira só o ícone (o nome acessível continua completo) */
+.app-topo .btn-acess__texto { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.app-topo__acess { color: var(--color-on-header); }
+.app-topo .btn-acess { border-color: rgba(255, 255, 255, 0.6); }
+.app-topo .btn-acess[aria-pressed="true"] { background: var(--color-on-header); color: var(--color-header-bg); border-color: var(--color-on-header); }
+/* Preferências na página Acessibilidade: botões maiores, com texto visível */
+.controles-pagina .btn-acess { min-height: 44px; min-width: 52px; font-size: 1rem; color: var(--color-action-text); border-color: var(--color-action); }
+.controles-pagina .btn-acess[aria-pressed="true"] { color: var(--color-on-action); }
+.tabela-teclas { --bs-table-bg: transparent; --bs-table-color: var(--color-text); }
+.tabela-teclas th, .tabela-teclas td { border-color: var(--color-border); }
+kbd { background: var(--color-surface-alt); color: var(--color-text); border: 1px solid var(--color-border-strong); border-radius: 4px; padding: 0 0.35rem; font-size: 0.85em; }
+.btn-ouvir { min-height: 40px; padding: 0.4rem 1rem; font-size: 0.9rem; }
+
+/* Barra de preferências do login (sobre a cor primária) */
+.login-acess { width: 100%; max-width: 420px; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; color: var(--color-on-primary); }
+.login-acess .btn-acess { border-color: rgba(255, 255, 255, 0.7); }
+.login-acess .btn-acess[aria-pressed="true"] { background: var(--color-on-primary); color: var(--color-primary); border-color: var(--color-on-primary); }
+.login-acess a { color: var(--color-on-primary); font-size: 0.875rem; text-decoration: underline; }
+.login-acess :focus-visible { outline-color: var(--color-on-primary); }
+
 /* Faixa do aviso em telas estreitas (no desktop o aviso fica dentro do cabeçalho) */
 .faixa-prototipo {
   display: none;
@@ -285,6 +386,11 @@ a:hover { color: var(--color-action-hover); }
   opacity: 0.9;
 }
 .app-menu__fechar { display: none; }
+/* Na gaveta do celular as preferências ficam no menu; no desktop elas estão no cabeçalho */
+.app-menu__acess { display: none; margin-top: 1.25rem; padding: 0 0.85rem; color: var(--color-nav-text); }
+.app-menu__titulo { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; }
+.app-menu__acess .btn-acess { border-color: var(--color-nav-text); }
+.app-menu__acess .btn-acess[aria-pressed="true"] { background: var(--color-nav-active-bg); color: var(--color-on-nav-active); border-color: var(--color-nav-active-bg); }
 .menu-fundo {
   display: none;
   position: fixed;
@@ -530,9 +636,11 @@ a:hover { color: var(--color-action-hover); }
   .painel-inicio__rodape { grid-area: rodape; }
 }
 
+/* Colunas medidas em rem: acompanham o tamanho do texto (A+) e empilham quando não cabem */
+.acoes-inicio { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 1rem; }
 .resumo-numeros {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
   gap: 0.75rem;
   text-align: center;
 }
@@ -542,6 +650,7 @@ a:hover { color: var(--color-action-hover); }
 
 .ultima-analise {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
@@ -886,10 +995,16 @@ a:hover { color: var(--color-action-hover); }
 .rodape-academico { font-size: 0.875rem; color: var(--color-muted); }
 
 /* === RESPONSIVO === */
-@media (max-width: 991.98px) {
-  .btn-menu { display: inline-flex; }
+/* Entre 992 e 1279 px o cabeçalho não comporta aviso + preferências + usuário: o aviso vai para a faixa */
+@media (max-width: 1279.98px) {
   .app-topo__aviso { display: none; }
   .faixa-prototipo { display: block; }
+}
+
+@media (max-width: 991.98px) {
+  .btn-menu { display: inline-flex; }
+  .app-topo__acess { display: none; }
+  .app-menu__acess { display: block; }
   .app-topo__usuario { margin-left: auto; }
 
   /* Menu lateral vira gaveta: fica fora da tela (e fora da ordem de tabulação) até ser aberto */

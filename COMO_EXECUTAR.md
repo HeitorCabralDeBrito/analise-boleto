@@ -178,6 +178,20 @@ boleto.seguro.tema.academico.pasta=marca-academica   # outra pasta, se preferir
 
 ---
 
+## 8.2 Acessibilidade
+
+Objetivo: WCAG 2.2 nível AA (verificado por testes, não é certificação). Detalhes e declaração na página `/acessibilidade.html`
+(pública, com link na tela de login).
+
+- Preferências opcionais, salvas no navegador: tamanho do texto (A− / A / A+, de 87,5% a 150%) e alto contraste.
+  No computador ficam no cabeçalho; no celular, dentro do menu ☰.
+- Leitura em voz alta **sob demanda** (Web Speech API) na conferência e no resultado, com "Parar leitura" e tecla Esc.
+- Navegação completa pelo teclado, link "Pular para o conteúdo", foco visível, erros ligados aos campos (`aria-invalid`).
+- Testes: `ContrasteTemasTest` mede o contraste dos dois temas e do alto contraste; a auditoria com axe-core e o fluxo
+  só pelo teclado estão registrados nas evidências do Checkpoint 3.
+
+---
+
 ## 9. Endpoints da API REST
 
 | Método | Endpoint | Descrição | Auth |

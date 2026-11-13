@@ -6,6 +6,7 @@
   <title>Pagar boleto — Boleto Seguro</title>
   <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
   <script src="/js/tema.js"></script>
+  <script src="/js/preferencias.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/boleto-seguro.css">
 </head>
@@ -95,7 +96,8 @@
         <div class="cartao">
           <div class="cartao__corpo">
             <h2 class="fs-5 fw-bold mb-1 titulo-foco" id="titulo-conferir" tabindex="-1">Confira os dados do boleto</h2>
-            <p class="text-muted mb-3" id="resumo-leitura">Preencha os dados exatamente como aparecem no boleto.</p>
+            <p class="text-muted mb-2" id="resumo-leitura">Preencha os dados exatamente como aparecem no boleto.</p>
+            <div id="ouvir-leitura" class="mb-3"></div>
 
             <div id="avisos-leitura" class="alerta-item d-none"></div>
 
@@ -134,7 +136,7 @@
                 placeholder="000.000.000-00 ou 00.000.000/0000-00" maxlength="18" inputmode="numeric" autocomplete="off" required
                 aria-describedby="fonte-documento obs-documento erro-documento">
               <div class="form-text texto-observacao d-none" id="obs-documento"></div>
-              <div id="erro-documento" class="texto-erro d-none"></div>
+              <div id="erro-documento" class="texto-erro d-none" aria-live="polite"></div>
             </div>
 
             <div class="row g-3">
@@ -207,6 +209,7 @@
 
 <script src="/js/api.js"></script>
 <script src="/js/layout.js"></script>
+<script src="/js/leitura-voz.js"></script>
 <script>
   if (!API.requireAuth()) {}
 
@@ -233,6 +236,11 @@
   let leituraCanceladaPeloUsuario = false;
 
   const $ = (id) => document.getElementById(id);
+  // Erro visível (borda vermelha) e anunciado ao leitor de tela (aria-invalid)
+  const marcarInvalido = (el, invalido) => {
+    el.classList.toggle('is-invalid', invalido);
+    if (invalido) el.setAttribute('aria-invalid', 'true'); else el.removeAttribute('aria-invalid');
+  };
   const docInput = $('documento-beneficiario');
   const erroDocEl = $('erro-documento');
 
@@ -302,8 +310,9 @@
     $('origem').value = '';
     $('confirmo-dados').checked = false;
     ['erro-linha', 'erro-documento', 'erro-confirmo', 'erro-geral'].forEach((id) => $(id).classList.add('d-none'));
-    docInput.classList.remove('is-invalid');
-    $('nome-beneficiario').classList.remove('is-invalid');
+    [docInput, $('nome-beneficiario'), $('linha-digitavel'), $('confirmo-dados')].forEach((el) => marcarInvalido(el, false));
+    if (LeituraVoz.botaoAtivo) LeituraVoz.parar();
+    $('ouvir-leitura').innerHTML = '';
     $('avisos-leitura').classList.add('d-none');
     $('dados-codigo').classList.add('d-none');
     $('resumo-leitura').textContent = 'Preencha os dados exatamente como aparecem no boleto.';
@@ -444,12 +453,31 @@
       $('dados-codigo').classList.remove('d-none');
     }
 
+    LeituraVoz.suportado && LeituraVoz.criarBotao($('ouvir-leitura'), textoDaConferencia, 'Ouvir dados lidos');
     mostrar('conferir');
     $('anuncio').textContent =
       `Leitura concluída. ${identificados.length} de 5 campos identificados` +
       (faltando.length ? `. Não identificados: ${faltando.map((k) => ROTULOS[k]).join(', ')}` : '') +
       '. Confira cada campo antes de analisar.';
     $('titulo-conferir').focus();
+  }
+
+  // Texto lido em voz alta: o que está nos campos agora (inclusive o que o usuário corrigiu) e de onde veio
+  function textoDaConferencia() {
+    const partes = ['Dados do boleto para conferir.'];
+    const descrever = (chave, rotulo, valor) => {
+      const fonte = $('fonte-' + chave).textContent;
+      partes.push(valor ? `${rotulo}: ${valor}. ${fonte}.` : `${rotulo}: não preenchido.`);
+    };
+    descrever('linha', 'Linha digitável', LeituraVoz.soletrarNumeros($('linha-digitavel').value));
+    descrever('nome', 'Beneficiário', $('nome-beneficiario').value.trim());
+    descrever('documento', 'CPF ou CNPJ', LeituraVoz.soletrarNumeros($('documento-beneficiario').value.replace(/[./-]/g, ' ')));
+    descrever('valor', 'Valor', $('valor-declarado').value ? 'R$ ' + $('valor-declarado').value : '');
+    descrever('vencimento', 'Vencimento', $('vencimento-declarado').value ? formatarData($('vencimento-declarado').value) : '');
+    const codigo = $('dados-codigo');
+    if (!codigo.classList.contains('d-none')) partes.push(codigo.innerText);
+    partes.push('Confira cada dado com o boleto antes de marcar a confirmação.');
+    return partes.join(' ');
   }
 
   $('btn-voltar').addEventListener('click', () => {
@@ -472,7 +500,7 @@
     }
     erroDocEl.textContent = msg;
     erroDocEl.classList.toggle('d-none', !msg);
-    docInput.classList.toggle('is-invalid', !!msg);
+    marcarInvalido(docInput, !!msg);
     return !bloqueia;
   }
   // Ao apertar "Analisar" com o CPF em foco, a mensagem de erro que aparece no blur empurrava o botão para baixo
@@ -480,14 +508,15 @@
   let analisando = false;
   $('btn-analisar').addEventListener('pointerdown', () => { analisando = true; });
   docInput.addEventListener('blur', () => { if (docInput.value && !analisando) validarDocumento(); });
-  $('nome-beneficiario').addEventListener('input', (e) => e.target.classList.remove('is-invalid'));
+  $('nome-beneficiario').addEventListener('input', (e) => marcarInvalido(e.target, false));
+  $('linha-digitavel').addEventListener('input', (e) => { marcarInvalido(e.target, false); $('erro-linha').classList.add('d-none'); });
   docInput.addEventListener('input', () => {
     // Com 14 dígitos o CNPJ está completo; com 11 pode ser CPF ou um CNPJ pela metade,
     // então o CPF só é conferido ao sair do campo
     if (docInput.value.replace(/\D/g, '').length === 14) validarDocumento();
-    else { erroDocEl.classList.add('d-none'); docInput.classList.remove('is-invalid'); }
+    else { erroDocEl.classList.add('d-none'); marcarInvalido(docInput, false); }
   });
-  $('confirmo-dados').addEventListener('change', () => $('erro-confirmo').classList.add('d-none'));
+  $('confirmo-dados').addEventListener('change', () => { $('erro-confirmo').classList.add('d-none'); marcarInvalido($('confirmo-dados'), false); });
 
   // ---------- Análise ----------
   $('btn-analisar').addEventListener('click', analisarBoleto);
@@ -504,13 +533,14 @@
     if (!linha) {
       erroLinhaEl.textContent = 'Informe a linha digitável do boleto.';
       erroLinhaEl.classList.remove('d-none');
+      marcarInvalido(linhaInput, true);
       linhaInput.focus();
       return;
     }
 
     const nomeInput = $('nome-beneficiario');
     const nome = nomeInput.value.trim();
-    nomeInput.classList.toggle('is-invalid', !nome);
+    marcarInvalido(nomeInput, !nome);
     const documentoOk = validarDocumento();
     if (!nome || !documentoOk) {
       erroEl.textContent = !nome
@@ -525,6 +555,7 @@
     if (!$('confirmo-dados').checked) {
       $('erro-confirmo').textContent = 'Marque esta opção depois de conferir os dados com o boleto.';
       $('erro-confirmo').classList.remove('d-none');
+      marcarInvalido($('confirmo-dados'), true);
       $('confirmo-dados').focus();
       return;
     }
