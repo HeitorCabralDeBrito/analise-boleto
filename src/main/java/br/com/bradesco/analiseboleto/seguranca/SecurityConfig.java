@@ -1,5 +1,6 @@
 package br.com.bradesco.analiseboleto.seguranca;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,9 +22,12 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final List<String> origensPermitidas;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter,
+                          @Value("${boleto.seguro.cors.origens:http://localhost:8080,http://127.0.0.1:8080}") List<String> origensPermitidas) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.origensPermitidas = origensPermitidas;
     }
 
     @Bean
@@ -63,7 +67,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:8080", "http://127.0.0.1:8080"));
+        // O próprio site (mesma origem) não precisa disto; vale para outros endereços listados em CORS_ORIGENS
+        config.setAllowedOrigins(origensPermitidas);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

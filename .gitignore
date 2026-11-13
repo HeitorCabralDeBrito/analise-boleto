@@ -32,8 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 
-# Segredos e Credenciais
-src/main/resources/application.properties
+# Segredos e configuração local (o application.properties versionado não tem segredos)
+config/application.properties
+*.dump
 
 # Arquivos de sistema do macOS
 .DS_Store

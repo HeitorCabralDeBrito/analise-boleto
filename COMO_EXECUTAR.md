@@ -24,17 +24,21 @@
 
 ---
 
-## 2. Configurar `application.properties`
+## 2. Configurar a sua máquina (`config/application.properties`)
 
-Abra o arquivo `src/main/resources/application.properties` e ajuste:
-```properties
-spring.datasource.password=SUA_SENHA_AQUI
-```
-Se o usuário ou porta forem diferentes do padrão, ajuste também:
-```properties
-spring.datasource.username=postgres
-spring.datasource.url=jdbc:postgresql://localhost:5433/boleto_seguro
-```
+O `src/main/resources/application.properties` está no Git e **não tem segredos**. Os segredos da sua máquina ficam em
+`config/application.properties`, que está fora do Git e é carregado por cima dele.
+
+1. Copie o modelo `config/application.properties.example` para `config/application.properties`.
+2. Preencha a senha do PostgreSQL e uma chave de login (32+ caracteres; o modelo mostra como gerar):
+   ```properties
+   spring.datasource.password=SUA_SENHA_DO_POSTGRES
+   boleto.seguro.jwt.secret=UM_TEXTO_ALEATORIO_COM_MAIS_DE_32_CARACTERES
+   ```
+3. Se o PostgreSQL não estiver em `localhost:5433` com o usuário `postgres`, ajuste também `spring.datasource.url`
+   e `spring.datasource.username` nesse mesmo arquivo.
+
+Na nuvem, os mesmos valores vêm de variáveis de ambiente (`DB_HOST`, `DB_PASSWORD`, `JWT_SECRET`…): ver `DEPLOY_RENDER.md`.
 
 ---
 

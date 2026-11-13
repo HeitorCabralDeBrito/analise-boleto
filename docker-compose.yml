@@ -1,0 +1,47 @@
+# Roda o Boleto Seguro como na nuvem, na sua máquina: app (mesma imagem do Render) + PostgreSQL próprio.
+#   docker compose up --build        → http://localhost:8081
+#   docker compose down               → para (os dados ficam no volume "dados-db")
+#   docker compose down -v            → para e APAGA os dados deste banco de teste
+# Usa a porta 8081 e um banco separado, para não mexer no app e no banco do dia a dia.
+# OPENAI_API_KEY é lida do seu ambiente (opcional). Precisa de ~1,5 GB de memória livre.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: boleto_seguro
+      POSTGRES_USER: boleto_seguro
+      POSTGRES_PASSWORD: senha-local-de-teste
+    volumes:
+      - dados-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U boleto_seguro -d boleto_seguro"]
+      interval: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+    # Mesmos limites do plano gratuito do Render, para os testes refletirem a nuvem
+    mem_limit: 512m
+    cpus: 0.5
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: boleto_seguro
+      DB_USER: boleto_seguro
+      DB_PASSWORD: senha-local-de-teste
+      JWT_SECRET: chave-local-de-teste-com-mais-de-32-caracteres-123456
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      CORS_ORIGENS: http://localhost:8081
+      BOLETO_SEGURO_LEITURA_MAX_SIMULTANEAS: "1"
+      BOLETO_SEGURO_LEITURA_PRAZO_SEGUNDOS: "120"
+      BOLETO_SEGURO_TESSERACT_TIMEOUT_SEGUNDOS: "45"
+      DB_POOL: "3"
+
+volumes:
+  dados-db:

@@ -1,0 +1,14 @@
+# Modelo da configuração LOCAL. Copie para config/application.properties (que fica fora do Git) e preencha.
+# O Spring Boot carrega config/application.properties por cima de src/main/resources/application.properties.
+
+# Senha do usuário postgres do seu PostgreSQL local
+spring.datasource.password=SUA_SENHA_DO_POSTGRES
+
+# Chave de assinatura do login: qualquer texto aleatório com 32+ caracteres.
+# Para gerar no PowerShell: [Convert]::ToBase64String((1..48 | % { Get-Random -Max 256 }))
+boleto.seguro.jwt.secret=TROQUE_POR_UM_TEXTO_ALEATORIO_COM_MAIS_DE_32_CARACTERES
+
+# Opcionais (descomente se precisar):
+# spring.datasource.url=jdbc:postgresql://localhost:5432/boleto_seguro
+# boleto.seguro.tesseract.caminho=C:/Program Files/Tesseract-OCR/tesseract.exe
+# boleto.seguro.tema.padrao=academico
