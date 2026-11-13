@@ -513,6 +513,61 @@ a:hover { color: var(--color-action-hover); }
 .acao-card h2 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.3rem; }
 .acao-card p { font-size: 0.875rem; color: var(--color-muted); margin: 0; }
 
+/* Telas de painel/lista usam mais largura; formulários continuam estreitos (.app-conteudo) */
+.app-conteudo--largo { max-width: 1120px; }
+
+@media (min-width: 992px) {
+  .painel-inicio {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-areas: "saudacao saudacao" "principal lateral" "rodape rodape";
+    column-gap: 1.25rem;
+    align-items: start;
+  }
+  .painel-inicio__saudacao { grid-area: saudacao; }
+  .painel-inicio__principal { grid-area: principal; }
+  .painel-inicio__lateral { grid-area: lateral; }
+  .painel-inicio__rodape { grid-area: rodape; }
+}
+
+.resumo-numeros {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  text-align: center;
+}
+.resumo-numeros dt { font-size: 0.85rem; font-weight: 400; color: var(--color-muted); order: 2; }
+.resumo-numeros dd { font-size: 1.9rem; font-weight: 800; color: var(--color-text); margin: 0; line-height: 1.1; order: 1; }
+.resumo-numeros > div { display: flex; flex-direction: column; gap: 0.25rem; }
+
+.ultima-analise {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.ultima-analise:last-child { border-bottom: none; }
+.ultima-analise__texto { display: flex; flex-direction: column; min-width: 0; }
+.ultima-analise__texto .fw-semibold { overflow-wrap: anywhere; }
+.ultima-analise .selo { flex-shrink: 0; }
+
+.lista-dicas { padding: 1.25rem 1.5rem 1.25rem 2.75rem; }
+.lista-dicas li { margin-bottom: 0.6rem; }
+.lista-dicas li:last-child { margin-bottom: 0; }
+
+@media (min-width: 1200px) {
+  .lista-historico {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    align-items: start;
+  }
+  .lista-historico .historico-item { margin-bottom: 0; }
+  .lista-historico > li:only-child { grid-column: 1 / -1; }
+}
+
 .passo-numero {
   color: var(--color-action-text);
   font-weight: 700;

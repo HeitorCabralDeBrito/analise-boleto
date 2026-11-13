@@ -15,9 +15,10 @@
 <div class="app-corpo">
   <nav class="app-menu" id="app-menu" aria-label="Menu principal"></nav>
   <main class="app-principal" id="conteudo" tabindex="-1">
-    <div class="app-conteudo">
+    <!-- No computador: painel em duas colunas. No celular: tudo empilhado, na ordem do HTML. -->
+    <div class="app-conteudo app-conteudo--largo painel-inicio">
 
-      <section class="saudacao-card" aria-labelledby="titulo-saudacao">
+      <section class="saudacao-card painel-inicio__saudacao" aria-labelledby="titulo-saudacao">
         <h1 id="titulo-saudacao">Olá, <span id="nome-saudacao">usuário</span>!</h1>
         <p>Bem-vindo ao Boleto Seguro. O que deseja fazer hoje?</p>
         <p class="saudacao-card__conta">
@@ -25,61 +26,97 @@
         </p>
       </section>
 
-      <div class="row g-3 mb-4">
-        <div class="col-6">
-          <a href="/pagar-boleto.html" class="acao-card">
-            <span class="acao-icon" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 2.5 2 2.5-2 3.5 2z"/>
-              </svg>
-            </span>
-            <h2>Pagar Boleto</h2>
-            <p>Análise preventiva de fraude antes de pagar</p>
-          </a>
+      <div class="painel-inicio__principal">
+        <div class="row g-3 mb-3">
+          <div class="col-6">
+            <a href="/pagar-boleto.html" class="acao-card">
+              <span class="acao-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 2.5 2 2.5-2 3.5 2z"/>
+                </svg>
+              </span>
+              <h2>Pagar Boleto</h2>
+              <p>Análise preventiva de fraude antes de pagar</p>
+            </a>
+          </div>
+          <div class="col-6">
+            <a href="/historico.html" class="acao-card">
+              <span class="acao-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+              </span>
+              <h2>Histórico</h2>
+              <p>Boletos analisados anteriormente</p>
+            </a>
+          </div>
         </div>
-        <div class="col-6">
-          <a href="/historico.html" class="acao-card">
-            <span class="acao-icon" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-              </svg>
-            </span>
-            <h2>Histórico</h2>
-            <p>Boletos analisados anteriormente</p>
-          </a>
-        </div>
+
+        <section class="cartao" aria-labelledby="titulo-resumo">
+          <h2 class="cartao__cabecalho" id="titulo-resumo">Seu resumo</h2>
+          <div class="cartao__corpo">
+            <dl class="resumo-numeros mb-0" id="resumo-numeros" aria-busy="true">
+              <div><dt>Boletos analisados</dt><dd id="num-total">—</dd></div>
+              <div><dt>Com risco alto</dt><dd id="num-alto">—</dd></div>
+              <div><dt>Pagos apesar do alerta</dt><dd id="num-ignorados">—</dd></div>
+            </dl>
+          </div>
+        </section>
+
+        <section class="cartao" aria-labelledby="titulo-como-funciona">
+          <h2 class="cartao__cabecalho" id="titulo-como-funciona">Como funciona a análise?</h2>
+          <ol class="cartao__corpo list-unstyled mb-0">
+            <li class="d-flex gap-3 mb-3">
+              <span class="passo-numero" aria-hidden="true">1.</span>
+              <div>
+                <div class="fw-semibold">Envie, fotografe ou digite o boleto</div>
+                <div class="text-muted">O sistema lê o código de barras e os dados impressos</div>
+              </div>
+            </li>
+            <li class="d-flex gap-3 mb-3">
+              <span class="passo-numero" aria-hidden="true">2.</span>
+              <div>
+                <div class="fw-semibold">Confira os dados</div>
+                <div class="text-muted">Você corrige o que for preciso e confirma antes da análise</div>
+              </div>
+            </li>
+            <li class="d-flex gap-3">
+              <span class="passo-numero" aria-hidden="true">3.</span>
+              <div>
+                <div class="fw-semibold">Veja o risco antes de pagar</div>
+                <div class="text-muted">Nota de 0 a 100 (baixo, médio ou alto) com explicação em linguagem simples</div>
+              </div>
+            </li>
+          </ol>
+        </section>
       </div>
 
-      <section class="cartao" aria-labelledby="titulo-como-funciona">
-        <h2 class="cartao__cabecalho" id="titulo-como-funciona">Como funciona a análise?</h2>
-        <ol class="cartao__corpo list-unstyled mb-0">
-          <li class="d-flex gap-3 mb-3">
-            <span class="passo-numero" aria-hidden="true">1.</span>
-            <div>
-              <div class="fw-semibold">Digite ou envie o boleto</div>
-              <div class="text-muted">Informe a linha digitável manualmente ou faça upload da imagem/PDF</div>
-            </div>
-          </li>
-          <li class="d-flex gap-3 mb-3">
-            <span class="passo-numero" aria-hidden="true">2.</span>
-            <div>
-              <div class="fw-semibold">Análise automática</div>
-              <div class="text-muted">Validação técnica + motor de risco determinístico antes da confirmação</div>
-            </div>
-          </li>
-          <li class="d-flex gap-3">
-            <span class="passo-numero" aria-hidden="true">3.</span>
-            <div>
-              <div class="fw-semibold">Resultado com score 0–100</div>
-              <div class="text-muted">BAIXO / MÉDIO / ALTO com explicação detalhada e orientações</div>
-            </div>
-          </li>
-        </ol>
-      </section>
+      <div class="painel-inicio__lateral">
+        <section class="cartao" aria-labelledby="titulo-ultimas">
+          <div class="cartao__cabecalho d-flex align-items-center justify-content-between gap-2">
+            <h2 class="fs-6 fw-semibold mb-0" id="titulo-ultimas">Suas últimas análises</h2>
+            <a href="/historico.html" class="small fw-semibold">Ver histórico</a>
+          </div>
+          <div class="cartao__corpo py-2" id="ultimas-analises">
+            <p class="text-muted small my-2" role="status">Carregando…</p>
+          </div>
+        </section>
 
-      <div class="cartao">
+        <section class="cartao" aria-labelledby="titulo-dicas">
+          <h2 class="cartao__cabecalho" id="titulo-dicas">Dicas contra golpes de boleto</h2>
+          <ul class="cartao__corpo lista-dicas mb-0">
+            <li>Confira se o <b>nome e o CNPJ do beneficiário</b> são da empresa que você espera pagar.</li>
+            <li>Prefira gerar a segunda via no <b>site ou app oficial</b> da empresa, e não pelo link recebido por mensagem.</li>
+            <li>Desconfie de <b>urgência</b>, descontos fora do comum ou de um beneficiário diferente do de costume.</li>
+            <li>Os três primeiros números da linha digitável indicam a <b>instituição que emitiu o boleto</b>, que nem sempre é o banco da empresa.</li>
+            <li>Na dúvida, ligue para a empresa por um <b>telefone que você já conhece</b>, nunca pelo que veio junto com o boleto.</li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="cartao painel-inicio__rodape">
         <p class="cartao__corpo text-center py-3 mb-0 rodape-academico">
           <b>Boleto Seguro</b> é um protótipo acadêmico desenvolvido por alunos da <b>Universidade Anhembi Morumbi</b>.
           Não realiza transações financeiras reais.
@@ -100,6 +137,38 @@
     document.getElementById('agencia-display').textContent = u.agencia;
     document.getElementById('conta-display').textContent = u.conta;
   }
+
+  const ROTULOS_RISCO = { BAIXO: 'Risco baixo', MEDIO: 'Risco médio', ALTO: 'Risco alto' };
+  const SELOS_RISCO = { BAIXO: 'selo-baixo', MEDIO: 'selo-medio', ALTO: 'selo-alto' };
+
+  async function carregarPainel() {
+    const { ok, data } = await API.historico();
+    const itens = ok && Array.isArray(data) ? data : [];
+    document.getElementById('resumo-numeros').removeAttribute('aria-busy');
+    document.getElementById('num-total').textContent = itens.length;
+    document.getElementById('num-alto').textContent = itens.filter(i => i.nivelRisco === 'ALTO').length;
+    document.getElementById('num-ignorados').textContent = itens.filter(i => i.nivelRisco === 'ALTO' && i.pago).length;
+
+    const lista = document.getElementById('ultimas-analises');
+    if (!itens.length) {
+      lista.innerHTML = '<p class="text-muted small my-2">Nenhum boleto analisado ainda. ' +
+        '<a href="/pagar-boleto.html">Analise o seu primeiro boleto</a>.</p>';
+      return;
+    }
+    const e = Html.escapar;
+    const recentes = [...itens].sort((a, b) => new Date(b.dataSubmissao) - new Date(a.dataSubmissao)).slice(0, 4);
+    lista.innerHTML = '<ul class="list-unstyled mb-0">' + recentes.map(i => {
+      const data = new Date(i.dataSubmissao).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+      return `<li class="ultima-analise">
+        <div class="ultima-analise__texto">
+          <span class="fw-semibold">${e(i.nomeBeneficiario || 'Beneficiário não informado')}</span>
+          <span class="small text-muted">${e(data)} · ${e(i.valor || 'valor não informado')}${i.pago ? ' · pago' : ''}</span>
+        </div>
+        <span class="selo ${SELOS_RISCO[i.nivelRisco] || 'selo-neutro'}">${e(ROTULOS_RISCO[i.nivelRisco] || i.nivelRisco)}</span>
+      </li>`;
+    }).join('') + '</ul>';
+  }
+  carregarPainel();
 </script>
 </body>
 </html>
