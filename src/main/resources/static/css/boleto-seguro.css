@@ -173,7 +173,8 @@ body {
   line-height: 1.5;
   /* Palavra longa demais para o espaço (texto ampliado, tela estreita) quebra em vez de vazar para o lado */
   overflow-wrap: break-word;
-  hyphens: auto;
+  /* Sem hifenização automática: ela cortava nomes como "What-sApp" */
+  hyphens: manual;
 }
 
 a { color: var(--color-action-text); }
