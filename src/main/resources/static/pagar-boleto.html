@@ -3,209 +3,190 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Boleto Seguro — Pagar Boleto</title>
+  <title>Pagar boleto — Boleto Seguro</title>
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <script src="/js/tema.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/boleto-seguro.css">
 </head>
-<body>
+<body data-pagina="pagar">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header class="app-topo" id="app-topo"></header>
+<div class="app-corpo">
+  <nav class="app-menu" id="app-menu" aria-label="Menu principal"></nav>
+  <main class="app-principal" id="conteudo" tabindex="-1">
+    <div class="app-conteudo">
 
-<nav class="navbar-bradesco">
-  <div class="container d-flex align-items-center justify-content-between">
-    <div class="d-flex align-items-center gap-2">
-      <a href="/home.html" style="color:rgba(255,255,255,0.7); text-decoration:none; font-size:1.1rem;">&#8592;</a>
-      <span class="navbar-brand mb-0">Pagar Boleto</span>
-      <span class="badge-prototipo">Protótipo acadêmico</span>
-    </div>
-    <div class="d-flex align-items-center gap-3">
-      <span class="usuario-info d-none d-sm-inline">Olá, <b id="usuario-nome"></b></span>
-      <button class="btn-logout" id="btn-logout">Sair</button>
-    </div>
-  </div>
-</nav>
+      <h1 class="titulo-pagina">Pagar boleto</h1>
+      <p class="subtitulo-pagina">Informe o boleto e confira os dados. A análise de risco acontece antes de qualquer confirmação.</p>
 
-<div class="container py-4" style="max-width:680px;">
+      <ol class="stepper" aria-label="Etapas do pagamento">
+        <li class="step active" aria-current="step"><span class="step-circle" aria-hidden="true">1</span><span class="step-label">Dados</span></li>
+        <li class="step"><span class="step-circle" aria-hidden="true">2</span><span class="step-label">Análise</span></li>
+        <li class="step"><span class="step-circle" aria-hidden="true">3</span><span class="step-label">Resultado</span></li>
+        <li class="step"><span class="step-circle" aria-hidden="true">4</span><span class="step-label">Confirmar</span></li>
+      </ol>
 
-  <!-- Stepper -->
-  <div class="stepper">
-    <div class="step active" id="step-1">
-      <div class="step-circle">1</div>
-      <div class="step-label">Dados</div>
-    </div>
-    <div class="step-line"></div>
-    <div class="step" id="step-2">
-      <div class="step-circle">2</div>
-      <div class="step-label">Análise</div>
-    </div>
-    <div class="step-line"></div>
-    <div class="step" id="step-3">
-      <div class="step-circle">3</div>
-      <div class="step-label">Resultado</div>
-    </div>
-    <div class="step-line"></div>
-    <div class="step" id="step-4">
-      <div class="step-circle">4</div>
-      <div class="step-label">Confirmar</div>
-    </div>
-  </div>
-
-  <!-- Formulário de entrada -->
-  <div id="secao-entrada">
-    <div class="card-bradesco">
-      <div class="card-header">Tipo de entrada</div>
-      <div class="card-body">
-        <div class="row g-2">
-          <div class="col-12 col-sm-6">
-            <div class="option-card selected" id="opt-manual" onclick="selecionarEntrada('manual')">
-              <div class="option-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="22" height="22">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                </svg>
+      <!-- Formulário de entrada -->
+      <div id="secao-entrada">
+        <section class="cartao" aria-labelledby="titulo-tipo-entrada">
+          <h2 class="cartao__cabecalho" id="titulo-tipo-entrada">Como você quer informar o boleto?</h2>
+          <div class="cartao__corpo">
+            <div class="row g-2">
+              <div class="col-12 col-sm-6">
+                <button type="button" class="option-card" id="opt-manual" aria-pressed="true" onclick="selecionarEntrada('manual')">
+                  <span class="option-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="22" height="22">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                  </span>
+                  <span>
+                    <span class="d-block fw-semibold">Digitar linha</span>
+                    <span class="d-block option-card__desc">Informe manualmente</span>
+                  </span>
+                </button>
               </div>
-              <div>
-                <div class="fw-semibold small">Digitar linha</div>
-                <div class="text-muted" style="font-size:0.77rem;">Informe manualmente</div>
+              <div class="col-12 col-sm-6">
+                <button type="button" class="option-card" id="opt-upload" aria-pressed="false" onclick="selecionarEntrada('upload')">
+                  <span class="option-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="22" height="22">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                  </span>
+                  <span>
+                    <span class="d-block fw-semibold">Imagem / PDF</span>
+                    <span class="d-block option-card__desc">Extração automática</span>
+                  </span>
+                </button>
               </div>
             </div>
           </div>
-          <div class="col-12 col-sm-6">
-            <div class="option-card" id="opt-upload" onclick="selecionarEntrada('upload')">
-              <div class="option-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="22" height="22">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-              </div>
-              <div>
-                <div class="fw-semibold small">Imagem / PDF</div>
-                <div class="text-muted" style="font-size:0.77rem;">Extração automática</div>
+        </section>
+
+        <!-- Entrada manual -->
+        <section class="cartao" id="painel-manual" aria-labelledby="titulo-linha">
+          <h2 class="cartao__cabecalho" id="titulo-linha">Linha digitável</h2>
+          <div class="cartao__corpo">
+            <label for="linha-digitavel" class="form-label fw-semibold">Linha digitável (47 dígitos)</label>
+            <input type="text" id="linha-digitavel" class="form-control campo"
+              placeholder="00000.00000 00000.000000 00000.000000 0 00000000000000"
+              maxlength="54" inputmode="numeric" autocomplete="off" aria-describedby="ajuda-linha erro-linha">
+            <div class="form-text" id="ajuda-linha">Digite só os números: pontos e espaços entram sozinhos. Somente boletos bancários de cobrança.</div>
+            <div id="erro-linha" class="texto-erro d-none"></div>
+          </div>
+        </section>
+
+        <!-- Upload -->
+        <section class="cartao d-none" id="painel-upload" aria-labelledby="titulo-upload">
+          <h2 class="cartao__cabecalho" id="titulo-upload">Enviar imagem ou PDF do boleto</h2>
+          <div class="cartao__corpo">
+            <button type="button" class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" width="48" height="48" aria-hidden="true" focusable="false">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+              </svg>
+              <span class="d-block fw-semibold mt-2">Selecionar arquivo ou arrastar aqui</span>
+              <span class="d-block text-muted small">PNG, JPG ou PDF — máx. 10MB</span>
+              <span id="nome-arquivo" class="d-block mt-2 nome-arquivo small fw-semibold d-none" aria-live="polite"></span>
+            </button>
+            <input type="file" id="file-input" accept="image/png,image/jpeg,application/pdf" class="d-none">
+
+            <div id="aviso-ocr" class="alerta-item mt-3">
+              <b>Limitação do protótipo:</b> O OCR funciona melhor com imagens nítidas e boletos impressos em preto e branco.
+              Após o processamento, você poderá corrigir os dados antes de prosseguir.
+              <br><b>Privacidade:</b> a leitura é feita no próprio servidor. Só se ela falhar, a imagem é enviada
+              à IA (OpenAI) para ler a linha digitável.
+            </div>
+
+            <div id="resultado-ocr" class="d-none mt-3">
+              <label for="linha-ocr" class="form-label fw-semibold">Linha digitável extraída</label>
+              <input type="text" id="linha-ocr" class="form-control campo mb-2"
+                placeholder="Linha extraída pelo OCR" maxlength="54" inputmode="numeric" autocomplete="off" aria-describedby="ajuda-ocr">
+              <div class="form-text" id="ajuda-ocr">
+                <b>Confirme se a linha está correta</b> antes de prosseguir. OCR pode cometer erros.
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </section>
 
-    <!-- Entrada manual -->
-    <div class="card-bradesco" id="painel-manual">
-      <div class="card-header">Linha digitável</div>
-      <div class="card-body">
-        <div class="mb-3">
-          <label class="form-label fw-semibold small">Linha digitável (47 dígitos)</label>
-          <input type="text" id="linha-digitavel" class="form-control form-control-bradesco"
-            placeholder="00000.00000 00000.000000 00000.000000 0 00000000000000"
-            maxlength="54" inputmode="numeric" autocomplete="off">
-          <div class="form-text">Digite só os números: pontos e espaços entram sozinhos. Somente boletos bancários de cobrança.</div>
-          <div id="erro-linha" class="text-danger small mt-1 d-none"></div>
-        </div>
-      </div>
-    </div>
+        <!-- Beneficiário e demais dados (vale para digitação e upload) -->
+        <section class="cartao" aria-labelledby="titulo-beneficiario">
+          <h2 class="cartao__cabecalho" id="titulo-beneficiario">Quem vai receber</h2>
+          <div class="cartao__corpo">
+            <div class="row g-2 mb-2">
+              <div class="col-12">
+                <label for="nome-beneficiario" class="form-label fw-semibold">Nome do beneficiário <span class="obrigatorio" aria-hidden="true">*</span><span class="visually-hidden">(obrigatório)</span></label>
+                <input type="text" id="nome-beneficiario" class="form-control campo"
+                  placeholder="Exatamente como aparece no boleto" maxlength="200" autocomplete="off" required>
+              </div>
+              <div class="col-12">
+                <label for="documento-beneficiario" class="form-label fw-semibold">CPF ou CNPJ do beneficiário <span class="obrigatorio" aria-hidden="true">*</span><span class="visually-hidden">(obrigatório)</span></label>
+                <input type="text" id="documento-beneficiario" class="form-control campo"
+                  placeholder="000.000.000-00 ou 00.000.000/0000-00" maxlength="18" inputmode="numeric" autocomplete="off" required
+                  aria-describedby="ajuda-beneficiario erro-documento">
+                <div id="erro-documento" class="texto-erro d-none"></div>
+              </div>
+            </div>
+            <div class="form-text mb-2" id="ajuda-beneficiario">
+              O nome e o CPF/CNPJ ficam impressos no boleto, no campo "Beneficiário".
+            </div>
 
-    <!-- Upload -->
-    <div class="card-bradesco d-none" id="painel-upload">
-      <div class="card-header">Enviar imagem ou PDF do boleto</div>
-      <div class="card-body">
-        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" width="48" height="48">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
-          </svg>
-          <div class="fw-semibold mt-2">Clique ou arraste aqui</div>
-          <div class="text-muted small">PNG, JPG ou PDF — máx. 10MB</div>
-          <div id="nome-arquivo" class="mt-2 text-bradesco small fw-semibold d-none"></div>
-        </div>
-        <input type="file" id="file-input" accept="image/png,image/jpeg,application/pdf" class="d-none">
+            <hr class="my-3">
+            <h3 class="fw-semibold fs-6 mb-2 text-muted">Dados opcionais (melhoram a análise)</h3>
 
-        <div id="aviso-ocr" class="alerta-item mt-3">
-          <b>Limitação do protótipo:</b> O OCR funciona melhor com imagens nítidas e boletos impressos em preto e branco.
-          Após o processamento, você poderá corrigir os dados antes de prosseguir.
-          <br><b>Privacidade:</b> a leitura é feita no próprio servidor. Só se ela falhar, a imagem é enviada
-          à IA (OpenAI) para ler a linha digitável.
-        </div>
+            <div class="row g-2 mb-2">
+              <div class="col-12 col-sm-6">
+                <label for="valor-declarado" class="form-label">Valor do boleto</label>
+                <div class="input-group">
+                  <span class="input-group-text" aria-hidden="true">R$</span>
+                  <input type="text" id="valor-declarado" class="form-control campo"
+                    placeholder="0,00" inputmode="numeric" autocomplete="off">
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <label for="vencimento-declarado" class="form-label">Vencimento</label>
+                <input type="date" id="vencimento-declarado" class="form-control campo">
+              </div>
+            </div>
 
-        <div id="resultado-ocr" class="d-none mt-3">
-          <div class="fw-semibold small mb-2">Linha digitável extraída:</div>
-          <input type="text" id="linha-ocr" class="form-control form-control-bradesco mb-2"
-            placeholder="Linha extraída pelo OCR" maxlength="54" inputmode="numeric" autocomplete="off">
-          <div class="form-text text-warning">
-            <b>Confirme se a linha está correta</b> antes de prosseguir. OCR pode cometer erros.
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Beneficiário e demais dados (vale para digitação e upload) -->
-    <div class="card-bradesco">
-      <div class="card-header">Quem vai receber</div>
-      <div class="card-body">
-        <div class="row g-2 mb-2">
-          <div class="col-12">
-            <label class="form-label small fw-semibold">Nome do beneficiário <span class="text-danger">*</span></label>
-            <input type="text" id="nome-beneficiario" class="form-control form-control-bradesco"
-              placeholder="Exatamente como aparece no boleto" maxlength="200" autocomplete="off">
-          </div>
-          <div class="col-12">
-            <label class="form-label small fw-semibold">CPF ou CNPJ do beneficiário <span class="text-danger">*</span></label>
-            <input type="text" id="documento-beneficiario" class="form-control form-control-bradesco"
-              placeholder="000.000.000-00 ou 00.000.000/0000-00" maxlength="18" inputmode="numeric" autocomplete="off">
-            <div id="erro-documento" class="text-danger small mt-1 d-none"></div>
-          </div>
-        </div>
-        <div class="form-text mb-2">
-          O nome e o CPF/CNPJ ficam impressos no boleto, no campo "Beneficiário".
-        </div>
-
-        <hr class="my-3">
-        <div class="fw-semibold small mb-2 text-muted">Dados opcionais (melhoram a análise)</div>
-
-        <div class="row g-2 mb-2">
-          <div class="col-12 col-sm-6">
-            <label class="form-label small">Valor do boleto</label>
-            <div class="input-group">
-              <span class="input-group-text">R$</span>
-              <input type="text" id="valor-declarado" class="form-control form-control-bradesco"
-                placeholder="0,00" inputmode="numeric" autocomplete="off">
+            <div class="row g-2 mb-1">
+              <div class="col-12">
+                <label for="origem" class="form-label">Origem do boleto</label>
+                <select id="origem" class="form-select campo">
+                  <option value="">Não informar</option>
+                  <option value="WHATSAPP">WhatsApp</option>
+                  <option value="EMAIL">E-mail</option>
+                  <option value="SITE">Site / sistema</option>
+                  <option value="IMPRESSO">Impresso / correio</option>
+                  <option value="OUTRO">Outro</option>
+                </select>
+              </div>
             </div>
           </div>
-          <div class="col-12 col-sm-6">
-            <label class="form-label small">Vencimento</label>
-            <input type="date" id="vencimento-declarado" class="form-control form-control-bradesco">
-          </div>
-        </div>
+        </section>
 
-        <div class="row g-2 mb-3">
-          <div class="col-12">
-            <label class="form-label small">Origem do boleto</label>
-            <select id="origem" class="form-select form-control-bradesco">
-              <option value="">Não informar</option>
-              <option value="WHATSAPP">WhatsApp</option>
-              <option value="EMAIL">E-mail</option>
-              <option value="SITE">Site / sistema</option>
-              <option value="IMPRESSO">Impresso / correio</option>
-              <option value="OUTRO">Outro</option>
-            </select>
-          </div>
+        <div id="erro-geral" class="alert alert-danger d-none" role="alert"></div>
+
+        <div class="d-flex gap-2 mt-3">
+          <a href="/home.html" class="btn-contorno flex-fill">Cancelar</a>
+          <button type="button" class="btn-primario flex-fill" id="btn-analisar" onclick="analisarBoleto()">
+            Analisar Boleto
+          </button>
         </div>
       </div>
+
+      <!-- Loading -->
+      <div id="secao-loading" class="d-none text-center py-5" role="status">
+        <div class="loading-spinner mx-auto mb-3" aria-hidden="true"></div>
+        <div class="fw-semibold">Analisando boleto...</div>
+        <div class="text-muted small mt-1">Validando estrutura e calculando risco</div>
+      </div>
+
     </div>
-
-    <div id="erro-geral" class="alert alert-danger d-none" role="alert"></div>
-
-    <div class="d-flex gap-2 mt-3">
-      <a href="/home.html" class="btn-bradesco-outline flex-fill text-center text-decoration-none py-2">Cancelar</a>
-      <button class="btn-bradesco-primary flex-fill" id="btn-analisar" onclick="analisarBoleto()">
-        Analisar Boleto
-      </button>
-    </div>
-  </div>
-
-  <!-- Loading -->
-  <div id="secao-loading" class="d-none text-center py-5">
-    <div class="loading-spinner mx-auto mb-3"></div>
-    <div class="fw-semibold">Analisando boleto...</div>
-    <div class="text-muted small mt-1">Validando estrutura e calculando risco</div>
-  </div>
-
+  </main>
 </div>
 
 <script src="/js/api.js"></script>
+<script src="/js/layout.js"></script>
 <script>
   if (!API.requireAuth()) {}
 
@@ -236,7 +217,11 @@
     docInput.classList.toggle('is-invalid', !!msg);
     return !bloqueia;
   }
-  docInput.addEventListener('blur', () => { if (docInput.value) validarDocumento(); });
+  // Ao apertar "Analisar" com o CPF em foco, a mensagem de erro que aparece no blur empurrava o botão para baixo
+  // entre o toque e a soltura, e o clique se perdia. Nesse caso a validação fica para analisarBoleto().
+  let analisando = false;
+  document.getElementById('btn-analisar').addEventListener('pointerdown', () => { analisando = true; });
+  docInput.addEventListener('blur', () => { if (docInput.value && !analisando) validarDocumento(); });
   document.getElementById('nome-beneficiario').addEventListener('input',
     (e) => e.target.classList.remove('is-invalid'));
   docInput.addEventListener('input', () => {
@@ -248,8 +233,8 @@
 
   function selecionarEntrada(tipo) {
     tipoEntradaAtual = tipo;
-    document.getElementById('opt-manual').classList.toggle('selected', tipo === 'manual');
-    document.getElementById('opt-upload').classList.toggle('selected', tipo === 'upload');
+    document.getElementById('opt-manual').setAttribute('aria-pressed', String(tipo === 'manual'));
+    document.getElementById('opt-upload').setAttribute('aria-pressed', String(tipo === 'upload'));
     document.getElementById('painel-manual').classList.toggle('d-none', tipo !== 'manual');
     document.getElementById('painel-upload').classList.toggle('d-none', tipo !== 'upload');
   }
@@ -306,6 +291,7 @@
   }
 
   async function analisarBoleto() {
+    analisando = false;
     const erroEl = document.getElementById('erro-geral');
     const erroLinhaEl = document.getElementById('erro-linha');
     erroEl.classList.add('d-none');

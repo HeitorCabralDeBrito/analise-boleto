@@ -189,13 +189,10 @@ const Documento = {
   }
 };
 
-// Exibe nome do usuário no navbar se existir #usuario-nome
-document.addEventListener('DOMContentLoaded', () => {
-  const el = document.getElementById('usuario-nome');
-  if (el) {
-    const u = API.getUsuario();
-    if (u) el.textContent = u.nome.split(' ')[0];
+// Texto vindo do usuário ou da API deve passar por aqui antes de entrar em innerHTML
+const Html = {
+  escapar(texto) {
+    return String(texto ?? '').replace(/[&<>"']/g, (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
-  const btnLogout = document.getElementById('btn-logout');
-  if (btnLogout) btnLogout.addEventListener('click', () => API.logout());
-});
+};

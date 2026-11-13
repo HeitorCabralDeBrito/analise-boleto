@@ -146,6 +146,25 @@ Como obter a chave OpenAI:
 
 ---
 
+## 8.1 Identidade visual: tema próprio e tema acadêmico Bradesco
+
+O sistema tem dois temas com as mesmas telas e o mesmo backend; só mudam cores e logotipo (tokens CSS em `css/boleto-seguro.css`).
+
+- **Tema próprio (Boleto Seguro)** — padrão, azul-marinho. Funciona sem nenhuma configuração.
+- **Tema acadêmico (Bradesco)** — uso acadêmico autorizado. Os logotipos do Bradesco **não ficam no repositório**
+  (não há autorização de redistribuição). Para ativar, crie na raiz do projeto a pasta `marca-academica/` (já está no `.gitignore`) com:
+  - `logo-horizontal.png` — logotipo horizontal (cabeçalho e login)
+  - `logo-vertical.png` — logotipo vertical (reservado)
+
+Com a pasta presente, aparece na tela de login o seletor **Identidade visual**. Sem ela, o tema acadêmico fica indisponível
+e o sistema usa sempre o tema próprio. Opcional no `application.properties`:
+```properties
+boleto.seguro.tema.padrao=proprio                    # ou academico (só vale se os logotipos existirem)
+boleto.seguro.tema.academico.pasta=marca-academica   # outra pasta, se preferir
+```
+
+---
+
 ## 9. Endpoints da API REST
 
 | Método | Endpoint | Descrição | Auth |
@@ -155,6 +174,7 @@ Como obter a chave OpenAI:
 | POST | /api/boletos/{id}/confirmar | Confirma (simulado) | JWT |
 | GET | /api/historico | Histórico do usuário | JWT |
 | POST | /api/boletos/ocr | Upload para OCR | JWT |
+| GET | /api/config/tema | Tema padrão e se o tema acadêmico está disponível | Não |
 
 ---
 

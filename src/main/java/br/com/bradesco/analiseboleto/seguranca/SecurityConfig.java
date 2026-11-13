@@ -36,6 +36,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/api/auth/**",
+                    "/api/config/**",
                     "/",
                     // Paginas estaticas: a navegacao do browser nao envia o JWT;
                     // o controle de acesso fica no JS (API.requireAuth) e nos endpoints /api/**
@@ -43,6 +44,7 @@ public class SecurityConfig {
                     "/css/**",
                     "/js/**",
                     "/img/**",
+                    "/marca-academica/**",
                     "/*.ico",
                     "/error"
                 ).permitAll()
