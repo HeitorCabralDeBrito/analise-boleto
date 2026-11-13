@@ -253,7 +253,10 @@ a:hover { color: var(--color-action-hover); }
   color: var(--color-on-header);
   white-space: nowrap;
 }
-.app-topo__aviso { margin-left: auto; }
+.app-topo__aviso { margin-left: 0; }
+/* O logo empurra todo o resto (aviso, preferências, ouvir, usuário) para a direita, em qualquer largura */
+.app-topo__marca { margin-right: auto; }
+.app-topo__ouvir { display: flex; }
 .app-topo__usuario {
   display: flex;
   align-items: center;
@@ -1005,7 +1008,7 @@ kbd { background: var(--color-surface-alt); color: var(--color-text); border: 1p
   .btn-menu { display: inline-flex; }
   .app-topo__acess { display: none; }
   .app-menu__acess { display: block; }
-  .app-topo__usuario { margin-left: auto; }
+  .app-topo__usuario { margin-left: 0; }
 
   /* Menu lateral vira gaveta: fica fora da tela (e fora da ordem de tabulação) até ser aberto */
   .app-menu {

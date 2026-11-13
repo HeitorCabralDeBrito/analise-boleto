@@ -126,8 +126,8 @@
 </div>
 
 <script src="/js/api.js"></script>
-<script src="/js/layout.js"></script>
 <script src="/js/leitura-voz.js"></script>
+<script src="/js/layout.js"></script>
 <script>
   if (!API.requireAuth()) {}
 
@@ -209,16 +209,22 @@
     document.getElementById('btn-confirmar').classList.remove('d-none');
   }
 
-  // Leitura em voz alta sob demanda: nota, explicação, alertas e cada verificação com o seu estado
-  LeituraVoz.criarBotao(document.getElementById('ouvir-resultado'), () => {
+  // Leitura em voz alta sob demanda: nota, explicação, alertas e cada verificação com o seu estado.
+  // Usada pelo botão desta tela e pelo "Ouvir esta página" do cabeçalho.
+  function textoDoResultado() {
     const estados = { PASSOU: 'passou', FALHOU: 'falhou', NAO_VERIFICADO: 'não verificado' };
     const partes = [`Resultado da análise: ${rotuloTexto[nivel] || nivel}, nota ${score} de 100.`];
     if (analise.explicacao) partes.push('O que isso significa. ' + analise.explicacao);
     if (analise.alertas && analise.alertas.length) partes.push('Alertas. ' + analise.alertas.join(' '));
     (analise.verificacoes || []).forEach(v => partes.push(`${v.nome}: ${estados[v.estado] || v.estado}. ${v.descricao}`));
     if (nivel === 'ALTO') partes.push('Recomendamos não prosseguir com o pagamento.');
+    partes.push(nivel === 'ALTO'
+      ? 'Botões: Analisar outro, ou Prosseguir mesmo assim.'
+      : 'Botões: Analisar outro, ou Confirmar pagamento.');
     return partes.join(' ');
-  }, 'Ouvir resultado');
+  }
+  LeituraVoz.leitorDaPagina = textoDoResultado;
+  LeituraVoz.criarBotao(document.getElementById('ouvir-resultado'), textoDoResultado, 'Ouvir resultado');
 
   async function prosseguir() {
     sessionStorage.setItem('bs_analise', JSON.stringify(analise));

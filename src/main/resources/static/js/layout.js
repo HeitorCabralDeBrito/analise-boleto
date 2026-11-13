@@ -41,6 +41,7 @@ const Layout = {
         <a class="app-topo__marca" href="/home.html" title="Ir para o início">${Layout.marca()}</a>
         <span class="aviso-prototipo app-topo__aviso">Protótipo acadêmico — sem vínculo com contas reais</span>
         <div class="app-topo__acess" id="topo-acess"></div>
+        <div class="app-topo__ouvir" id="topo-ouvir"></div>
         <div class="app-topo__usuario">
           ${nome ? `<span class="app-topo__ola">Olá, <b>${nome}</b></span>` : ''}
           ${usuario
@@ -53,6 +54,12 @@ const Layout = {
     if (sair) sair.addEventListener('click', () => API.logout());
     document.getElementById('btn-menu').addEventListener('click', () => Layout.abrirMenu());
     Preferencias.montarControles(document.getElementById('topo-acess'));
+    // "Ouvir esta página" em todas as telas (inclusive no celular), para quem enxerga com dificuldade
+    // LeituraVoz é um const global (não fica em window): testa pelo typeof
+    if (typeof LeituraVoz !== 'undefined') {
+      LeituraVoz.criarBotao(document.getElementById('topo-ouvir'), () => LeituraVoz.textoDaPagina(),
+        'Ouvir esta página', { compacto: true, classe: 'btn-acess btn-ouvir-topo', id: 'btn-ouvir-pagina' });
+    }
   },
 
   renderizarMenu() {

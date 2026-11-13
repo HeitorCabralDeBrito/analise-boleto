@@ -55,11 +55,21 @@
       <section class="cartao" aria-labelledby="titulo-voz">
         <h2 class="cartao__cabecalho" id="titulo-voz">Leitura em voz alta</h2>
         <div class="cartao__corpo">
-          <p class="mb-2">Na conferência dos dados e no resultado da análise há o botão <b>Ouvir</b>, que lê o conteúdo da tela em português.
-            A leitura só começa quando você pede, e pode ser interrompida a qualquer momento pelo botão <b>Parar leitura</b> ou pela tecla <kbd>Esc</kbd>.</p>
-          <p class="mb-0">Ela é um apoio para quem tem dificuldade de leitura. Quem usa leitor de tela (NVDA, JAWS, TalkBack, VoiceOver)
-            não precisa dela: as telas foram feitas para o leitor de tela ler tudo, incluindo o resumo do que foi lido do boleto.</p>
-          <p class="small text-muted mt-2 mb-0" id="aviso-sem-voz" hidden>Este navegador não oferece leitura em voz alta, por isso o botão Ouvir não aparece.</p>
+          <p>É um apoio para quem <b>enxerga com dificuldade</b> (baixa visão, cansaço visual) ou tem <b>dificuldade de leitura</b>.
+            Quem é cego normalmente usa um leitor de tela (NVDA, JAWS, TalkBack, VoiceOver), que já lê todas as telas do Boleto Seguro.</p>
+          <ul>
+            <li><b>Ouvir esta página</b> — botão com o ícone de alto-falante no topo de todas as telas (também no celular).
+              Lê a tela na ordem em que aparece e diz o que é cada item: "Opção: Pagar boleto", "Botão: Digitar manualmente",
+              "Campo Valor: 150,00". Na conferência dos dados e no resultado, a leitura é mais detalhada.</li>
+            <li><b>Ler ao apontar</b> — preferência com o ícone de mão. Ligada, o site fala o nome do botão, link ou campo
+              quando você passa o mouse por cima ou chega nele com a tecla Tab.</li>
+          </ul>
+          <p>A leitura só começa quando você pede e pode ser interrompida a qualquer momento pelo botão <b>Parar leitura</b>
+            ou pela tecla <kbd>Esc</kbd>.</p>
+          <p class="small text-muted mb-0">No celular não existe "passar o mouse": use o botão Ouvir esta página, ou os recursos do próprio aparelho
+            ("Selecionar para ouvir" no Android, "Falar tela" no iPhone). No computador, o navegador só libera a voz depois do
+            primeiro clique ou tecla em cada página.</p>
+          <p class="small text-muted mt-2 mb-0" id="aviso-sem-voz" hidden>Este navegador não oferece leitura em voz alta, por isso os botões de ouvir não aparecem.</p>
         </div>
       </section>
 
@@ -98,8 +108,8 @@
 </div>
 
 <script src="/js/api.js"></script>
-<script src="/js/layout.js"></script>
 <script src="/js/leitura-voz.js"></script>
+<script src="/js/layout.js"></script>
 <script>
   Preferencias.montarControles(document.getElementById('pagina-preferencias'));
   if (!LeituraVoz.suportado) document.getElementById('aviso-sem-voz').hidden = false;

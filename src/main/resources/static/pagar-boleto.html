@@ -208,8 +208,8 @@
 </div>
 
 <script src="/js/api.js"></script>
-<script src="/js/layout.js"></script>
 <script src="/js/leitura-voz.js"></script>
+<script src="/js/layout.js"></script>
 <script>
   if (!API.requireAuth()) {}
 
@@ -462,6 +462,9 @@
     $('titulo-conferir').focus();
   }
 
+  // No "Ouvir esta página": na conferência, a leitura detalhada (número a número); nas outras fases, a genérica
+  LeituraVoz.leitorDaPagina = () => ($('etapa-conferir').classList.contains('d-none') ? null : textoDaConferencia());
+
   // Texto lido em voz alta: o que está nos campos agora (inclusive o que o usuário corrigiu) e de onde veio
   function textoDaConferencia() {
     const partes = ['Dados do boleto para conferir.'];
@@ -476,7 +479,8 @@
     descrever('vencimento', 'Vencimento', $('vencimento-declarado').value ? formatarData($('vencimento-declarado').value) : '');
     const codigo = $('dados-codigo');
     if (!codigo.classList.contains('d-none')) partes.push(codigo.innerText);
-    partes.push('Confira cada dado com o boleto antes de marcar a confirmação.');
+    partes.push(`Confirmação: ${$('confirmo-dados').checked ? 'marcada' : 'não marcada'}.`);
+    partes.push('Confira cada dado com o boleto, marque a confirmação e use o botão Analisar boleto.');
     return partes.join(' ');
   }
 

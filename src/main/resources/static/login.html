@@ -81,6 +81,7 @@
 </main>
 
 <script src="/js/api.js"></script>
+<script src="/js/leitura-voz.js"></script>
 <script>
   // Se já logado, vai para home
   if (API.getToken()) window.location.href = '/home.html';
@@ -99,6 +100,11 @@
   renderizarMarca();
   document.addEventListener('temachange', renderizarMarca);
   Preferencias.montarControles(document.getElementById('login-preferencias'));
+  if (LeituraVoz.suportado) {
+    LeituraVoz.criarBotao(document.getElementById('login-preferencias').querySelector('.controles-acess'),
+      () => LeituraVoz.textoDaArea(document.querySelector('.login-card')),
+      'Ouvir esta página', { compacto: true, classe: 'btn-acess', id: 'btn-ouvir-pagina' });
+  }
 
   Tema.config.then((cfg) => {
     if (cfg.academicoDisponivel) document.getElementById('seletor-tema').classList.remove('d-none');
