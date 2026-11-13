@@ -48,6 +48,7 @@ public class SecurityConfig {
                     "/css/**",
                     "/js/**",
                     "/img/**",
+                    "/vendor/**",
                     "/marca-academica/**",
                     "/*.ico",
                     "/error"
