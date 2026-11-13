@@ -73,18 +73,38 @@
               <dd class="historico-linha mt-1 mb-0" id="dados-linha"></dd>
             </div>
             <div class="col-6">
-              <dt class="fw-normal text-muted">Valor codificado:</dt>
+              <dt class="fw-normal text-muted">Valor no código de barras:</dt>
               <dd class="fw-semibold mb-0" id="dados-valor"></dd>
             </div>
             <div class="col-6">
-              <dt class="fw-normal text-muted">Vencimento codificado:</dt>
+              <dt class="fw-normal text-muted">Vencimento no código de barras:</dt>
               <dd class="fw-semibold mb-0" id="dados-vencimento"></dd>
             </div>
             <div class="col-12" id="dados-beneficiario-wrap">
-              <dt class="fw-normal text-muted">Beneficiário declarado:</dt>
+              <dt class="fw-normal text-muted">Beneficiário informado:</dt>
               <dd class="fw-semibold mb-0" id="dados-beneficiario"></dd>
             </div>
+            <div class="col-12 d-none" id="dados-instituicao-wrap">
+              <dt class="fw-normal text-muted">Instituição indicada no código:</dt>
+              <dd class="mb-0"><span class="fw-semibold" id="dados-instituicao"></span>
+                <span class="d-block small text-muted">É quem registrou o boleto, não necessariamente o banco de quem recebe.</span></dd>
+            </div>
           </dl>
+        </div>
+      </section>
+
+      <!-- Consulta pública do CNPJ (Receita Federal via BrasilAPI) -->
+      <section class="cartao d-none" id="card-cnpj" aria-labelledby="titulo-cnpj">
+        <h2 class="cartao__cabecalho d-flex align-items-center gap-2 flex-wrap" id="titulo-cnpj">
+          Consulta pública do CNPJ
+          <span class="selo ms-auto fw-normal" id="cnpj-estado"></span>
+        </h2>
+        <div class="cartao__corpo">
+          <dl class="row g-2 mb-2" id="cnpj-dados"></dl>
+          <p class="small text-muted mb-0" id="cnpj-aviso">
+            Dados públicos da Receita Federal. Mostram se a empresa existe e está ativa, mas <b>não comprovam
+            que este boleto é dela</b> nem quem vai receber o pagamento: na tela do banco, confira o nome do recebedor.
+          </p>
         </div>
       </section>
 
@@ -156,6 +176,50 @@
     document.getElementById('dados-beneficiario-wrap').classList.add('d-none');
   }
 
+  // Instituição indicada pelo código
+  if (analise.instituicao) {
+    document.getElementById('dados-instituicao').textContent = analise.instituicao.nome
+      ? `${analise.instituicao.nome} (${analise.instituicao.codigo})`
+      : `Código ${analise.instituicao.codigo} (não está na tabela local)`;
+    document.getElementById('dados-instituicao-wrap').classList.remove('d-none');
+  }
+
+  // Consulta pública do CNPJ
+  const ESTADOS_CNPJ = {
+    ENCONTRADO: ['Consultado', 'selo-baixo'],
+    NAO_ENCONTRADO: ['Não encontrado na base', 'selo-alto'],
+    DESATUALIZADO: ['Desatualizado', 'selo-medio'],
+    INDISPONIVEL: ['Consulta indisponível', 'selo-neutro'],
+  };
+  const SEMELHANCA = {
+    CONFERE: 'confere com o cadastro',
+    PARECIDO: 'é parecido com o cadastro: confira',
+    DIFERENTE: 'é diferente do cadastro: revise',
+  };
+  const c = analise.consultaCnpj;
+  if (c) {
+    const [rotulo, selo] = ESTADOS_CNPJ[c.estado] || [c.estado, 'selo-neutro'];
+    const estadoEl = document.getElementById('cnpj-estado');
+    estadoEl.textContent = c.estado === 'DESATUALIZADO' && c.consultadoEm ? `${rotulo} (de ${c.consultadoEm})` : rotulo;
+    estadoEl.classList.add(selo);
+    const linhas = [['CNPJ', c.cnpj]];
+    if (c.estado === 'INDISPONIVEL') {
+      linhas.push(['Situação', 'A consulta não respondeu agora; a análise seguiu sem ela (isso não indica fraude).']);
+    } else if (c.estado === 'NAO_ENCONTRADO') {
+      linhas.push(['Situação', 'Os dígitos do CNPJ são válidos, mas ele não foi encontrado na base pública consultada.']);
+    } else {
+      linhas.push(['Razão social', c.razaoSocial || 'não informada']);
+      if (c.nomeFantasia) linhas.push(['Nome fantasia', c.nomeFantasia]);
+      linhas.push(['Situação cadastral', (c.situacaoCadastral || 'não informada') + (c.dataSituacaoCadastral ? ` desde ${c.dataSituacaoCadastral}` : '')]);
+      if (c.semelhancaNome) linhas.push(['Nome informado', `${analise.nomeBeneficiario} — ${SEMELHANCA[c.semelhancaNome]}`]);
+    }
+    if (c.consultadoEm) linhas.push(['Consultado em', `${c.consultadoEm} · fonte: ${c.fonte}`]);
+    document.getElementById('cnpj-dados').innerHTML = linhas.map(([rot, val]) =>
+      `<div class="col-12 col-sm-6"><dt class="fw-normal text-muted small">${Html.escapar(rot)}:</dt>
+        <dd class="fw-semibold mb-0">${Html.escapar(val)}</dd></div>`).join('');
+    document.getElementById('card-cnpj').classList.remove('d-none');
+  }
+
   // Alertas
   if (analise.alertas && analise.alertas.length > 0) {
     document.getElementById('secao-alertas').classList.remove('d-none');
@@ -171,9 +235,9 @@
   // Verificações: o estado aparece em texto, não só pela cor/ícone
   const listaVerif = document.getElementById('lista-verificacoes');
   (analise.verificacoes || []).forEach(v => {
-    const estadoClass = { 'PASSOU': 'v-passou', 'FALHOU': 'v-falhou', 'NAO_VERIFICADO': 'v-nao_verificado' };
-    const estadoIcone = { 'PASSOU': '✓', 'FALHOU': '✗', 'NAO_VERIFICADO': '—' };
-    const estadoTexto = { 'PASSOU': 'Passou', 'FALHOU': 'Falhou', 'NAO_VERIFICADO': 'Não verificado' };
+    const estadoClass = { 'PASSOU': 'v-passou', 'FALHOU': 'v-falhou', 'ATENCAO': 'v-atencao', 'NAO_VERIFICADO': 'v-nao_verificado' };
+    const estadoIcone = { 'PASSOU': '✓', 'FALHOU': '✗', 'ATENCAO': '!', 'NAO_VERIFICADO': '—' };
+    const estadoTexto = { 'PASSOU': 'Passou', 'FALHOU': 'Falhou', 'ATENCAO': 'Atenção', 'NAO_VERIFICADO': 'Não verificado' };
     const li = document.createElement('li');
     li.className = 'verificacao-item';
     li.innerHTML = `
@@ -212,9 +276,10 @@
   // Leitura em voz alta sob demanda: nota, explicação, alertas e cada verificação com o seu estado.
   // Usada pelo botão desta tela e pelo "Ouvir esta página" do cabeçalho.
   function textoDoResultado() {
-    const estados = { PASSOU: 'passou', FALHOU: 'falhou', NAO_VERIFICADO: 'não verificado' };
+    const estados = { PASSOU: 'passou', FALHOU: 'falhou', ATENCAO: 'atenção', NAO_VERIFICADO: 'não verificado' };
     const partes = [`Resultado da análise: ${rotuloTexto[nivel] || nivel}, nota ${score} de 100.`];
     if (analise.explicacao) partes.push('O que isso significa. ' + analise.explicacao);
+    if (c && c.razaoSocial) partes.push(`Consulta pública do CNPJ: ${c.razaoSocial}, situação ${c.situacaoCadastral || 'não informada'}.`);
     if (analise.alertas && analise.alertas.length) partes.push('Alertas. ' + analise.alertas.join(' '));
     (analise.verificacoes || []).forEach(v => partes.push(`${v.nome}: ${estados[v.estado] || v.estado}. ${v.descricao}`));
     if (nivel === 'ALTO') partes.push('Recomendamos não prosseguir com o pagamento.');

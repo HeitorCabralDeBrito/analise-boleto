@@ -192,6 +192,34 @@ Objetivo: WCAG 2.2 nível AA (verificado por testes, não é certificação). De
 
 ---
 
+## 8.3 Banco de dados: migrações (Flyway)
+
+As tabelas são criadas e alteradas pelas migrações em `src/main/resources/db/migration` (V1, V2, …), aplicadas
+automaticamente ao iniciar. Em um banco que já existia (criado pelo Hibernate antes do Checkpoint 3), o Flyway marca a V1
+como linha de base e aplica só as seguintes. No `application.properties`, use:
+```properties
+spring.jpa.hibernate.ddl-auto=validate   # o Hibernate só confere; quem altera o banco são as migrações
+```
+Para mudar uma tabela, crie uma nova migração (ex.: `V3__descricao.sql`) — nunca edite uma que já foi aplicada.
+
+## 8.4 Consulta pública de CNPJ e instituição do boleto
+
+- **CNPJ do beneficiário** é consultado na BrasilAPI (dados abertos da Receita Federal, sem chave): razão social,
+  nome fantasia e situação cadastral. **CPF nunca é consultado.** O resultado fica em cache no banco
+  (`consulta_cnpj_cache`). Se a API falhar, a análise continua: sem dados a verificação fica "não verificada";
+  um cache vencido aparece como "desatualizado". Esses dados **não comprovam** que o boleto pertence à empresa.
+- **Instituição** é identificada pelos 3 primeiros dígitos da linha, pela tabela `src/main/resources/dados/instituicoes.csv`
+  (atualizável sem mexer no código). É quem registrou o boleto, não necessariamente o banco do beneficiário.
+
+Opcional no `application.properties` (valores padrão):
+```properties
+boleto.seguro.brasilapi.url=https://brasilapi.com.br/api
+boleto.seguro.brasilapi.cache-horas=24
+boleto.seguro.brasilapi.timeout-ms=5000
+```
+
+---
+
 ## 9. Endpoints da API REST
 
 | Método | Endpoint | Descrição | Auth |
@@ -202,6 +230,7 @@ Objetivo: WCAG 2.2 nível AA (verificado por testes, não é certificação). De
 | GET | /api/historico | Histórico do usuário | JWT |
 | POST | /api/boletos/ocr | Lê imagem/PDF: linha digitável e campos impressos, com origem e confiança de cada um | JWT |
 | GET | /api/config/tema | Tema padrão e se o tema acadêmico está disponível | Não |
+| GET | /api/instituicoes | Tabela local de instituições (código → nome) | JWT |
 
 ---
 

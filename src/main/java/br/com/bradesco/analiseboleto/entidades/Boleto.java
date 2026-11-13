@@ -48,6 +48,34 @@ public class Boleto {
     @Column(nullable = false, updatable = false)
     private LocalDateTime dataSubmissao = LocalDateTime.now();
 
+    // De onde veio cada dado (nulo quando o campo ficou vazio)
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private FonteDado fonteLinha;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private FonteDado fonteNome;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private FonteDado fonteDocumento;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private FonteDado fonteValor;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private FonteDado fonteVencimento;
+
+    /** Momento em que o usuário marcou "conferi os dados" antes da análise. */
+    private LocalDateTime dadosConferidosEm;
+
+    /** Código (3 dígitos) da instituição que o usuário esperava, se informou. */
+    @Column(length = 3)
+    private String instituicaoEsperada;
+
     @OneToOne(mappedBy = "boleto", cascade = CascadeType.ALL)
     private Analise analise;
 
@@ -57,5 +85,10 @@ public class Boleto {
 
     public enum OrigemBoleto {
         WHATSAPP, EMAIL, SITE, IMPRESSO, OUTRO
+    }
+
+    /** Leitura automática (texto do PDF, código de barras, OCR, IA) ou digitado/corrigido pelo usuário. */
+    public enum FonteDado {
+        TEXTO_PDF, CODIGO_BARRAS, OCR_LOCAL, IA, USUARIO
     }
 }

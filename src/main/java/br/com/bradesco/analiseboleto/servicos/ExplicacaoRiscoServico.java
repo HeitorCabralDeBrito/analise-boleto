@@ -1,6 +1,5 @@
 package br.com.bradesco.analiseboleto.servicos;
 
-import br.com.bradesco.analiseboleto.dtos.VerificacaoDTO;
 import br.com.bradesco.analiseboleto.entidades.Analise;
 import org.springframework.stereotype.Service;
 
@@ -46,17 +45,30 @@ public class ExplicacaoRiscoServico {
                           "é exatamente quem você espera pagar.";
         });
 
-        // Dados não informados deixam a análise incompleta: avisa o que faltou comparar
-        boolean faltouComparar = resultado.verificacoes().stream()
-            .filter(v -> "NAO_VERIFICADO".equals(v.getEstado()))
-            .map(VerificacaoDTO::getDescricao)
-            .anyMatch(d -> d.contains("não informad"));
-        if (faltouComparar && resultado.nivelRisco() != Analise.NivelRisco.ALTO) {
-            texto.append("\n\nDica: alguns dados não foram informados (como valor, vencimento ou origem). " +
-                         "Preenchê-los deixa a análise mais completa.");
+        // Dados não informados deixam a análise incompleta: diz exatamente o que faltou
+        List<String> faltaram = resultado.verificacoes().stream()
+            .filter(v -> "NAO_VERIFICADO".equals(v.getEstado()) && v.getDescricao().contains("não informad"))
+            .map(v -> FALTANTES.get(v.getNome()))
+            .filter(java.util.Objects::nonNull)
+            .toList();
+        if (!faltaram.isEmpty() && resultado.nivelRisco() != Analise.NivelRisco.ALTO) {
+            texto.append("\n\nDica: você não informou ").append(juntar(faltaram)).append(". ")
+                 .append(faltaram.size() == 1 ? "Preenchê-lo" : "Preenchê-los").append(" deixa a análise mais completa.");
         }
 
         return texto.toString();
+    }
+
+    // Nome da verificação → como o dado faltante é chamado na dica
+    private static final java.util.Map<String, String> FALTANTES = java.util.Map.of(
+        "Valor do boleto", "o valor",
+        "Vencimento do boleto", "o vencimento",
+        "Origem do boleto", "como recebeu o boleto",
+        "Beneficiário", "o nome do beneficiário");
+
+    private static String juntar(List<String> itens) {
+        if (itens.size() == 1) return itens.get(0);
+        return String.join(", ", itens.subList(0, itens.size() - 1)) + " e " + itens.get(itens.size() - 1);
     }
 
     private String maiuscula(String frase) {

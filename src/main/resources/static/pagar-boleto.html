@@ -177,6 +177,14 @@
               </select>
             </div>
 
+            <div class="mt-3">
+              <label for="instituicao-esperada" class="form-label fw-semibold">Por qual banco essa empresa costuma cobrar? <span class="fw-normal text-muted">(opcional)</span></label>
+              <select id="instituicao-esperada" class="form-select campo" aria-describedby="ajuda-instituicao">
+                <option value="">Não sei / não informar</option>
+              </select>
+              <div class="form-text" id="ajuda-instituicao">Se você souber, a análise compara com a instituição indicada no código do boleto.</div>
+            </div>
+
             <div class="form-check confirmacao-dados mt-4">
               <input class="form-check-input" type="checkbox" id="confirmo-dados" aria-describedby="erro-confirmo">
               <label class="form-check-label fw-semibold" for="confirmo-dados">Conferi os dados acima com o boleto e estão corretos.</label>
@@ -308,6 +316,7 @@
   function limparConferencia() {
     Object.entries(CAMPOS).forEach(([chave, id]) => { $(id).value = ''; marcarFonte(chave, null); });
     $('origem').value = '';
+    $('instituicao-esperada').value = '';
     $('confirmo-dados').checked = false;
     ['erro-linha', 'erro-documento', 'erro-confirmo', 'erro-geral'].forEach((id) => $(id).classList.add('d-none'));
     [docInput, $('nome-beneficiario'), $('linha-digitavel'), $('confirmo-dados')].forEach((el) => marcarInvalido(el, false));
@@ -447,9 +456,11 @@
         ? 'R$ ' + Number(data.codigo.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })
         : 'em aberto (não gravado)';
       const venc = data.codigo.vencimento ? formatarData(data.codigo.vencimento) : 'não gravado';
+      const inst = data.codigo.instituicao ? `${data.codigo.instituicao} (${data.codigo.banco})` : `código ${data.codigo.banco}`;
       $('dados-codigo').innerHTML =
-        `<b>No código de barras:</b> valor ${Html.escapar(valor)} · vencimento ${Html.escapar(venc)}.` +
-        '<br><span class="small">A análise compara esses dados com o valor e o vencimento acima, que devem ser os impressos no boleto.</span>';
+        `<b>No código de barras:</b> instituição ${Html.escapar(inst)} · valor ${Html.escapar(valor)} · vencimento ${Html.escapar(venc)}.` +
+        '<br><span class="small">A instituição é quem registrou o boleto, não necessariamente o banco de quem recebe. ' +
+        'A análise compara valor e vencimento com os de cima, que devem ser os impressos no boleto.</span>';
       $('dados-codigo').classList.remove('d-none');
     }
 
@@ -522,6 +533,23 @@
   });
   $('confirmo-dados').addEventListener('change', () => { $('erro-confirmo').classList.add('d-none'); marcarInvalido($('confirmo-dados'), false); });
 
+  // De onde veio cada campo preenchido, como os selos mostram; vazio ou digitado à mão = USUARIO
+  function fontesDosCampos() {
+    const fontes = {};
+    Object.entries(CAMPOS).forEach(([chave, id]) => {
+      if (!$(id).value.trim()) return;
+      const fonte = $('fonte-' + chave).dataset.fonte;
+      fontes[chave] = ['TEXTO_PDF', 'CODIGO_BARRAS', 'OCR_LOCAL', 'IA', 'USUARIO'].includes(fonte) ? fonte : 'USUARIO';
+    });
+    return fontes;
+  }
+
+  // Lista de instituições para o campo opcional "banco esperado"
+  API.fetch('/instituicoes').then((r) => (r && r.ok ? r.json() : [])).then((lista) => {
+    const select = $('instituicao-esperada');
+    lista.forEach((i) => select.add(new Option(`${i.nome} (${i.codigo})`, i.codigo)));
+  }).catch(() => { /* sem a lista, o campo fica só com "Não sei" */ });
+
   // ---------- Análise ----------
   $('btn-analisar').addEventListener('click', analisarBoleto);
 
@@ -572,6 +600,9 @@
       documentoBeneficiarioDeclarado: docInput.value,
       valorDeclarado: $('valor-declarado').value.trim() || null,
       vencimentoDeclarado: $('vencimento-declarado').value || null,
+      fontes: fontesDosCampos(),
+      dadosConferidos: $('confirmo-dados').checked,
+      instituicaoEsperada: $('instituicao-esperada').value || null,
     };
 
     mostrar('loading');

@@ -89,6 +89,7 @@ public class LeitorBoletoServico {
     private final OcrLocalServico ocrLocal;
     private final ArquivoBoletoValidador validadorArquivo;
     private final ExtratorCamposBoleto extrator;
+    private final InstituicaoServico instituicoes;
     private final Semaphore leiturasSimultaneas;
     private final long esperaVagaSegundos;
     private final long prazoSegundos;
@@ -96,6 +97,7 @@ public class LeitorBoletoServico {
     @Autowired
     public LeitorBoletoServico(BoletoValidador validador, LeitorIaServico leitorIa, OcrLocalServico ocrLocal,
                                ArquivoBoletoValidador validadorArquivo, ExtratorCamposBoleto extrator,
+                               InstituicaoServico instituicoes,
                                @Value("${boleto.seguro.leitura.max-simultaneas:2}") int maxSimultaneas,
                                @Value("${boleto.seguro.leitura.espera-vaga-segundos:10}") long esperaVagaSegundos,
                                @Value("${boleto.seguro.leitura.prazo-segundos:60}") long prazoSegundos) {
@@ -104,6 +106,7 @@ public class LeitorBoletoServico {
         this.ocrLocal = ocrLocal;
         this.validadorArquivo = validadorArquivo;
         this.extrator = extrator;
+        this.instituicoes = instituicoes;
         this.leiturasSimultaneas = new Semaphore(maxSimultaneas, true);
         this.esperaVagaSegundos = esperaVagaSegundos;
         this.prazoSegundos = prazoSegundos;
@@ -111,7 +114,7 @@ public class LeitorBoletoServico {
 
     /** Para testes: limites padrão. */
     public LeitorBoletoServico(BoletoValidador validador, LeitorIaServico leitorIa, OcrLocalServico ocrLocal) {
-        this(validador, leitorIa, ocrLocal, new ArquivoBoletoValidador(), new ExtratorCamposBoleto(), 2, 10, 60);
+        this(validador, leitorIa, ocrLocal, new ArquivoBoletoValidador(), new ExtratorCamposBoleto(), new InstituicaoServico(), 2, 10, 60);
     }
 
     public ResultadoLeitura ler(MultipartFile multipart) {
@@ -223,6 +226,7 @@ public class LeitorBoletoServico {
         LocalDate vencimento = fator == 0 ? null : MotorRiscoServico.calcularDataVencimento(fator);
         return new DadosCodigo(
             linha.substring(0, 3),
+            instituicoes.porCodigo(linha.substring(0, 3)).map(InstituicaoServico.Instituicao::nome).orElse(null),
             valor.signum() == 0 ? null : valor,
             vencimento == null ? null : vencimento.toString());
     }
@@ -317,8 +321,11 @@ public class LeitorBoletoServico {
 
     private record Leitura(String linha, Fonte fonte) {}
 
-    /** Banco = código de 3 dígitos indicado na linha (a identificação da instituição vem na Etapa 4). */
-    public record DadosCodigo(String banco, BigDecimal valor, String vencimento) {}
+    /**
+     * Dados gravados no código de barras. banco = código de 3 dígitos; instituicao = nome pela tabela local
+     * (null se o código não está nela). É a instituição que registrou o boleto, não necessariamente a do beneficiário.
+     */
+    public record DadosCodigo(String banco, String instituicao, BigDecimal valor, String vencimento) {}
 
     /**
      * @param linhaDigitavel linha lida (47 dígitos) ou null se não identificada

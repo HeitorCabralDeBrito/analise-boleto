@@ -800,6 +800,7 @@ kbd { background: var(--color-surface-alt); color: var(--color-text); border: 1p
 .v-passou { background: var(--color-success-soft); color: var(--color-risk-baixo); }
 .v-falhou { background: var(--color-danger-soft); color: var(--color-risk-alto); }
 .v-nao_verificado { background: var(--color-surface-alt); color: var(--color-muted); }
+.v-atencao { background: var(--color-warning-soft); color: var(--color-risk-medio); }
 .verificacao-nome { font-size: 0.95rem; font-weight: 600; margin-bottom: 2px; }
 .verificacao-estado { font-size: 0.8rem; font-weight: 600; margin-left: 0.35rem; }
 .verificacao-desc { font-size: 0.875rem; color: var(--color-muted); }

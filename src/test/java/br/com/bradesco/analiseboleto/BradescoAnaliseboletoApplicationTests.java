@@ -11,6 +11,7 @@ import org.springframework.test.context.TestPropertySource;
     "spring.datasource.username=sa",
     "spring.datasource.password=",
     "spring.jpa.hibernate.ddl-auto=create-drop",
+    "spring.flyway.enabled=false", // tabelas criadas pelo Hibernate; as migrações são testadas em MigracoesBancoTest
     "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
     "boleto.seguro.jwt.secret=chave-secreta-de-teste-para-testes-unitarios-com-mais-de-64-caracteres",
     "boleto.seguro.jwt.expiration-ms=3600000"

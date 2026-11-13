@@ -141,6 +141,7 @@ class LeitorBoletoServicoTest {
         assertEquals("2026-11-10", r.codigo().vencimento());
         assertEquals(0, new java.math.BigDecimal("150.00").compareTo(r.codigo().valor()));
         assertEquals("237", r.codigo().banco());
+        assertEquals("Bradesco", r.codigo().instituicao());
         assertTrue(r.tempoMs() >= 0);
     }
 
@@ -170,7 +171,7 @@ class LeitorBoletoServicoTest {
             @Override public java.util.Optional<String> lerTexto(BufferedImage imagem) { return java.util.Optional.empty(); }
         };
         LeitorBoletoServico leitorLimitado = new LeitorBoletoServico(validador, new LeitorIaServico(validador, "", "gpt-4o-mini"),
-            ocrLento, new ArquivoBoletoValidador(), new ExtratorCamposBoleto(), 1, 0, 60);
+            ocrLento, new ArquivoBoletoValidador(), new ExtratorCamposBoleto(), new InstituicaoServico(), 1, 0, 60);
         byte[] semCodigo = imagemEmBranco();
 
         Thread primeira = new Thread(() -> {

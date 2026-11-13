@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -30,18 +31,47 @@ import java.util.regex.Pattern;
  *   CPF/CNPJ do beneficiário inválido          → +50 pontos
  *   Nome de empresa recebendo em CPF           → +30 pontos
  *   Nome do beneficiário incompleto/suspeito   → +20 pontos
+ *   CNPJ com situação irregular na Receita     → +30 pontos (consulta pública)
+ *   CNPJ não encontrado na base pública        → +20 pontos
+ *   Nome diferente da razão social/fantasia    → +20 pontos (alerta para revisar, não condenação)
+ *   Instituição diferente da esperada          → +15 pontos (só se o usuário informou qual esperava)
+ *   Vencimento INFORMADO (sem data no código) vencido há > 60 dias → atenção, 0 pontos
+ *     (a data veio do usuário/OCR, não do código de barras: sem evidência independente, não pontua)
  */
 @Service
 public class MotorRiscoServico {
 
+    private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter DATA_HORA = DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm");
+
+    /**
+     * Dados obtidos fora do boleto para a análise.
+     * @param cnpj        consulta pública do CNPJ do beneficiário (null quando não houve consulta)
+     * @param instituicao instituição identificada pelo código da linha (vazio se o código não está na tabela)
+     */
+    public record Contexto(ConsultaCnpjServico.Resultado cnpj, Optional<InstituicaoServico.Instituicao> instituicao) {
+        public static Contexto vazio() {
+            return new Contexto(null, null);
+        }
+    }
+
     public ResultadoRisco calcular(String codigoBarras, Boleto boleto) {
-        List<ResultadoVerificacao> resultados = List.of(
-            verificarValor(codigoBarras, boleto),        // 1: valor codificado vs. declarado
-            verificarVencimento(codigoBarras, boleto),   // 2: vencimento codificado vs. declarado
-            verificarBoletoVencido(codigoBarras),        // 3: boleto vencido
-            verificarOrigem(boleto),                     // 4: origem de risco elevado
-            verificarBeneficiario(boleto)                // 5: beneficiário (nome + CPF/CNPJ)
-        );
+        return calcular(codigoBarras, boleto, Contexto.vazio());
+    }
+
+    public ResultadoRisco calcular(String codigoBarras, Boleto boleto, Contexto contexto) {
+        // Novas verificações entram no fim: a ordem das cinco primeiras é a mesma desde o Checkpoint 2
+        List<ResultadoVerificacao> resultados = new ArrayList<>(List.of(
+            verificarValor(codigoBarras, boleto),            // 1: valor gravado no código vs. informado
+            verificarVencimento(codigoBarras, boleto),       // 2: vencimento gravado no código vs. informado
+            verificarBoletoVencido(codigoBarras, boleto),    // 3: boleto vencido
+            verificarOrigem(boleto),                         // 4: origem de risco elevado
+            verificarBeneficiario(boleto)                    // 5: beneficiário (nome + CPF/CNPJ)
+        ));
+        verificarCadastroCnpj(boleto, contexto.cnpj()).ifPresent(resultados::add);   // 6: consulta pública do CNPJ
+        if (contexto.instituicao() != null) {                                       // 7: instituição pelo código
+            resultados.add(verificarInstituicao(codigoBarras, boleto, contexto.instituicao()));
+        }
 
         List<VerificacaoDTO> verificacoes = new ArrayList<>();
         List<String> alertas = new ArrayList<>();
@@ -90,7 +120,7 @@ public class MotorRiscoServico {
         if (diverge) {
             return ResultadoVerificacao.falhou(
                 "Valor do boleto",
-                String.format("Valor declarado (R$ %.2f) diverge do valor codificado no boleto (R$ %.2f).",
+                String.format("Valor informado (R$ %.2f) diferente do valor gravado no código de barras (R$ %.2f).",
                     boleto.getValorDeclarado(), valorBoleto),
                 40,
                 "o valor que você informou é diferente do valor gravado no código de barras",
@@ -101,7 +131,7 @@ public class MotorRiscoServico {
 
         return ResultadoVerificacao.passou(
             "Valor do boleto",
-            String.format("Valor declarado (R$ %.2f) coincide com o valor codificado.", valorBoleto),
+            String.format("Valor informado (R$ %.2f) igual ao valor gravado no código de barras.", valorBoleto),
             0
         );
     }
@@ -110,11 +140,14 @@ public class MotorRiscoServico {
         String fatorStr = codigoBarras.substring(5, 9);
         int fator = Integer.parseInt(fatorStr);
 
-        // Fator 0000 = sem vencimento
+        // Fator 0000 = sem vencimento no código: não há o que comparar
         if (fator == 0) {
             return ResultadoVerificacao.naoVerificado(
                 "Vencimento do boleto",
-                "Este boleto não possui vencimento codificado.",
+                boleto.getVencimentoDeclarado() == null
+                    ? "Este boleto não tem vencimento gravado no código de barras."
+                    : "Este boleto não tem vencimento gravado no código de barras; a data informada (" +
+                      boleto.getVencimentoDeclarado().format(DATA) + ") foi usada só para conferir o prazo.",
                 0
             );
         }
@@ -125,7 +158,7 @@ public class MotorRiscoServico {
         } catch (Exception e) {
             return ResultadoVerificacao.naoVerificado(
                 "Vencimento do boleto",
-                "Não foi possível calcular a data de vencimento a partir do fator codificado.",
+                "Não foi possível calcular a data de vencimento gravada no código de barras.",
                 0
             );
         }
@@ -134,7 +167,7 @@ public class MotorRiscoServico {
             return ResultadoVerificacao.naoVerificado(
                 "Vencimento do boleto",
                 "Vencimento não informado pelo usuário; não foi possível comparar. " +
-                "Vencimento codificado: " + dataVencimento.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                "Vencimento gravado no código de barras: " + dataVencimento.format(DATA),
                 0
             );
         }
@@ -143,9 +176,8 @@ public class MotorRiscoServico {
         if (diverge) {
             return ResultadoVerificacao.falhou(
                 "Vencimento do boleto",
-                String.format("Vencimento declarado (%s) difere do vencimento codificado (%s).",
-                    boleto.getVencimentoDeclarado().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                    dataVencimento.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))),
+                String.format("Vencimento informado (%s) diferente do gravado no código de barras (%s).",
+                    boleto.getVencimentoDeclarado().format(DATA), dataVencimento.format(DATA)),
                 30,
                 "a data de vencimento que você informou é diferente da gravada no código de barras",
                 List.of("A data de vencimento que você informou não bate com a embutida no código de barras. " +
@@ -155,22 +187,17 @@ public class MotorRiscoServico {
 
         return ResultadoVerificacao.passou(
             "Vencimento do boleto",
-            "Vencimento declarado coincide com o vencimento codificado: " +
-            dataVencimento.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+            "Vencimento informado igual ao gravado no código de barras: " + dataVencimento.format(DATA),
             0
         );
     }
 
-    private ResultadoVerificacao verificarBoletoVencido(String codigoBarras) {
+    private ResultadoVerificacao verificarBoletoVencido(String codigoBarras, Boleto boleto) {
         String fatorStr = codigoBarras.substring(5, 9);
         int fator = Integer.parseInt(fatorStr);
 
         if (fator == 0) {
-            return ResultadoVerificacao.naoVerificado(
-                "Prazo de validade",
-                "Boleto sem vencimento definido.",
-                0
-            );
+            return prazoPelaDataInformada(boleto.getVencimentoDeclarado());
         }
 
         LocalDate dataVencimento;
@@ -202,6 +229,32 @@ public class MotorRiscoServico {
         }
 
         return ResultadoVerificacao.passou("Prazo de validade", "Boleto dentro do prazo de validade.", 0);
+    }
+
+    /**
+     * Sem vencimento no código de barras, o prazo só pode ser conferido pela data informada (digitada ou lida do papel).
+     * Como essa data não tem confirmação independente, um boleto muito vencido gera ATENÇÃO, sem pontos de fraude.
+     */
+    private ResultadoVerificacao prazoPelaDataInformada(LocalDate informada) {
+        if (informada == null) {
+            return ResultadoVerificacao.naoVerificado("Prazo de validade",
+                "Boleto sem vencimento no código de barras e sem data informada.", 0);
+        }
+        long dias = LocalDate.now().toEpochDay() - informada.toEpochDay();
+        if (dias > 60) {
+            return ResultadoVerificacao.atencao(
+                "Prazo de validade",
+                "Pela data informada (" + informada.format(DATA) + "), o boleto venceu há " + dias + " dias. " +
+                "Essa data não está no código de barras, por isso não conta como sinal de golpe.",
+                "pela data informada, o boleto venceu há mais de 60 dias",
+                List.of("Pela data de vencimento informada, este boleto venceu há mais de 60 dias. " +
+                        "Confirme com o beneficiário se ele ainda pode ser pago.")
+            );
+        }
+        return ResultadoVerificacao.passou("Prazo de validade",
+            dias > 0 ? "Pela data informada, o boleto venceu há " + dias + " dia(s). Verifique se ainda é aceito."
+                     : "Dentro do prazo, pela data informada (não há vencimento no código de barras).",
+            0);
     }
 
     private ResultadoVerificacao verificarOrigem(Boleto boleto) {
@@ -316,6 +369,98 @@ public class MotorRiscoServico {
     }
 
     /**
+     * Consulta pública do CNPJ (Receita Federal via BrasilAPI). Só para CNPJ com dígitos válidos;
+     * CPF não é consultado. Sem resposta da fonte, fica "não verificado" — nunca conta como fraude.
+     */
+    private Optional<ResultadoVerificacao> verificarCadastroCnpj(Boleto boleto, ConsultaCnpjServico.Resultado consulta) {
+        if (consulta == null || consulta.estado() == ConsultaCnpjServico.Estado.NAO_APLICAVEL) return Optional.empty();
+        String nome = "Cadastro público do CNPJ";
+        String aviso = " Dados públicos da Receita Federal (via " + consulta.fonte() + "): não comprovam que o boleto é desta empresa.";
+
+        return Optional.of(switch (consulta.estado()) {
+            case INDISPONIVEL -> ResultadoVerificacao.naoVerificado(nome,
+                "A consulta pública de CNPJ não respondeu agora. A análise seguiu sem ela.", 0);
+            case DESATUALIZADO -> ResultadoVerificacao.naoVerificado(nome,
+                "A consulta pública não respondeu agora. Último dado conhecido (de " + consulta.consultadoEm().format(DATA_HORA) +
+                ", desatualizado): " + descreverEmpresa(consulta) + ".", 0);
+            case NAO_ENCONTRADO -> ResultadoVerificacao.falhou(nome,
+                "O CNPJ tem dígitos válidos, mas não foi encontrado na base pública consultada." + aviso,
+                20,
+                "o CNPJ de quem vai receber não aparece na base pública da Receita",
+                List.of("O CNPJ do beneficiário não foi encontrado na base pública da Receita Federal. " +
+                        "Confirme com a empresa por um canal oficial antes de pagar."));
+            case ENCONTRADO -> avaliarEmpresa(nome, boleto, consulta, aviso);
+            case NAO_APLICAVEL -> throw new IllegalStateException("CNPJ não aplicável já foi tratado");
+        });
+    }
+
+    private ResultadoVerificacao avaliarEmpresa(String nome, Boleto boleto, ConsultaCnpjServico.Resultado c, String aviso) {
+        String empresa = descreverEmpresa(c);
+        if (!c.ativa()) {
+            String situacao = c.situacaoCadastral() == null ? "não informada" : c.situacaoCadastral();
+            return ResultadoVerificacao.falhou(nome,
+                empresa + "." + aviso,
+                30,
+                "a empresa do CNPJ não está ativa na Receita (situação: " + situacao + ")",
+                List.of("O CNPJ do beneficiário não está ativo na Receita Federal (situação: " + situacao + "). " +
+                        "Empresas que não estão ativas não deveriam emitir cobranças. Confirme antes de pagar."));
+        }
+        ComparadorNomes.Semelhanca semelhanca = ComparadorNomes.comparar(
+            boleto.getNomeBeneficiarioDeclarado(), c.razaoSocial(), c.nomeFantasia());
+        return switch (semelhanca) {
+            case CONFERE -> ResultadoVerificacao.passou(nome,
+                empresa + ". O nome informado confere com o cadastro." + aviso, 0);
+            case PARECIDO -> ResultadoVerificacao.passou(nome,
+                empresa + ". O nome informado é parecido com o do cadastro: confira se é a mesma empresa." + aviso, 0);
+            case DIFERENTE -> ResultadoVerificacao.falhou(nome,
+                empresa + ". O nome informado (" + boleto.getNomeBeneficiarioDeclarado() + ") é diferente do cadastro." + aviso,
+                20,
+                "o nome de quem vai receber é diferente do nome registrado para esse CNPJ na Receita",
+                List.of("O nome do beneficiário no boleto é diferente do nome registrado para o CNPJ na Receita Federal. " +
+                        "Pode ser um nome comercial ou outra empresa do mesmo grupo, mas também é um sinal comum de golpe: revise."));
+        };
+    }
+
+    private static String descreverEmpresa(ConsultaCnpjServico.Resultado c) {
+        StringBuilder s = new StringBuilder("Razão social: ").append(c.razaoSocial() == null ? "não informada" : c.razaoSocial());
+        if (c.nomeFantasia() != null) s.append(" (nome fantasia: ").append(c.nomeFantasia()).append(')');
+        s.append("; situação cadastral: ").append(c.situacaoCadastral() == null ? "não informada" : c.situacaoCadastral());
+        if (c.dataSituacaoCadastral() != null) s.append(" desde ").append(c.dataSituacaoCadastral().format(DATA));
+        return s.toString();
+    }
+
+    /**
+     * Instituição indicada pelo código de 3 dígitos da linha. Informativa; só pontua se o usuário disse qual
+     * instituição esperava e o código aponta para outra.
+     */
+    private ResultadoVerificacao verificarInstituicao(String codigoBarras, Boleto boleto,
+                                                      Optional<InstituicaoServico.Instituicao> instituicao) {
+        String nome = "Instituição do boleto";
+        String codigo = codigoBarras.substring(0, 3);
+        String identificada = instituicao.map(i -> i.codigo() + " – " + i.nome()).orElse("código " + codigo);
+        String nota = " É quem registrou o boleto, não necessariamente o banco de quem recebe.";
+        String esperada = boleto.getInstituicaoEsperada();
+
+        if (esperada != null && !esperada.isBlank()) {
+            if (!esperada.equals(codigo)) {
+                return ResultadoVerificacao.falhou(nome,
+                    "Instituição indicada no código: " + identificada + ". Você esperava a instituição " + esperada + "." + nota,
+                    15,
+                    "o boleto foi registrado em uma instituição diferente da que você esperava",
+                    List.of("O código do boleto indica uma instituição diferente da que você esperava. " +
+                            "Se a empresa costuma cobrar por outro banco, confirme por um canal oficial."));
+            }
+            return ResultadoVerificacao.passou(nome,
+                "Instituição indicada no código: " + identificada + ", a mesma que você esperava." + nota, 0);
+        }
+        if (instituicao.isEmpty()) {
+            return ResultadoVerificacao.naoVerificado(nome,
+                "O código " + codigo + " não está na tabela local de instituições.", 0);
+        }
+        return ResultadoVerificacao.passou(nome, "Instituição indicada no código: " + identificada + "." + nota, 0);
+    }
+
+    /**
      * Converte o fator de vencimento em data (FEBRABAN).
      * Base original: 07/10/1997 (fator 9999 = 21/02/2025).
      * Em 22/02/2025 o fator reiniciou em 1000; como o mesmo fator vale para as duas bases,
@@ -349,6 +494,11 @@ public class MotorRiscoServico {
         static ResultadoVerificacao falhou(String nome, String descricao, int pontos, String motivo, List<String> alertas) {
             return new ResultadoVerificacao(
                 new VerificacaoDTO(nome, "FALHOU", descricao, pontos), pontos, alertas, motivo);
+        }
+        /** Ponto de atenção sem pontos de fraude (ex.: dado sem confirmação independente). */
+        static ResultadoVerificacao atencao(String nome, String descricao, String motivo, List<String> alertas) {
+            return new ResultadoVerificacao(
+                new VerificacaoDTO(nome, "ATENCAO", descricao, 0), 0, alertas, motivo);
         }
         static ResultadoVerificacao naoVerificado(String nome, String descricao, int pontos) {
             return new ResultadoVerificacao(

@@ -1,0 +1,43 @@
+# Código de 3 dígitos (COMPE) que aparece no início da linha digitável de boletos de cobrança.
+# Indica a instituição que registrou/emitiu o boleto — NÃO necessariamente o banco do beneficiário.
+# Fonte para conferir e atualizar: relação de participantes do STR/COMPE publicada pelo Banco Central.
+# Formato: codigo;nome   (linhas com # são comentários)
+001;Banco do Brasil
+003;Banco da Amazônia
+004;Banco do Nordeste
+021;Banestes
+033;Santander
+037;Banpará
+041;Banrisul
+047;Banese
+070;BRB – Banco de Brasília
+077;Banco Inter
+085;Ailos (cooperativas de crédito)
+104;Caixa Econômica Federal
+136;Unicred
+197;Stone
+208;BTG Pactual
+212;Banco Original
+218;Banco BS2
+237;Bradesco
+246;Banco ABC Brasil
+260;Nu Pagamentos (Nubank)
+290;PagSeguro (PagBank)
+318;Banco BMG
+323;Mercado Pago
+336;Banco C6
+341;Itaú Unibanco
+380;PicPay
+389;Banco Mercantil do Brasil
+403;Cora
+422;Banco Safra
+461;Asaas
+536;Neon
+623;Banco Pan
+633;Banco Rendimento
+637;Banco Sofisa
+655;Banco Votorantim (BV)
+707;Banco Daycoval
+745;Citibank
+748;Sicredi
+756;Sicoob
