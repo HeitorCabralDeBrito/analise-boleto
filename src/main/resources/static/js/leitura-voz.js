@@ -155,7 +155,7 @@ const LeituraVoz = {
       }
     };
     percorrer(raiz);
-    return partes.filter(Boolean).join(' ');
+    return this.paraFala(partes.filter(Boolean).join(' '));
   },
 
   textoDaPagina() {
@@ -164,21 +164,54 @@ const LeituraVoz = {
   },
 
   // ---------- Ler ao apontar ----------
+  // O que é lido ao passar o mouse, em ordem de prioridade:
+  //   1. botão, link ou campo → "Botão: Sair", "Campo Valor: 150,00"
+  //   2. item de lista inteiro (um boleto do histórico, uma verificação, um alerta…)
+  //   3. bloco de texto (parágrafo, rótulo, célula, título)
+  //   4. qualquer outro elemento que tenha texto próprio (ex.: uma frase solta dentro de um cartão)
+  INTERATIVO: 'a, button, input, select, textarea, [role="button"]',
+  ITEM_INTEIRO: '.historico-item, .ultima-analise, .verificacao-item, .alerta-item, .resumo-numeros > div, .step, [data-ler-bloco]',
+  BLOCO_TEXTO: 'h1, h2, h3, h4, p, li, dt, dd, td, th, label, legend, summary, caption',
+
+  alvoAoApontar(no) {
+    if (!no || !no.closest) return null;
+    const alvo = no.closest(this.INTERATIVO) || no.closest(this.ITEM_INTEIRO) || no.closest(this.BLOCO_TEXTO);
+    if (alvo) return alvo;
+    // Elemento com texto próprio (não só o texto dos filhos), subindo até achar um
+    for (let el = no; el && el !== document.body; el = el.parentElement) {
+      if ([...el.childNodes].some((n) => n.nodeType === Node.TEXT_NODE && n.textContent.trim())) return el;
+    }
+    return null;
+  },
+
+  /** Ajustes para soar natural: linha digitável crua não vira um número gigante; "20/100" vira "20 de 100". */
+  paraFala(texto) {
+    return String(texto || '')
+      .replace(/\b\d{40,}\b/g, (n) => `linha digitável terminada em ${n.slice(-4)}`)
+      .replace(/\b(\d{1,3})\s*\/\s*100\b/g, '$1 de 100');
+  },
+
+  textoAoApontar(el) {
+    if (el.matches(this.INTERATIVO)) return this.descrever(el);
+    const texto = this.paraFala(this.limpar(el.innerText, '. ').replace(/([.!?:])\. /g, '$1 '));
+    return texto.length > 600 ? texto.slice(0, 600) + '…' : texto; // nunca lê uma página inteira de uma vez
+  },
+
   iniciarLerAoApontar() {
-    const alvo = 'a, button, input, select, textarea, [role="button"], h1, h2, h3';
     let ultimo = null;
     let espera = null;
     const ler = (el) => {
       if (!window.Preferencias || !Preferencias.lerAoApontar() || !el || el === ultimo) return;
+      if (!this.visivel(el)) return;
       ultimo = el;
-      this.falarCurto(this.descrever(el));
+      this.falarCurto(this.textoAoApontar(el));
     };
     document.addEventListener('focusin', (e) => {
-      const el = e.target.closest && e.target.closest(alvo);
+      const el = e.target.closest && e.target.closest(this.INTERATIVO + ', h1, h2, h3');
       if (el) ler(el);
     });
     document.addEventListener('mouseover', (e) => {
-      const el = e.target.closest && e.target.closest(alvo);
+      const el = this.alvoAoApontar(e.target);
       clearTimeout(espera);
       if (!el) { ultimo = null; return; }
       espera = setTimeout(() => ler(el), 250); // espera o mouse parar, para não falar tudo pelo caminho
