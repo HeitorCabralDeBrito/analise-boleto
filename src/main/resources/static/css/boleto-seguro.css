@@ -372,15 +372,17 @@ a:hover { color: var(--color-action-hover); }
   color: var(--color-on-primary);
   font-size: 0.85rem;
 }
+/* legend flutuando com largura total fica DENTRO da caixa (sem float o navegador a desenha sobre a borda) */
 .seletor-tema legend {
   float: left;
-  width: auto;
+  width: 100%;
   font-size: 0.85rem;
   font-weight: 600;
-  margin: 0 1rem 0 0;
+  margin: 0 0 0.25rem;
   padding: 0;
 }
-.seletor-tema label { display: inline-flex; align-items: center; gap: 0.35rem; margin-right: 1rem; cursor: pointer; min-height: 32px; }
+.seletor-tema__opcoes { clear: both; display: flex; flex-wrap: wrap; gap: 0 1.5rem; }
+.seletor-tema label { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; min-height: 32px; }
 .seletor-tema input { accent-color: var(--color-on-primary); width: 1.05rem; height: 1.05rem; }
 .seletor-tema :focus-visible { outline-color: var(--color-on-primary); }
 
