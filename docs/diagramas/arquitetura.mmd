@@ -1,0 +1,23 @@
+flowchart TB
+    U(["Pessoa — computador ou celular"])
+    F1["Navegador<br/>telas HTML + Bootstrap + JavaScript<br/>temas · preferências de leitura · voz"]
+    SEC["Spring Boot 4 · Java 21<br/>segurança JWT: cada um só vê os seus boletos"]
+
+    U --> F1
+    F1 -- "HTTPS + JWT" --> SEC
+
+    SEC --> LEIT["Leitura do boleto<br/>PDF · código de barras · OCR"]
+    SEC --> ANAL["Análise de risco<br/>8 verificações · explicação"]
+    SEC --> DEN["Denúncias"]
+
+    LEIT --> TESS(["Tesseract OCR<br/>no servidor"])
+    LEIT -. "último recurso" .-> IA(["OpenAI · opcional"])
+    ANAL -. "sem nome/CPF" .-> IA
+    ANAL -. "só CNPJ" .-> BRAPI(["BrasilAPI<br/>CNPJ público"])
+
+    LEIT --> DB[("PostgreSQL<br/>migrações Flyway")]
+    ANAL --> DB
+    DEN --> DB
+
+    classDef externo fill:#F4F7FB,stroke:#7A879B,stroke-dasharray:4 3
+    class TESS,IA,BRAPI externo

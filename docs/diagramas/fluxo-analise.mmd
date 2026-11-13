@@ -1,0 +1,23 @@
+sequenceDiagram
+    participant T as Tela
+    participant API as POST /api/boletos/analisar
+    participant B as BoletoServico
+    participant C as ConsultaCnpjServico
+    participant M as MotorRiscoServico
+    participant E as ExplicacaoRiscoServico
+    participant IA as POST /explicacao-ia
+
+    T->>API: linha, beneficiário, documento, valor, vencimento, origem, fontes, conferido
+    API->>B: validação técnica (Módulo 10 e 11, tamanho, arrecadação)
+    alt linha inválida
+        B-->>T: bloqueio com explicação (nada é gravado)
+    end
+    B->>B: grava o boleto (com a origem de cada dado)
+    B->>C: CNPJ? consulta pública (cache 24 h, timeout 5 s, disjuntor)
+    C-->>B: encontrado · não encontrado · desatualizado · indisponível
+    B->>M: verificações + instituição pelo código + denúncias de outros usuários
+    M-->>B: nota 0–100, nível, verificações, alertas, motivos
+    B->>E: texto em linguagem simples (regras)
+    B-->>T: resultado (aparece na hora)
+    T->>IA: se a IA estiver configurada
+    IA-->>T: texto reescrito (ou mantém o das regras)

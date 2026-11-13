@@ -1,0 +1,74 @@
+erDiagram
+    usuarios ||--o{ boletos : "usuario_id"
+    boletos ||--o| analises : "boleto_id (único)"
+    analises ||--o{ alertas : "analise_id"
+    usuarios ||--o{ denuncias : "usuario_id"
+    boletos ||--o{ denuncias : "boleto_id"
+
+    usuarios {
+        uuid id PK
+        varchar agencia UK "10 - único com conta"
+        varchar conta UK "20"
+        varchar cpf "14, opcional"
+        timestamp data_criacao
+        varchar nome "100"
+        varchar senha_hash "255, BCrypt"
+    }
+    boletos {
+        uuid id PK
+        uuid usuario_id FK
+        varchar linha_digitavel "54"
+        varchar tipo_entrada "MANUAL, IMAGEM, PDF"
+        varchar origem "WHATSAPP, EMAIL, SITE, IMPRESSO, OUTRO"
+        varchar nome_beneficiario_declarado "200"
+        varchar documento_beneficiario_declarado "20, só dígitos"
+        numeric valor_declarado
+        date vencimento_declarado
+        timestamp data_submissao
+        varchar fonte_linha "V2: origem do dado"
+        varchar fonte_nome "V2"
+        varchar fonte_documento "V2"
+        varchar fonte_valor "V2"
+        varchar fonte_vencimento "V2"
+        timestamp dados_conferidos_em "V2"
+        varchar instituicao_esperada "V2, 3 dígitos"
+    }
+    analises {
+        uuid id PK
+        uuid boleto_id FK "único"
+        integer score "0 a 100"
+        varchar nivel_risco "BAIXO, MEDIO, ALTO"
+        varchar status "CONCLUIDA, FALHA, BLOQUEADA"
+        json verificacoes "nome, estado, descrição, pontos"
+        text explicacao_resultado "texto das regras"
+        text justificativa_ia "texto reescrito pela IA"
+        boolean confirmacao_simulada
+        timestamp data_analise
+    }
+    alertas {
+        uuid id PK
+        uuid analise_id FK
+        varchar tipo "50"
+        varchar nivel "INFO, AVISO, CRITICO"
+        text mensagem
+        timestamp data_alerta
+    }
+    denuncias {
+        uuid id PK
+        uuid usuario_id FK
+        uuid boleto_id FK
+        varchar documento_beneficiario "14, único com usuario_id"
+        varchar motivo "NAO_RECONHECO, DADOS_DIFERENTES, GOLPE_CONFIRMADO, OUTRO"
+        varchar descricao "500, opcional"
+        timestamp data_denuncia
+    }
+    consulta_cnpj_cache {
+        varchar cnpj PK "14"
+        boolean encontrado "false = 404 na fonte"
+        varchar razao_social "255"
+        varchar nome_fantasia "255"
+        varchar situacao_cadastral "50"
+        date data_situacao_cadastral
+        varchar fonte "BrasilAPI"
+        timestamp consultado_em "validade do cache: 24 h"
+    }
