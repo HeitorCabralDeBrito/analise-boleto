@@ -322,6 +322,12 @@ a:hover { color: var(--color-action-hover); }
 .tabela-teclas th, .tabela-teclas td { border-color: var(--color-border); }
 kbd { background: var(--color-surface-alt); color: var(--color-text); border: 1px solid var(--color-border-strong); border-radius: 4px; padding: 0 0.35rem; font-size: 0.85em; }
 .btn-ouvir { min-height: 40px; padding: 0.4rem 1rem; font-size: 0.9rem; }
+/* Denunciar boleto */
+.btn-denunciar { color: var(--color-danger); border-color: var(--color-danger); min-height: 40px; padding: 0.4rem 1rem; font-size: 0.9rem; }
+.btn-denunciar:hover { background: var(--color-danger-soft); color: var(--color-danger); }
+.form-denuncia { background: var(--color-surface-alt); border-radius: var(--radius-sm); padding: 1rem; }
+.form-denuncia fieldset { border: 0; margin: 0; padding: 0; }
+.denuncia-feita { color: var(--color-success-text); font-weight: 600; }
 
 /* Barra de preferências do login (sobre a cor primária) */
 .login-acess { width: 100%; max-width: 420px; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; color: var(--color-on-primary); }
@@ -518,6 +524,10 @@ kbd { background: var(--color-surface-alt); color: var(--color-text); border: 1p
   color: var(--color-muted);
 }
 .texto-erro { color: var(--color-danger); font-size: 0.875rem; margin-top: 0.25rem; }
+/* Caixas de seleção e opções: borda com contraste de 3:1 (a do Bootstrap é clara demais para baixa visão) */
+.form-check-input { border: 1.5px solid var(--color-border-strong); }
+.form-check-input:checked { background-color: var(--color-action); border-color: var(--color-action); }
+.form-check-input:focus { border-color: var(--color-action); box-shadow: 0 0 0 3px var(--color-action-soft); }
 .obrigatorio { color: var(--color-danger); }
 
 /* === BOTÕES === */

@@ -41,10 +41,10 @@ class MigracoesBancoTest {
             // version nula = registro de criação do esquema feito pelo próprio Flyway (não é uma migração)
             "select \"version\" from \"flyway_schema_history\" where \"success\" = true and \"version\" is not null " +
             "order by \"installed_rank\"", String.class);
-        assertEquals(List.of("1", "2"), versoes);
+        assertEquals(List.of("1", "2", "3"), versoes);
 
         List<String> tabelas = jdbc.queryForList(
             "select lower(table_name) from information_schema.tables where table_schema = 'public'", String.class);
-        assertTrue(tabelas.containsAll(List.of("usuarios", "boletos", "analises", "alertas", "consulta_cnpj_cache")), tabelas.toString());
+        assertTrue(tabelas.containsAll(List.of("usuarios", "boletos", "analises", "alertas", "consulta_cnpj_cache", "denuncias")), tabelas.toString());
     }
 }

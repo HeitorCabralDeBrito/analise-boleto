@@ -181,6 +181,20 @@ class MotorRiscoServicoTest {
         assertTrue(verificacao(r, "Valor do boleto").getDescricao().contains("gravado no código de barras"));
     }
 
+    @Test
+    @DisplayName("Denúncias de outros usuários: 0 passa, 1 é atenção sem pontos, 2 ou mais somam +25")
+    void denunciasDeOutrosUsuarios() {
+        Boleto b = beneficiario("Maria da Silva", "52998224725");
+        String codigo = validador.extrairCodigoBarras(LINHA_150);
+        var zero = motor.calcular(codigo, b, new MotorRiscoServico.Contexto(null, null, 0));
+        assertEquals("PASSOU", verificacao(zero, "Denúncias de outros usuários").getEstado());
+        var uma = motor.calcular(codigo, b, new MotorRiscoServico.Contexto(null, null, 1));
+        assertEquals("ATENCAO", verificacao(uma, "Denúncias de outros usuários").getEstado());
+        assertEquals(0, uma.score());
+        var duas = motor.calcular(codigo, b, new MotorRiscoServico.Contexto(null, null, 2));
+        assertEquals(25, duas.score());
+    }
+
     private MotorRiscoServico.ResultadoRisco calcularComCnpj(String nome, ConsultaCnpjServico.Resultado consulta) {
         return motor.calcular(validador.extrairCodigoBarras(LINHA_150), beneficiario(nome, CNPJ),
             new MotorRiscoServico.Contexto(consulta, null));

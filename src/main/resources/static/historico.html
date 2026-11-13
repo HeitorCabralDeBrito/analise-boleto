@@ -80,6 +80,7 @@
 </div>
 
 <script src="/js/api.js"></script>
+<script src="/js/denuncia.js"></script>
 <script src="/js/leitura-voz.js"></script>
 <script src="/js/layout.js"></script>
 <script>
@@ -159,6 +160,7 @@
             <span class="historico-score ${'score-' + (item.nivelRisco || '').toLowerCase()}">${e(item.score)}<small>/100</small></span>
             <span class="selo selo-entrada">${e(tipoLabel)}</span>
             <span class="selo ${situacao.selo}">${situacao.texto}</span>
+            ${item.denunciado ? '<span class="selo selo-alto"><span aria-hidden="true">⚑ </span>Denunciado por você</span>' : ''}
           </div>
           <div class="text-muted small">${e(data)}</div>
         </div>
@@ -178,13 +180,20 @@
       if (item.explicacao) {
         const detalhes = document.createElement('details');
         detalhes.className = 'mt-2 small';
-        detalhes.innerHTML = '<summary>Ver explicação</summary>';
+        detalhes.innerHTML = `<summary>Ver explicação${item.explicacaoGeradaPorIa ? ' (reescrita por IA)' : ''}</summary>`;
         const texto = document.createElement('p');
         texto.className = 'mb-0 mt-1';
         texto.style.whiteSpace = 'pre-line';
         texto.textContent = item.explicacao;
         detalhes.appendChild(texto);
         li.appendChild(detalhes);
+      }
+      // Quem descobre o golpe depois (ex.: já pagou) também pode denunciar daqui
+      if (!item.denunciado) {
+        const area = document.createElement('div');
+        area.className = 'mt-2';
+        li.appendChild(area);
+        Denuncia.montar(area, item.boletoId, { rotulo: 'Denunciar', aoConcluir: () => { item.denunciado = true; } });
       }
       lista.appendChild(li);
     });

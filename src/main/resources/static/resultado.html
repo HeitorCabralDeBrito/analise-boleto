@@ -60,6 +60,11 @@
         </h2>
         <div class="cartao__corpo">
           <p class="mb-0" id="explicacao-ia" style="white-space:pre-line;"></p>
+          <p class="small text-muted mt-2 mb-0 d-none" id="ia-status" role="status"></p>
+          <details class="small mt-2 d-none" id="ia-original">
+            <summary>Ver o texto original (gerado pelas regras)</summary>
+            <p class="mt-1 mb-0" style="white-space:pre-line;" id="ia-original-texto"></p>
+          </details>
         </div>
       </section>
 
@@ -120,6 +125,16 @@
         <ul class="list-unstyled mb-0 px-3" id="lista-verificacoes"></ul>
       </section>
 
+      <!-- Denunciar boleto -->
+      <section class="cartao" aria-labelledby="titulo-denuncia">
+        <h2 class="cartao__cabecalho" id="titulo-denuncia">Este boleto parece golpe?</h2>
+        <div class="cartao__corpo">
+          <p class="mb-3">Se você não reconhece a cobrança ou descobriu que é golpe, denuncie. Quem analisar um boleto com o
+            mesmo CPF/CNPJ de beneficiário vai saber que houve denúncias — sem saber quem denunciou.</p>
+          <div id="area-denuncia"></div>
+        </div>
+      </section>
+
       <!-- Aviso risco ALTO -->
       <div class="d-none" id="aviso-alto">
         <div class="alerta-item critico">
@@ -146,6 +161,7 @@
 </div>
 
 <script src="/js/api.js"></script>
+<script src="/js/denuncia.js"></script>
 <script src="/js/leitura-voz.js"></script>
 <script src="/js/layout.js"></script>
 <script>
@@ -254,13 +270,51 @@
     listaVerif.appendChild(li);
   });
 
-  // Explicação
-  if (analise.explicacao) {
+  // Explicação: aparece na hora (regras); se a IA estiver configurada, é trocada pela versão reescrita.
+  // O texto das regras continua disponível em "Ver o texto original".
+  function mostrarExplicacao() {
+    if (!analise.explicacao) return;
     document.getElementById('card-ia').classList.remove('d-none');
     document.getElementById('explicacao-ia').textContent = analise.explicacao;
     document.getElementById('origem-explicacao').textContent =
-      analise.explicacaoGeradaPorIa ? 'texto gerado por IA' : 'gerada pelas regras de análise';
+      analise.explicacaoGeradaPorIa ? 'reescrita por IA a partir das regras' : 'gerada pelas regras de análise';
+    const original = document.getElementById('ia-original');
+    if (analise.explicacaoGeradaPorIa && analise.explicacaoRegras) {
+      document.getElementById('ia-original-texto').textContent = analise.explicacaoRegras;
+      original.classList.remove('d-none');
+    }
   }
+  mostrarExplicacao();
+
+  async function pedirExplicacaoIa() {
+    if (!analise.iaDisponivel || analise.explicacaoGeradaPorIa) return;
+    const status = document.getElementById('ia-status');
+    status.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>' +
+      'Gerando uma explicação mais simples com IA…';
+    status.classList.remove('d-none');
+    const { ok, data } = await API.explicacaoIa(analise.boletoId);
+    if (ok && data.geradaPorIa) {
+      analise.explicacao = data.explicacao;
+      analise.explicacaoRegras = data.textoRegras;
+      analise.explicacaoGeradaPorIa = true;
+      sessionStorage.setItem('bs_analise', JSON.stringify(analise));
+      mostrarExplicacao();
+      status.textContent = 'Explicação atualizada (reescrita por IA).';
+    } else {
+      status.textContent = 'Mantida a explicação gerada pelas regras.';
+    }
+    setTimeout(() => status.classList.add('d-none'), 4000);
+  }
+  pedirExplicacaoIa();
+
+  // Denunciar
+  Denuncia.montar(document.getElementById('area-denuncia'), analise.boletoId, {
+    jaDenunciado: analise.denunciadoPorMim,
+    aoConcluir: () => {
+      analise.denunciadoPorMim = true;
+      sessionStorage.setItem('bs_analise', JSON.stringify(analise));
+    },
+  });
 
   // Botões de ação conforme nível de risco
   if (nivel === 'ALTO') {

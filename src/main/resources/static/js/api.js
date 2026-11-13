@@ -65,6 +65,23 @@ const API = {
     return { ok: resp.ok, data };
   },
 
+  async denunciar(boletoId, motivo, descricao) {
+    const resp = await this.fetch(`/boletos/${boletoId}/denunciar`, {
+      method: 'POST',
+      body: JSON.stringify({ motivo, descricao })
+    });
+    if (!resp) return { ok: false, data: {} };
+    const data = await resp.json().catch(() => ({}));
+    return { ok: resp.ok, data };
+  },
+
+  async explicacaoIa(boletoId) {
+    const resp = await this.fetch(`/boletos/${boletoId}/explicacao-ia`, { method: 'POST' });
+    if (!resp) return { ok: false, data: {} };
+    const data = await resp.json().catch(() => ({}));
+    return { ok: resp.ok, data };
+  },
+
   async historico() {
     const resp = await this.fetch('/historico');
     if (!resp) return { ok: false, data: [] };

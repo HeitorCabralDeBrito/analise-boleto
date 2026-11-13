@@ -27,6 +27,14 @@ public class AnaliseResponseDTO {
     private Instituicao instituicao;
     /** Consulta pública do CNPJ do beneficiário; nula quando não se aplica (CPF). */
     private ConsultaCnpj consultaCnpj;
+    /** Texto das regras (sempre disponível); "explicacao" pode ser a versão da IA quando houver. */
+    private String explicacaoRegras;
+    /** A IA está configurada: a tela pode pedir a versão reescrita em POST /api/boletos/{id}/explicacao-ia. */
+    private boolean iaDisponivel;
+    /** Quantos OUTROS usuários denunciaram o CPF/CNPJ do beneficiário. */
+    private int denunciasOutrosUsuarios;
+    /** O próprio usuário já denunciou este CPF/CNPJ. */
+    private boolean denunciadoPorMim;
 
     public record Instituicao(String codigo, String nome) {}
 

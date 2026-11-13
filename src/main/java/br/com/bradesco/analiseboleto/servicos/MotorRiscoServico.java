@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
  *   CNPJ não encontrado na base pública        → +20 pontos
  *   Nome diferente da razão social/fantasia    → +20 pontos (alerta para revisar, não condenação)
  *   Instituição diferente da esperada          → +15 pontos (só se o usuário informou qual esperava)
+ *   Denúncias de 2 ou mais outros usuários     → +25 pontos (1 denúncia = atenção, sem pontos)
  *   Vencimento INFORMADO (sem data no código) vencido há > 60 dias → atenção, 0 pontos
  *     (a data veio do usuário/OCR, não do código de barras: sem evidência independente, não pontua)
  */
@@ -48,10 +49,16 @@ public class MotorRiscoServico {
      * Dados obtidos fora do boleto para a análise.
      * @param cnpj        consulta pública do CNPJ do beneficiário (null quando não houve consulta)
      * @param instituicao instituição identificada pelo código da linha (vazio se o código não está na tabela)
+     * @param denunciasOutros quantos OUTROS usuários denunciaram o CPF/CNPJ do beneficiário (null = não consultado)
      */
-    public record Contexto(ConsultaCnpjServico.Resultado cnpj, Optional<InstituicaoServico.Instituicao> instituicao) {
+    public record Contexto(ConsultaCnpjServico.Resultado cnpj, Optional<InstituicaoServico.Instituicao> instituicao,
+                           Integer denunciasOutros) {
+        public Contexto(ConsultaCnpjServico.Resultado cnpj, Optional<InstituicaoServico.Instituicao> instituicao) {
+            this(cnpj, instituicao, null);
+        }
+
         public static Contexto vazio() {
-            return new Contexto(null, null);
+            return new Contexto(null, null, null);
         }
     }
 
@@ -71,6 +78,9 @@ public class MotorRiscoServico {
         verificarCadastroCnpj(boleto, contexto.cnpj()).ifPresent(resultados::add);   // 6: consulta pública do CNPJ
         if (contexto.instituicao() != null) {                                       // 7: instituição pelo código
             resultados.add(verificarInstituicao(codigoBarras, boleto, contexto.instituicao()));
+        }
+        if (contexto.denunciasOutros() != null) {                                   // 8: denúncias de outros usuários
+            resultados.add(verificarDenuncias(contexto.denunciasOutros()));
         }
 
         List<VerificacaoDTO> verificacoes = new ArrayList<>();
@@ -458,6 +468,32 @@ public class MotorRiscoServico {
                 "O código " + codigo + " não está na tabela local de instituições.", 0);
         }
         return ResultadoVerificacao.passou(nome, "Instituição indicada no código: " + identificada + "." + nota, 0);
+    }
+
+    /**
+     * Denúncias feitas por OUTROS usuários deste protótipo contra o mesmo CPF/CNPJ.
+     * Denúncias não são verificadas: uma só gera atenção (sem pontos), para que uma pessoa sozinha não consiga
+     * prejudicar uma empresa; a partir de duas pessoas diferentes passa a pontuar.
+     */
+    private ResultadoVerificacao verificarDenuncias(int outros) {
+        String nome = "Denúncias de outros usuários";
+        if (outros == 0) {
+            return ResultadoVerificacao.passou(nome,
+                "Nenhum outro usuário deste protótipo denunciou boletos com este CPF/CNPJ.", 0);
+        }
+        if (outros == 1) {
+            return ResultadoVerificacao.atencao(nome,
+                "1 outro usuário deste protótipo denunciou boletos com este CPF/CNPJ. Denúncias não são verificadas.",
+                "outro usuário já denunciou boletos com o CPF/CNPJ deste beneficiário",
+                List.of("Outro usuário já denunciou boletos com este CPF/CNPJ como suspeitos. Confirme a cobrança antes de pagar."));
+        }
+        return ResultadoVerificacao.falhou(nome,
+            outros + " outros usuários deste protótipo denunciaram boletos com este CPF/CNPJ. Denúncias não são verificadas, " +
+            "mas várias pessoas diferentes denunciando o mesmo beneficiário é um sinal de alerta.",
+            25,
+            outros + " outros usuários já denunciaram boletos com o CPF/CNPJ deste beneficiário",
+            List.of(outros + " pessoas diferentes já denunciaram boletos com este CPF/CNPJ como golpe ou cobrança suspeita. " +
+                    "Não pague sem confirmar com a empresa por um canal oficial."));
     }
 
     /**

@@ -140,22 +140,38 @@ O arquivo não é gravado: só existem arquivos temporários durante o OCR, apag
 
 ---
 
-## 8. Integração com IA (Fase 6 — opcional)
+## 8. Integração com IA (opcional)
 
-A explicação do risco em linguagem simples já funciona **sem IA** (gerada pelas regras de análise).
-A IA é usada para ler boletos difíceis e, na versão final, para reescrever essa explicação.
+Tudo funciona **sem IA**: a leitura do boleto usa texto do PDF, código de barras e OCR local, e a explicação do risco
+é gerada pelas regras. Com uma chave da OpenAI (com créditos), a IA entra em dois pontos:
 
-Para ativar a explicação por IA, descomente em `application.properties`:
-```properties
-spring.ai.openai.api-key=sk-...
-spring.ai.openai.chat.options.model=gpt-4o
+- **Leitura de boletos difíceis** — último recurso, só quando o código de barras e o OCR falham (envia a imagem).
+- **Explicação reescrita** — depois que o resultado aparece, a IA reescreve o texto das regras de forma mais natural.
+  Recebe só o nível, a nota, o nome/estado das verificações e o texto das regras — **nunca** nome, CPF/CNPJ ou a
+  linha digitável. Respostas que suavizam um risco alto, prometem segurança ou contradizem as verificações são
+  descartadas, e fica o texto das regras (sempre disponível em "Ver o texto original").
+
+**Configurar a chave (uma vez, no PowerShell, em qualquer pasta):**
+```powershell
+setx OPENAI_API_KEY (Read-Host "Cole a chave e aperte Enter")
 ```
+Feche e abra o terminal antes de subir o app. A chave fica no seu usuário do Windows; nunca no código nem no Git.
+O `application.properties` lê a variável: `boleto.seguro.openai.api-key=${OPENAI_API_KEY:}`.
 
-Como obter a chave OpenAI:
-1. Acesse https://platform.openai.com/api-keys
-2. Crie uma conta separada do ChatGPT
-3. Clique em "Create new secret key"
-4. Adicione créditos em Billing (mínimo ~$5)
+Opcional no `application.properties`:
+```properties
+boleto.seguro.openai.model=gpt-4o-mini
+boleto.seguro.openai.explicacao.habilitada=true        # false = sempre o texto das regras
+boleto.seguro.openai.explicacao.timeout-segundos=20
+```
+Créditos: https://platform.openai.com (Billing — separado da assinatura do ChatGPT).
+
+## 8.0.1 Denunciar boleto
+
+No resultado e no histórico, o usuário pode **denunciar** um boleto (motivo + descrição opcional). A denúncia vale
+para o CPF/CNPJ do beneficiário: cada usuário denuncia um documento uma vez, e quem analisar depois um boleto com o
+mesmo documento vê só **quantas pessoas** denunciaram (nem quem, nem o texto). Denúncias não são verificadas:
+1 denúncia gera "atenção" sem pontos; 2 ou mais pessoas diferentes somam +25 na análise.
 
 ---
 
@@ -231,6 +247,8 @@ boleto.seguro.brasilapi.timeout-ms=5000
 | POST | /api/boletos/ocr | Lê imagem/PDF: linha digitável e campos impressos, com origem e confiança de cada um | JWT |
 | GET | /api/config/tema | Tema padrão e se o tema acadêmico está disponível | Não |
 | GET | /api/instituicoes | Tabela local de instituições (código → nome) | JWT |
+| POST | /api/boletos/{id}/denunciar | Denuncia o beneficiário de um boleto do próprio usuário | JWT |
+| POST | /api/boletos/{id}/explicacao-ia | Explicação reescrita pela IA (ou a das regras) | JWT |
 
 ---
 
