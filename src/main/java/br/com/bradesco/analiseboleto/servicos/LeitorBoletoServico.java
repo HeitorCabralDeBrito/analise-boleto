@@ -275,6 +275,10 @@ public class LeitorBoletoServico {
         }
         for (BufferedImage tentativa : tentativas) {
             Optional<String> codigo = decodificar(tentativa);
+            // Código de barras de arrecadação (começa com 8): leitura certa, mas tipo de boleto não suportado
+            if (codigo.isPresent() && codigo.get().startsWith("8")) {
+                throw new BoletoInvalidoException(BoletoValidador.MENSAGEM_ARRECADACAO);
+            }
             if (codigo.isPresent()) {
                 String linha = validador.montarLinhaDigitavel(codigo.get());
                 if (validador.validar(linha).valida()) {

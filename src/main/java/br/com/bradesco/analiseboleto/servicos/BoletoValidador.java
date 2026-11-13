@@ -17,6 +17,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class BoletoValidador {
 
+    public static final String MENSAGEM_ARRECADACAO =
+        "Este parece ser um boleto de arrecadação (conta de luz, água, gás, telefone ou tributo, cuja linha começa com 8 " +
+        "e tem 48 números). O Boleto Seguro analisa somente boletos bancários de cobrança (47 números).";
+
     public ResultadoValidacao validar(String linhaRaw) {
         String linha = normalizar(linhaRaw);
 
@@ -25,6 +29,10 @@ public class BoletoValidador {
         }
         if (!linha.matches("\\d+")) {
             return ResultadoValidacao.bloqueio("Linha digitável deve conter apenas dígitos (sem espaços ou pontuação).");
+        }
+        // Conta de consumo / tributo: 48 dígitos começando com 8 (padrão de arrecadação, diferente do de cobrança)
+        if (linha.length() == 48 && linha.startsWith("8")) {
+            return ResultadoValidacao.bloqueio(MENSAGEM_ARRECADACAO);
         }
         if (linha.length() != 47) {
             return ResultadoValidacao.bloqueio(
@@ -40,7 +48,10 @@ public class BoletoValidador {
             return ResultadoValidacao.bloqueio(
                 "Dígito verificador inválido no campo " +
                 (!dv1ok ? "1" : !dv2ok ? "2" : "3") +
-                ". Verifique se a linha foi digitada corretamente.");
+                ". Verifique se a linha foi digitada corretamente." +
+                // A máscara corta em 47 números: uma conta de consumo colada aqui chega truncada
+                (linha.startsWith("8") ? " Se for uma conta de luz, água, gás, telefone ou tributo (linha começando com 8): " +
+                    "o Boleto Seguro analisa somente boletos bancários de cobrança." : ""));
         }
 
         // Extrai código de barras para validar DV geral

@@ -60,7 +60,7 @@ Para cada boleto da seção 1, anote: **linha lida? quantos campos? quanto tempo
 - [ ] Foto boa / girada 90° → linha lida
 - [ ] Foto ruim / escura / cortada → lê, ou mensagem amigável (nunca erro técnico)
 - [ ] Print de baixa resolução → linha lida pelo OCR
-- [ ] Conta de consumo (começa com 8) → recusada *(anote a mensagem que aparece)*
+- [ ] Conta de consumo (começa com 8), digitada ou por foto → mensagem "boleto de arrecadação… não analisado"
 - [ ] Botão **Cancelar** durante a leitura → "Leitura cancelada"
 - [ ] Arrastar e soltar o arquivo na área pontilhada (computador)
 - [ ] No celular: **Fotografar com a câmera** abre a câmera traseira

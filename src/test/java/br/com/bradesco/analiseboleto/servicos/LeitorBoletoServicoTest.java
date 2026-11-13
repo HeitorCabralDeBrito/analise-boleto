@@ -205,6 +205,24 @@ class LeitorBoletoServicoTest {
         assertNotEquals(ExtratorCamposBoleto.Confianca.ALTA, r.campos().valor().confianca());
     }
 
+    @Test
+    @DisplayName("Foto de conta de consumo (código de barras de arrecadação) recebe mensagem clara")
+    void arrecadacaoPorImagem() throws Exception {
+        BufferedImage barras = MatrixToImageWriter.toBufferedImage(
+            new ITFWriter().encode("83620000000789000000100123456789012345678901", BarcodeFormat.ITF, 900, 120));
+        BufferedImage img = new BufferedImage(barras.getWidth() + 80, barras.getHeight() + 80, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = img.createGraphics();
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, img.getWidth(), img.getHeight());
+        g.drawImage(barras, 40, 40, null);
+        g.dispose();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ImageIO.write(img, "png", out);
+        var ex = assertThrows(BoletoInvalidoException.class, () ->
+            leitor.ler(new MockMultipartFile("arquivo", "conta-de-luz.png", "image/png", out.toByteArray())));
+        assertTrue(ex.getMessage().contains("arrecadação"), ex.getMessage());
+    }
+
     static final String TESSERACT = "C:/Program Files/Tesseract-OCR/tesseract.exe";
 
     static boolean tesseractInstalado() {
