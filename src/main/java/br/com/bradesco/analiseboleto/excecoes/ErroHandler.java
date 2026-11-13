@@ -28,6 +28,13 @@ public class ErroHandler {
         return ResponseEntity.badRequest().body(Map.of("erro", ex.getMessage()));
     }
 
+    @ExceptionHandler(ServicoOcupadoException.class)
+    public ResponseEntity<Map<String, String>> handleServicoOcupado(ServicoOcupadoException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+            .header("Retry-After", "10")
+            .body(Map.of("erro", ex.getMessage()));
+    }
+
     @ExceptionHandler(AcessoNegadoException.class)
     public ResponseEntity<Map<String, String>> handleAcessoNegado(AcessoNegadoException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", ex.getMessage()));

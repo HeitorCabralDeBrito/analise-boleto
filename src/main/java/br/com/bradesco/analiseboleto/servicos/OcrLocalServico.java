@@ -2,6 +2,7 @@ package br.com.bradesco.analiseboleto.servicos;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -35,15 +36,24 @@ public class OcrLocalServico {
 
     private final BoletoValidador validador;
     private final File executavel;
+    private final long timeoutSegundos;
 
+    @Autowired
     public OcrLocalServico(BoletoValidador validador,
                            @Value("${boleto.seguro.tesseract.caminho:C:/Program Files/Tesseract-OCR/tesseract.exe}")
-                           String caminho) {
+                           String caminho,
+                           @Value("${boleto.seguro.tesseract.timeout-segundos:20}") long timeoutSegundos) {
         this.validador = validador;
         this.executavel = new File(caminho);
+        this.timeoutSegundos = timeoutSegundos;
         if (!executavel.canExecute()) {
             log.info("Tesseract não encontrado em {}: leitura OCR local desativada.", caminho);
         }
+    }
+
+    /** Para testes: tempo limite padrão de 20 s. */
+    public OcrLocalServico(BoletoValidador validador, String caminho) {
+        this(validador, caminho, 20);
     }
 
     public boolean disponivel() {
@@ -61,11 +71,23 @@ public class OcrLocalServico {
         for (int fator : fatores) {
             BufferedImage preparada = prepararImagem(imagem, fator);
             for (String modo : List.of("6", "11")) {
-                Optional<String> linha = executarTesseract(preparada, modo).flatMap(this::extrairLinha);
+                Optional<String> linha = executarTesseract(preparada, "--psm", modo,
+                        "-c", "tessedit_char_whitelist=0123456789. ")
+                    .flatMap(this::extrairLinha);
                 if (linha.isPresent()) return linha;
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Lê todo o texto impresso (letras e números, em português) para localizar beneficiário, valor e vencimento.
+     * Uma única passada: o texto é só sugestão para o usuário conferir.
+     */
+    public Optional<String> lerTexto(BufferedImage imagem) {
+        if (!disponivel() || imagem == null) return Optional.empty();
+        int fator = imagem.getWidth() < 1500 ? 2 : 1;
+        return executarTesseract(prepararImagem(imagem, fator), "-l", "por", "--psm", "3");
     }
 
     /**
@@ -86,25 +108,32 @@ public class OcrLocalServico {
         return Optional.empty();
     }
 
-    private Optional<String> executarTesseract(BufferedImage imagem, String modoPagina) {
+    /**
+     * Executa o Tesseract com tempo limite. A saída vai para um arquivo temporário (e não é lida do pipe
+     * antes do waitFor): assim um Tesseract travado é encerrado no prazo em vez de prender a requisição.
+     * Os arquivos temporários (imagem e texto) são apagados sempre.
+     */
+    Optional<String> executarTesseract(BufferedImage imagem, String... opcoes) {
         Path entrada = null;
+        Path saida = null;
         try {
             entrada = Files.createTempFile("boleto-ocr-", ".png");
+            saida = Files.createTempFile("boleto-ocr-", ".txt");
             ImageIO.write(imagem, "png", entrada.toFile());
 
-            Process processo = new ProcessBuilder(
-                    executavel.getAbsolutePath(), entrada.toString(), "stdout",
-                    "--psm", modoPagina,
-                    "-c", "tessedit_char_whitelist=0123456789. ")
+            List<String> comando = new java.util.ArrayList<>(List.of(executavel.getAbsolutePath(), entrada.toString(), "stdout"));
+            comando.addAll(List.of(opcoes));
+            Process processo = new ProcessBuilder(comando)
                 .redirectError(ProcessBuilder.Redirect.DISCARD)
+                .redirectOutput(saida.toFile())
                 .start();
 
-            String saida = new String(processo.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            if (!processo.waitFor(20, TimeUnit.SECONDS)) {
-                processo.destroyForcibly();
+            if (!processo.waitFor(timeoutSegundos, TimeUnit.SECONDS)) {
+                encerrar(processo);
+                log.warn("Tesseract excedeu o tempo limite de {} s e foi encerrado.", timeoutSegundos);
                 return Optional.empty();
             }
-            return Optional.of(saida);
+            return Optional.of(Files.readString(saida, StandardCharsets.UTF_8));
         } catch (IOException e) {
             log.warn("Falha ao executar o Tesseract: {}", e.getMessage());
             return Optional.empty();
@@ -112,8 +141,43 @@ public class OcrLocalServico {
             Thread.currentThread().interrupt();
             return Optional.empty();
         } finally {
-            if (entrada != null) entrada.toFile().delete();
+            apagar(entrada);
+            apagar(saida);
         }
+    }
+
+    /** Encerra o processo e os filhos dele, e espera que terminem de fato (no Windows eles seguram os arquivos abertos). */
+    private static void encerrar(Process processo) throws InterruptedException {
+        List<ProcessHandle> filhos = processo.descendants().toList();
+        filhos.forEach(ProcessHandle::destroyForcibly);
+        processo.destroyForcibly();
+        processo.waitFor(3, TimeUnit.SECONDS);
+        for (ProcessHandle filho : filhos) {
+            try {
+                filho.onExit().get(3, TimeUnit.SECONDS);
+            } catch (java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException ignorado) {
+                // segue: o arquivo será apagado na próxima tentativa ou ao desligar
+            }
+        }
+    }
+
+    private static void apagar(Path arquivo) {
+        if (arquivo == null) return;
+        // O sistema pode levar alguns instantes para liberar o arquivo de um processo recém-encerrado
+        for (int tentativa = 0; tentativa < 5; tentativa++) {
+            try {
+                Files.deleteIfExists(arquivo);
+                return;
+            } catch (IOException e) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }
+        arquivo.toFile().deleteOnExit();
     }
 
     // Tons de cinza + ampliação bicúbica: o Tesseract lê melhor letras com ~30px de altura

@@ -123,7 +123,20 @@ Quando as barras do código de barras ficam finas demais (print de celular), o s
 3. Reinicie a aplicação. No log não deve aparecer "Tesseract não encontrado"
 
 Se instalar em outro lugar, ajuste `boleto.seguro.tesseract.caminho` no `application.properties`.
-Ordem de leitura de imagens: código de barras → OCR local → IA (só com chave e créditos).
+Ordem de leitura da linha digitável: texto do PDF → código de barras → OCR local → IA (só com chave e créditos).
+Os campos impressos (beneficiário, CPF/CNPJ, valor e vencimento) vêm do texto do PDF ou, em imagens e PDFs escaneados,
+de uma passada de OCR em português (o pacote de idioma `por` precisa estar instalado no Tesseract).
+Tudo o que é lido aparece na tela **Conferir** com a origem de cada campo; o usuário corrige e confirma antes da análise.
+
+Limites da leitura (opcionais no `application.properties`; os valores abaixo são os padrões):
+```properties
+boleto.seguro.tesseract.timeout-segundos=20      # tempo máximo de cada execução do Tesseract
+boleto.seguro.leitura.max-simultaneas=2          # leituras ao mesmo tempo; as demais esperam
+boleto.seguro.leitura.espera-vaga-segundos=10    # depois disso, responde 503 "tente de novo"
+boleto.seguro.leitura.prazo-segundos=60          # prazo total de uma leitura
+```
+Arquivos aceitos: PNG, JPG ou PDF (tipo conferido pela assinatura do arquivo), até 10 MB, 40 megapixels e 10 páginas.
+O arquivo não é gravado: só existem arquivos temporários durante o OCR, apagados em seguida.
 
 ---
 
@@ -173,7 +186,7 @@ boleto.seguro.tema.academico.pasta=marca-academica   # outra pasta, se preferir
 | POST | /api/boletos/analisar | Submete e analisa boleto | JWT |
 | POST | /api/boletos/{id}/confirmar | Confirma (simulado) | JWT |
 | GET | /api/historico | Histórico do usuário | JWT |
-| POST | /api/boletos/ocr | Upload para OCR | JWT |
+| POST | /api/boletos/ocr | Lê imagem/PDF: linha digitável e campos impressos, com origem e confiança de cada um | JWT |
 | GET | /api/config/tema | Tema padrão e se o tema acadêmico está disponível | Não |
 
 ---
