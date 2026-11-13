@@ -13,8 +13,19 @@
 <body>
 <main class="login-pagina">
   <div class="login-acess">
-    <div id="login-preferencias"></div>
-    <a href="/acessibilidade.html">Acessibilidade</a>
+    <button type="button" class="btn-acess login-acess__abrir" id="btn-login-acess" aria-expanded="false" aria-controls="login-acess-painel">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="4.5" r="2" fill="currentColor"/><path d="M5 8.5l7 1.5 7-1.5M12 10v5m0 0l-3 6m3-6l3 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Acessibilidade</span>
+      <svg class="login-acess__seta" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+        <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="login-acess__painel" id="login-acess-painel" hidden>
+      <div id="login-preferencias"></div>
+      <a href="/acessibilidade.html">Sobre a acessibilidade do sistema</a>
+    </div>
   </div>
   <div class="login-card">
 
@@ -100,6 +111,19 @@
   renderizarMarca();
   document.addEventListener('temachange', renderizarMarca);
   Preferencias.montarControles(document.getElementById('login-preferencias'));
+
+  // As preferências ficam recolhidas atrás de um botão só; o estado aberto/fechado é lembrado
+  const btnAcess = document.getElementById('btn-login-acess');
+  const painelAcess = document.getElementById('login-acess-painel');
+  function abrirPainelAcess(aberto) {
+    btnAcess.setAttribute('aria-expanded', String(aberto));
+    painelAcess.hidden = !aberto;
+    try { localStorage.setItem('bs_login_acess', aberto ? 'aberto' : 'fechado'); } catch { /* navegação privada */ }
+  }
+  let painelAberto = false;
+  try { painelAberto = localStorage.getItem('bs_login_acess') === 'aberto'; } catch { /* navegação privada */ }
+  abrirPainelAcess(painelAberto);
+  btnAcess.addEventListener('click', () => abrirPainelAcess(painelAcess.hidden));
   if (LeituraVoz.suportado) {
     LeituraVoz.criarBotao(document.getElementById('login-preferencias').querySelector('.controles-acess'),
       () => LeituraVoz.textoDaArea(document.querySelector('.login-card')),

@@ -335,6 +335,11 @@ kbd { background: var(--color-surface-alt); color: var(--color-text); border: 1p
 .login-acess .btn-acess { border-color: rgba(255, 255, 255, 0.7); }
 .login-acess .btn-acess[aria-pressed="true"] { background: var(--color-on-primary); color: var(--color-primary); border-color: var(--color-on-primary); }
 .login-acess a { color: var(--color-on-primary); font-size: 0.875rem; text-decoration: underline; }
+.login-acess__abrir { min-height: 44px; padding: 0.35rem 0.85rem; font-size: 0.95rem; }
+.login-acess__seta { transition: transform 0.15s; }
+.login-acess__abrir[aria-expanded="true"] .login-acess__seta { transform: rotate(180deg); }
+.login-acess__painel { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 0.6rem; }
+.login-acess__painel[hidden] { display: none; }
 .login-acess :focus-visible { outline-color: var(--color-on-primary); }
 
 /* Faixa do aviso em telas estreitas (no desktop o aviso fica dentro do cabeçalho) */
@@ -676,7 +681,9 @@ kbd { background: var(--color-surface-alt); color: var(--color-text); border: 1p
 .ultima-analise__texto .fw-semibold { overflow-wrap: anywhere; }
 .ultima-analise .selo { flex-shrink: 0; }
 
-.lista-dicas { padding: 1.25rem 1.5rem 1.25rem 2.75rem; }
+/* ".cartao .lista-dicas" vence o padding reduzido do .cartao__corpo no celular, que deixava os marcadores sobre a borda */
+.cartao .lista-dicas { padding: 1.25rem 1.5rem 1.25rem 2.75rem; }
+@media (max-width: 575.98px) { .cartao .lista-dicas { padding: 1rem 1rem 1rem 2.25rem; } }
 .lista-dicas li { margin-bottom: 0.6rem; }
 .lista-dicas li:last-child { margin-bottom: 0; }
 

@@ -177,13 +177,30 @@
               </select>
             </div>
 
-            <div class="mt-3">
-              <label for="instituicao-esperada" class="form-label fw-semibold">Por qual banco essa empresa costuma cobrar? <span class="fw-normal text-muted">(opcional)</span></label>
-              <select id="instituicao-esperada" class="form-select campo" aria-describedby="ajuda-instituicao">
-                <option value="">Não sei / não informar</option>
-              </select>
-              <div class="form-text" id="ajuda-instituicao">Se você souber, a análise compara com a instituição indicada no código do boleto.</div>
-            </div>
+            <fieldset class="mt-3 grupo-banco" aria-describedby="ajuda-instituicao">
+              <legend class="form-label fw-semibold fs-6">O banco deste boleto é o que você esperava? <span class="fw-normal text-muted">(opcional)</span></legend>
+              <p class="mb-2" id="banco-do-boleto">Preencha a linha digitável para ver de qual banco é o boleto.</p>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="banco-esperado" id="banco-sim" value="sim">
+                <label class="form-check-label" for="banco-sim">Sim, é o banco de sempre dessa empresa</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="banco-esperado" id="banco-outro" value="outro">
+                <label class="form-check-label" for="banco-outro">Não, ela costuma cobrar por outro banco</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="banco-esperado" id="banco-nao-sei" value="" checked>
+                <label class="form-check-label" for="banco-nao-sei">Não sei</label>
+              </div>
+              <div class="mt-2 ms-4 d-none" id="grupo-instituicao-esperada">
+                <label for="instituicao-esperada" class="form-label">Qual banco ela costuma usar?</label>
+                <select id="instituicao-esperada" class="form-select campo">
+                  <option value="">Não lembro</option>
+                </select>
+              </div>
+              <div class="form-text" id="ajuda-instituicao">Os três primeiros números da linha digitável dizem qual banco registrou o boleto.
+                Golpistas costumam usar a marca da empresa verdadeira, mas registrar o boleto em outro banco.</div>
+            </fieldset>
 
             <div class="form-check confirmacao-dados mt-4">
               <input class="form-check-input" type="checkbox" id="confirmo-dados" aria-describedby="erro-confirmo">
@@ -317,6 +334,8 @@
     Object.entries(CAMPOS).forEach(([chave, id]) => { $(id).value = ''; marcarFonte(chave, null); });
     $('origem').value = '';
     $('instituicao-esperada').value = '';
+    $('banco-nao-sei').checked = true;
+    $('grupo-instituicao-esperada').classList.add('d-none');
     $('confirmo-dados').checked = false;
     ['erro-linha', 'erro-documento', 'erro-confirmo', 'erro-geral'].forEach((id) => $(id).classList.add('d-none'));
     [docInput, $('nome-beneficiario'), $('linha-digitavel'), $('confirmo-dados')].forEach((el) => marcarInvalido(el, false));
@@ -325,6 +344,7 @@
     $('avisos-leitura').classList.add('d-none');
     $('dados-codigo').classList.add('d-none');
     $('resumo-leitura').textContent = 'Preencha os dados exatamente como aparecem no boleto.';
+    mostrarBancoDoBoleto();
   }
 
   // ---------- Importar ----------
@@ -464,6 +484,7 @@
       $('dados-codigo').classList.remove('d-none');
     }
 
+    mostrarBancoDoBoleto();
     LeituraVoz.suportado && LeituraVoz.criarBotao($('ouvir-leitura'), textoDaConferencia, 'Ouvir dados lidos');
     mostrar('conferir');
     $('anuncio').textContent =
@@ -544,11 +565,43 @@
     return fontes;
   }
 
-  // Lista de instituições para o campo opcional "banco esperado"
+  // "O banco deste boleto é o que você esperava?": mostramos o banco pelo código da linha
+  // e a pessoa só confirma; a lista completa aparece apenas se ela disser que é outro
+  const nomesInstituicoes = {};
   API.fetch('/instituicoes').then((r) => (r && r.ok ? r.json() : [])).then((lista) => {
     const select = $('instituicao-esperada');
-    lista.forEach((i) => select.add(new Option(`${i.nome} (${i.codigo})`, i.codigo)));
-  }).catch(() => { /* sem a lista, o campo fica só com "Não sei" */ });
+    lista.forEach((i) => {
+      nomesInstituicoes[i.codigo] = i.nome;
+      select.add(new Option(`${i.nome} (${i.codigo})`, i.codigo));
+    });
+    mostrarBancoDoBoleto();
+  }).catch(() => { /* sem a lista, mostra só o código do banco */ });
+
+  function bancoDaLinha() {
+    const digitos = $('linha-digitavel').value.replace(/\D/g, '');
+    return digitos.length >= 3 && !digitos.startsWith('8') ? digitos.slice(0, 3) : null;
+  }
+
+  function mostrarBancoDoBoleto() {
+    const codigo = bancoDaLinha();
+    const nome = codigo && nomesInstituicoes[codigo];
+    $('banco-do-boleto').innerHTML = !codigo
+      ? 'Preencha a linha digitável para ver de qual banco é o boleto.'
+      : nome
+        ? `Pelo código, este boleto foi registrado no <b>${Html.escapar(nome)} (${codigo})</b>.`
+        : `Pelo código, este boleto foi registrado no banco de código <b>${codigo}</b>.`;
+  }
+  $('linha-digitavel').addEventListener('input', mostrarBancoDoBoleto);
+
+  document.querySelectorAll('input[name="banco-esperado"]').forEach((r) => r.addEventListener('change', () => {
+    $('grupo-instituicao-esperada').classList.toggle('d-none', !$('banco-outro').checked);
+  }));
+
+  function instituicaoEsperada() {
+    if ($('banco-sim').checked) return bancoDaLinha();
+    if ($('banco-outro').checked) return $('instituicao-esperada').value || null;
+    return null;
+  }
 
   // ---------- Análise ----------
   $('btn-analisar').addEventListener('click', analisarBoleto);
@@ -602,7 +655,7 @@
       vencimentoDeclarado: $('vencimento-declarado').value || null,
       fontes: fontesDosCampos(),
       dadosConferidos: $('confirmo-dados').checked,
-      instituicaoEsperada: $('instituicao-esperada').value || null,
+      instituicaoEsperada: instituicaoEsperada(),
     };
 
     mostrar('loading');

@@ -49,7 +49,7 @@ humana.
 2. **Início:** painel com resumo (analisados, risco alto, pagos apesar do alerta), últimas análises e dicas contra golpes.
 3. **Pagar boleto → Importar:** fotografar com a câmera, selecionar ou arrastar imagem/PDF — ou **digitar manualmente**.
 4. **Conferir:** campos editáveis (linha, beneficiário, CPF/CNPJ, valor, vencimento) com **selo de origem e confiança**;
-   dados do código de barras (instituição, valor, vencimento) em quadro à parte; origem do boleto; banco esperado (opcional);
+   dados do código de barras (instituição, valor, vencimento) em quadro à parte; origem do boleto; "o banco deste boleto é o que você esperava?" (opcional: mostra o banco pelo código e a pessoa só confirma);
    confirmação obrigatória "Conferi os dados".
 5. **Resultado:** nota 0–100, nível, explicação em linguagem simples (regras, depois reescrita pela IA), consulta pública
    do CNPJ, instituição, alertas, verificações detalhadas, botão **Denunciar** e "Ouvir resultado".
@@ -240,7 +240,7 @@ Linha de teste (fictícia, não pagável): `23790.91016 23456.789017 23456.00000
 | F2 — Empresa em CPF | `Condomínio Edifício Primavera` + CPF válido | +30 |
 | F3 — CNPJ confere | `Banco Bradesco S.A.` + `60.746.948/0001-12` | CNPJ ativo, nome confere, 0 |
 | F4 — Nome diferente do cadastro | `Energia Paulista S.A.` + `11.222.333/0001-81` (CNPJ real de uma escola) | +20 |
-| G — Banco esperado | A + banco esperado Itaú (341) | +15 |
+| G — Banco esperado | A + "Não, outro banco" → Itaú (341) | +15 |
 | H — Risco alto | E + F1 | Alto; "Confirmar mesmo assim"; IA começa com "Não pague este boleto." |
 | I — Denúncias | Mesmo CPF denunciado por 2 outros usuários | +25 |
 

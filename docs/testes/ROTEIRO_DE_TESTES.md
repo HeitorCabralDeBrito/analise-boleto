@@ -70,7 +70,8 @@ Para cada boleto da seção 1, anote: **linha lida? quantos campos? quanto tempo
 - [ ] Cada campo mostra de onde veio (selo); os não lidos aparecem como "Não identificado — preencha"
 - [ ] Editar um campo lido muda o selo para "Informado por você"
 - [ ] Quadro "No código de barras: instituição … · valor … · vencimento …"
-- [ ] Campo opcional "Por qual banco essa empresa costuma cobrar?" lista os bancos
+- [ ] Pergunta opcional "O banco deste boleto é o que você esperava?" mostra o banco pelo código da linha (ex.: Bradesco (237));
+  "Não, ela costuma cobrar por outro banco" abre a lista de bancos
 - [ ] Analisar **sem marcar** "Conferi os dados…" → não deixa e mostra o aviso
 - [ ] Linha com um número errado → análise bloqueada com explicação
 - [ ] CPF/CNPJ com dígito errado → aviso, mas deixa analisar (e a análise aponta o risco)
@@ -90,7 +91,7 @@ Linha de teste: `23790.91016 23456.789017 23456.000001 3 16260000015000` (R$ 150
 | F2 | `Condomínio Edifício Primavera` + CPF válido | +30 | |
 | F3 | `Banco Bradesco S.A.` + CNPJ `60.746.948/0001-12` | CNPJ ativo, nome confere, 0 pontos | |
 | F4 | `Energia Paulista S.A.` + CNPJ `11.222.333/0001-81` | "nome diferente do cadastro", +20 | |
-| G | A + banco esperado "Itaú Unibanco (341)" | "instituição diferente da esperada", +15 | |
+| G | A + "Não, outro banco" → "Itaú Unibanco (341)" | "instituição diferente da esperada", +15 | |
 | H | E + F1 juntos | risco ALTO, botão vermelho "Prosseguir mesmo assim" | |
 
 - [ ] Cartão "Consulta pública do CNPJ" (F3, F4) com razão social, situação e o aviso "não comprovam que este boleto é dela"
