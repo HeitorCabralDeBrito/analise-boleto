@@ -20,10 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,6 +38,10 @@ public class BoletoServico {
     private final BoletoValidador boletoValidador;
     private final MotorRiscoServico motorRiscoServico;
     private final ExplicacaoRiscoServico explicacaoRiscoServico;
+    private final ConsultaCnpjServico consultaCnpjServico;
+    private final InstituicaoServico instituicaoServico;
+    private final DenunciaServico denunciaServico;
+    private final ExplicacaoIaServico explicacaoIaServico;
 
     public BoletoServico(BoletoRepositorio boletoRepositorio,
                          AnaliseRepositorio analiseRepositorio,
@@ -43,7 +49,11 @@ public class BoletoServico {
                          UsuarioRepositorio usuarioRepositorio,
                          BoletoValidador boletoValidador,
                          MotorRiscoServico motorRiscoServico,
-                         ExplicacaoRiscoServico explicacaoRiscoServico) {
+                         ExplicacaoRiscoServico explicacaoRiscoServico,
+                         ConsultaCnpjServico consultaCnpjServico,
+                         InstituicaoServico instituicaoServico,
+                         DenunciaServico denunciaServico,
+                         ExplicacaoIaServico explicacaoIaServico) {
         this.boletoRepositorio = boletoRepositorio;
         this.analiseRepositorio = analiseRepositorio;
         this.alertaRepositorio = alertaRepositorio;
@@ -51,6 +61,10 @@ public class BoletoServico {
         this.boletoValidador = boletoValidador;
         this.motorRiscoServico = motorRiscoServico;
         this.explicacaoRiscoServico = explicacaoRiscoServico;
+        this.consultaCnpjServico = consultaCnpjServico;
+        this.instituicaoServico = instituicaoServico;
+        this.denunciaServico = denunciaServico;
+        this.explicacaoIaServico = explicacaoIaServico;
     }
 
     @Transactional
@@ -92,11 +106,32 @@ public class BoletoServico {
             } catch (DateTimeParseException ignored) {}
         }
 
+        // Origem de cada dado (como a tela de conferência mostrou) e a confirmação do usuário
+        java.util.Map<String, String> fontes = dto.getFontes() == null ? java.util.Map.of() : dto.getFontes();
+        boleto.setFonteLinha(fonte(fontes.get("linha")));
+        boleto.setFonteNome(fonte(fontes.get("nome")));
+        boleto.setFonteDocumento(fonte(fontes.get("documento")));
+        boleto.setFonteValor(boleto.getValorDeclarado() == null ? null : fonte(fontes.get("valor")));
+        boleto.setFonteVencimento(boleto.getVencimentoDeclarado() == null ? null : fonte(fontes.get("vencimento")));
+        if (dto.isDadosConferidos()) boleto.setDadosConferidosEm(LocalDateTime.now());
+        if (dto.getInstituicaoEsperada() != null && !dto.getInstituicaoEsperada().isBlank()) {
+            boleto.setInstituicaoEsperada(dto.getInstituicaoEsperada());
+        }
+
         boleto = boletoRepositorio.save(boleto);
 
-        // 3. Motor de risco determinístico
-        MotorRiscoServico.ResultadoRisco resultado =
-                motorRiscoServico.calcular(validacao.codigoBarras(), boleto);
+        // 3. Dados externos: instituição pelo código e, se for CNPJ, a consulta pública (com cache e sem bloquear)
+        Optional<InstituicaoServico.Instituicao> instituicao =
+                instituicaoServico.daLinhaDigitavel(validacao.linhaDigitavelNormalizada());
+        ConsultaCnpjServico.Resultado consulta = boleto.getDocumentoBeneficiarioDeclarado().length() == 14
+                ? consultaCnpjServico.consultar(boleto.getDocumentoBeneficiarioDeclarado())
+                : null;
+
+        int denunciasOutros = denunciaServico.contarOutros(boleto.getDocumentoBeneficiarioDeclarado(), usuario.getId());
+
+        // 4. Motor de risco determinístico
+        MotorRiscoServico.ResultadoRisco resultado = motorRiscoServico.calcular(
+                validacao.codigoBarras(), boleto, new MotorRiscoServico.Contexto(consulta, instituicao, denunciasOutros));
 
         // 4. Persiste a análise
         Analise analise = new Analise();
@@ -158,7 +193,70 @@ public class BoletoServico {
                 .documentoBeneficiario(DocumentoValidador.formatar(boleto.getDocumentoBeneficiarioDeclarado()))
                 .valor(valorFormatado)
                 .vencimento(vencimentoFormatado)
+                .instituicao(new AnaliseResponseDTO.Instituicao(
+                        validacao.linhaDigitavelNormalizada().substring(0, 3),
+                        instituicao.map(InstituicaoServico.Instituicao::nome).orElse(null)))
+                .consultaCnpj(paraResposta(consulta, boleto.getNomeBeneficiarioDeclarado()))
+                .explicacaoRegras(analise.getExplicacaoResultado())
+                .iaDisponivel(explicacaoIaServico.disponivel())
+                .denunciasOutrosUsuarios(denunciasOutros)
+                .denunciadoPorMim(denunciaServico.denunciadoPor(boleto.getDocumentoBeneficiarioDeclarado(), usuario.getId()))
                 .build();
+    }
+
+    /** Resposta de POST /api/boletos/{id}/explicacao-ia. */
+    public record ExplicacaoIa(String explicacao, boolean geradaPorIa, String textoRegras) {}
+
+    /**
+     * Versão da explicação reescrita pela IA, gerada depois que o resultado já está na tela (não atrasa a análise).
+     * Fica salva em analises.justificativa_ia; o texto das regras continua guardado e é o que vale se a IA falhar.
+     */
+    @Transactional
+    public ExplicacaoIa explicacaoIa(UUID boletoId, UsuarioPrincipal principal) {
+        Boleto boleto = boletoRepositorio.findById(boletoId)
+                .filter(b -> b.getUsuario().getId().equals(principal.getId()))
+                .orElseThrow(() -> new AcessoNegadoException("Acesso negado."));
+        Analise analise = boleto.getAnalise();
+        if (analise == null) throw new BoletoInvalidoException("Análise não encontrada.");
+        String regras = analise.getExplicacaoResultado();
+
+        if (analise.getJustificativaIa() == null) {
+            explicacaoIaServico.reescrever(analise.getNivelRisco(), analise.getScore(), analise.getVerificacoes(), regras)
+                    .ifPresent(texto -> {
+                        analise.setJustificativaIa(texto);
+                        analiseRepositorio.save(analise);
+                    });
+        }
+        return analise.getJustificativaIa() != null
+                ? new ExplicacaoIa(analise.getJustificativaIa(), true, regras)
+                : new ExplicacaoIa(regras, false, regras);
+    }
+
+    /** Valor recebido da tela; desconhecido ou ausente vira null (não inventa uma origem). */
+    private static Boleto.FonteDado fonte(String valor) {
+        if (valor == null) return null;
+        try {
+            return Boleto.FonteDado.valueOf(valor);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private static AnaliseResponseDTO.ConsultaCnpj paraResposta(ConsultaCnpjServico.Resultado c, String nomeInformado) {
+        if (c == null || c.estado() == ConsultaCnpjServico.Estado.NAO_APLICAVEL) return null;
+        DateTimeFormatter data = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        String semelhanca = c.razaoSocial() == null && c.nomeFantasia() == null ? null
+                : ComparadorNomes.comparar(nomeInformado, c.razaoSocial(), c.nomeFantasia()).name();
+        return new AnaliseResponseDTO.ConsultaCnpj(
+                c.estado().name(),
+                DocumentoValidador.formatar(c.cnpj()),
+                c.razaoSocial(),
+                c.nomeFantasia(),
+                c.situacaoCadastral(),
+                c.dataSituacaoCadastral() == null ? null : c.dataSituacaoCadastral().format(data),
+                c.consultadoEm() == null ? null : c.consultadoEm().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+                c.fonte(),
+                semelhanca);
     }
 
     public List<HistoricoItemDTO> historico(UsuarioPrincipal principal) {
@@ -166,6 +264,7 @@ public class BoletoServico {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         List<Boleto> boletos = boletoRepositorio.findByUsuarioOrderByDataSubmissaoDesc(usuario);
+        java.util.Set<String> denunciados = new java.util.HashSet<>(denunciaServico.documentosDenunciadosPor(usuario.getId()));
         List<HistoricoItemDTO> lista = new ArrayList<>();
 
         for (Boleto b : boletos) {
@@ -187,7 +286,10 @@ public class BoletoServico {
                     .tipoEntrada(b.getTipoEntrada().name())
                     .origem(b.getOrigem() != null ? b.getOrigem().name() : null)
                     .pago(Boolean.TRUE.equals(a.getConfirmacaoSimulada()))
-                    .explicacao(a.getExplicacaoResultado())
+                    .explicacao(a.getJustificativaIa() != null ? a.getJustificativaIa() : a.getExplicacaoResultado())
+                    .explicacaoGeradaPorIa(a.getJustificativaIa() != null)
+                    .denunciado(b.getDocumentoBeneficiarioDeclarado() != null
+                            && denunciados.contains(b.getDocumentoBeneficiarioDeclarado()))
                     .build());
         }
         return lista;

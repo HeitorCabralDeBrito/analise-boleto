@@ -1,0 +1,7 @@
+erDiagram
+    USUARIO ||--o{ BOLETO : "analisa"
+    BOLETO ||--o| ANALISE : "recebe"
+    ANALISE ||--o{ ALERTA : "gera"
+    USUARIO ||--o{ DENUNCIA : "faz"
+    BOLETO ||--o{ DENUNCIA : "motiva"
+    CONSULTA_CNPJ_CACHE }o..o{ BOLETO : "CNPJ do beneficiário"

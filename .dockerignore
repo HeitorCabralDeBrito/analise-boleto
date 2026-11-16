@@ -1,0 +1,10 @@
+# Nada disto entra na imagem: compilados locais, segredos, logotipos de terceiros, arquivos do Git/IDE
+target/
+config/
+marca-academica/
+.git/
+.idea/
+.vscode/
+.claude/
+*.dump
+*.log

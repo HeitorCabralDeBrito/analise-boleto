@@ -3,6 +3,7 @@ package br.com.bradesco.analiseboleto.seguranca;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +20,16 @@ public class JwtUtil {
 
     @Value("${boleto.seguro.jwt.expiration-ms}")
     private long expirationMs;
+
+    /** Falha ao iniciar, com mensagem clara, em vez de quebrar no primeiro login. */
+    @PostConstruct
+    void conferirChave() {
+        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException(
+                "Chave do login ausente ou curta demais: defina a variável de ambiente JWT_SECRET " +
+                "(ou boleto.seguro.jwt.secret em config/application.properties) com pelo menos 32 caracteres.");
+        }
+    }
 
     private SecretKey getKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));

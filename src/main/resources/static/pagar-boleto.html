@@ -3,223 +3,526 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Boleto Seguro — Pagar Boleto</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <title>Pagar boleto — Boleto Seguro</title>
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <script src="/js/tema.js"></script>
+  <script src="/js/preferencias.js"></script>
+  <link rel="stylesheet" href="/vendor/bootstrap-5.3.3/bootstrap.min.css">
   <link rel="stylesheet" href="/css/boleto-seguro.css">
 </head>
-<body>
+<body data-pagina="pagar">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header class="app-topo" id="app-topo"></header>
+<div class="app-corpo">
+  <nav class="app-menu" id="app-menu" aria-label="Menu principal"></nav>
+  <main class="app-principal" id="conteudo" tabindex="-1">
+    <div class="app-conteudo">
 
-<nav class="navbar-bradesco">
-  <div class="container d-flex align-items-center justify-content-between">
-    <div class="d-flex align-items-center gap-2">
-      <a href="/home.html" style="color:rgba(255,255,255,0.7); text-decoration:none; font-size:1.1rem;">&#8592;</a>
-      <span class="navbar-brand mb-0">Pagar Boleto</span>
-      <span class="badge-prototipo">Protótipo acadêmico</span>
-    </div>
-    <div class="d-flex align-items-center gap-3">
-      <span class="usuario-info d-none d-sm-inline">Olá, <b id="usuario-nome"></b></span>
-      <button class="btn-logout" id="btn-logout">Sair</button>
-    </div>
-  </div>
-</nav>
+      <h1 class="titulo-pagina">Pagar boleto</h1>
+      <p class="subtitulo-pagina">Envie ou fotografe o boleto. O sistema lê os dados, você confere e só depois acontece a análise de risco.</p>
 
-<div class="container py-4" style="max-width:680px;">
+      <ol class="stepper" id="stepper" aria-label="Etapas do pagamento">
+        <li class="step active" aria-current="step"><span class="step-circle" aria-hidden="true">1</span><span class="step-label">Importar</span></li>
+        <li class="step"><span class="step-circle" aria-hidden="true">2</span><span class="step-label">Conferir</span></li>
+        <li class="step"><span class="step-circle" aria-hidden="true">3</span><span class="step-label">Resultado</span></li>
+        <li class="step"><span class="step-circle" aria-hidden="true">4</span><span class="step-label">Confirmar</span></li>
+      </ol>
 
-  <!-- Stepper -->
-  <div class="stepper">
-    <div class="step active" id="step-1">
-      <div class="step-circle">1</div>
-      <div class="step-label">Dados</div>
-    </div>
-    <div class="step-line"></div>
-    <div class="step" id="step-2">
-      <div class="step-circle">2</div>
-      <div class="step-label">Análise</div>
-    </div>
-    <div class="step-line"></div>
-    <div class="step" id="step-3">
-      <div class="step-circle">3</div>
-      <div class="step-label">Resultado</div>
-    </div>
-    <div class="step-line"></div>
-    <div class="step" id="step-4">
-      <div class="step-circle">4</div>
-      <div class="step-label">Confirmar</div>
-    </div>
-  </div>
+      <!-- ETAPA 1: IMPORTAR -->
+      <section id="etapa-importar" aria-labelledby="titulo-importar">
+        <div class="cartao">
+          <div class="cartao__corpo">
+            <h2 class="fs-5 fw-bold mb-1" id="titulo-importar">Importar ou fotografar o boleto</h2>
+            <p class="text-muted mb-3">O sistema lê o código de barras e os dados impressos. Você confere tudo antes da análise.</p>
 
-  <!-- Formulário de entrada -->
-  <div id="secao-entrada">
-    <div class="card-bradesco">
-      <div class="card-header">Tipo de entrada</div>
-      <div class="card-body">
-        <div class="row g-2">
-          <div class="col-12 col-sm-6">
-            <div class="option-card selected" id="opt-manual" onclick="selecionarEntrada('manual')">
-              <div class="option-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="22" height="22">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            <div class="upload-zone" id="upload-zone">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" width="44" height="44" aria-hidden="true" focusable="false">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+              </svg>
+              <p class="fw-semibold mb-1">Arraste e solte o arquivo aqui</p>
+              <p class="text-muted small mb-0">Formatos: JPG, PNG ou PDF (até 10 MB e 10 páginas)</p>
+            </div>
+
+            <div class="acoes-importar mt-3">
+              <button type="button" class="btn-primario" id="btn-camera">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="20" height="20" aria-hidden="true" focusable="false">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 8a2 2 0 012-2h2l1.5-2h7L17 6h2a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><circle cx="12" cy="13" r="3.5"/>
                 </svg>
-              </div>
-              <div>
-                <div class="fw-semibold small">Digitar linha</div>
-                <div class="text-muted" style="font-size:0.77rem;">Informe manualmente</div>
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-sm-6">
-            <div class="option-card" id="opt-upload" onclick="selecionarEntrada('upload')">
-              <div class="option-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="22" height="22">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                Fotografar com a câmera
+              </button>
+              <button type="button" class="btn-contorno" id="btn-arquivo">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="20" height="20" aria-hidden="true" focusable="false">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
                 </svg>
+                Selecionar arquivo (imagem ou PDF)
+              </button>
+            </div>
+            <!-- capture: no celular abre a câmera traseira; no computador abre o seletor de arquivos -->
+            <input type="file" id="input-camera" accept="image/*" capture="environment" class="d-none" tabindex="-1" aria-hidden="true">
+            <input type="file" id="input-arquivo" accept="image/png,image/jpeg,application/pdf" class="d-none" tabindex="-1" aria-hidden="true">
+
+            <div class="divisor-ou" aria-hidden="true"><span>ou</span></div>
+
+            <button type="button" class="btn-contorno btn-bloco" id="btn-manual">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="20" height="20" aria-hidden="true" focusable="false">
+                <rect x="2" y="6" width="20" height="12" rx="2"/><path stroke-linecap="round" d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>
+              </svg>
+              Digitar manualmente
+            </button>
+
+            <p class="small text-muted mt-3 mb-0">
+              <b>Dica:</b> use uma imagem nítida e bem iluminada, com o boleto inteiro visível.
+              <b>Privacidade:</b> a leitura é feita no próprio servidor e o arquivo não é guardado.
+              Só se a leitura local falhar, a imagem pode ser enviada à IA (OpenAI) para ler a linha digitável.
+            </p>
+          </div>
+        </div>
+
+        <div id="status-leitura" class="cartao d-none">
+          <div class="cartao__corpo d-flex align-items-center gap-3 flex-wrap">
+            <div class="loading-spinner loading-spinner--pequeno" aria-hidden="true"></div>
+            <div class="flex-grow-1">
+              <p class="fw-semibold mb-0">Lendo o boleto…</p>
+              <p class="small text-muted mb-0" id="status-arquivo"></p>
+            </div>
+            <button type="button" class="btn-contorno" id="btn-cancelar-leitura">Cancelar</button>
+          </div>
+        </div>
+        <div id="erro-importar" class="alert alert-danger d-none" role="alert"></div>
+      </section>
+
+      <!-- ETAPA 2: CONFERIR -->
+      <section id="etapa-conferir" class="d-none" aria-labelledby="titulo-conferir">
+        <div class="cartao">
+          <div class="cartao__corpo">
+            <h2 class="fs-5 fw-bold mb-1 titulo-foco" id="titulo-conferir" tabindex="-1">Confira os dados do boleto</h2>
+            <p class="text-muted mb-2" id="resumo-leitura">Preencha os dados exatamente como aparecem no boleto.</p>
+            <div id="ouvir-leitura" class="mb-3"></div>
+
+            <div id="avisos-leitura" class="alerta-item d-none"></div>
+
+            <div class="campo-conferencia">
+              <div class="campo-conferencia__topo">
+                <label for="linha-digitavel" class="form-label fw-semibold mb-0">Linha digitável <span class="obrigatorio" aria-hidden="true">*</span><span class="visually-hidden">(obrigatório)</span></label>
+                <span class="selo selo-fonte d-none" id="fonte-linha"></span>
               </div>
-              <div>
-                <div class="fw-semibold small">Imagem / PDF</div>
-                <div class="text-muted" style="font-size:0.77rem;">Extração automática</div>
+              <!-- textarea: em telas estreitas a linha quebra em vez de ficar cortada, e dá para conferir os 47 números -->
+              <textarea id="linha-digitavel" class="form-control campo campo-linha" rows="1"
+                placeholder="00000.00000 00000.000000 00000.000000 0 00000000000000"
+                maxlength="54" inputmode="numeric" autocomplete="off" spellcheck="false" required
+                aria-describedby="fonte-linha obs-linha ajuda-linha erro-linha"></textarea>
+              <div class="form-text" id="ajuda-linha">São 47 números; pontos e espaços entram sozinhos. Somente boletos bancários de cobrança.</div>
+              <div class="form-text texto-observacao d-none" id="obs-linha"></div>
+              <div id="erro-linha" class="texto-erro d-none"></div>
+            </div>
+
+            <div class="campo-conferencia">
+              <div class="campo-conferencia__topo">
+                <label for="nome-beneficiario" class="form-label fw-semibold mb-0">Beneficiário (quem recebe) <span class="obrigatorio" aria-hidden="true">*</span><span class="visually-hidden">(obrigatório)</span></label>
+                <span class="selo selo-fonte d-none" id="fonte-nome"></span>
               </div>
+              <input type="text" id="nome-beneficiario" class="form-control campo"
+                placeholder="Exatamente como aparece no boleto" maxlength="200" autocomplete="off" required
+                aria-describedby="fonte-nome obs-nome">
+              <div class="form-text texto-observacao d-none" id="obs-nome"></div>
+            </div>
+
+            <div class="campo-conferencia">
+              <div class="campo-conferencia__topo">
+                <label for="documento-beneficiario" class="form-label fw-semibold mb-0">CPF ou CNPJ do beneficiário <span class="obrigatorio" aria-hidden="true">*</span><span class="visually-hidden">(obrigatório)</span></label>
+                <span class="selo selo-fonte d-none" id="fonte-documento"></span>
+              </div>
+              <input type="text" id="documento-beneficiario" class="form-control campo"
+                placeholder="000.000.000-00 ou 00.000.000/0000-00" maxlength="18" inputmode="numeric" autocomplete="off" required
+                aria-describedby="fonte-documento obs-documento erro-documento">
+              <div class="form-text texto-observacao d-none" id="obs-documento"></div>
+              <div id="erro-documento" class="texto-erro d-none" aria-live="polite"></div>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-12 col-sm-6 campo-conferencia mb-0">
+                <div class="campo-conferencia__topo">
+                  <label for="valor-declarado" class="form-label fw-semibold mb-0">Valor</label>
+                  <span class="selo selo-fonte d-none" id="fonte-valor"></span>
+                </div>
+                <div class="input-group">
+                  <span class="input-group-text" aria-hidden="true">R$</span>
+                  <input type="text" id="valor-declarado" class="form-control campo"
+                    placeholder="0,00" inputmode="numeric" autocomplete="off" aria-describedby="fonte-valor obs-valor">
+                </div>
+                <div class="form-text texto-observacao d-none" id="obs-valor"></div>
+              </div>
+              <div class="col-12 col-sm-6 campo-conferencia mb-0">
+                <div class="campo-conferencia__topo">
+                  <label for="vencimento-declarado" class="form-label fw-semibold mb-0">Vencimento</label>
+                  <span class="selo selo-fonte d-none" id="fonte-vencimento"></span>
+                </div>
+                <input type="date" id="vencimento-declarado" class="form-control campo" aria-describedby="fonte-vencimento obs-vencimento">
+                <div class="form-text texto-observacao d-none" id="obs-vencimento"></div>
+              </div>
+            </div>
+            <p class="form-text mt-2 mb-0">Valor e vencimento são opcionais, mas deixam a análise mais completa.</p>
+
+            <div id="dados-codigo" class="info-codigo d-none mt-3"></div>
+
+            <div class="mt-3">
+              <label for="origem" class="form-label fw-semibold">Como você recebeu o boleto?</label>
+              <select id="origem" class="form-select campo">
+                <option value="">Não informar</option>
+                <option value="WHATSAPP">WhatsApp</option>
+                <option value="EMAIL">E-mail</option>
+                <option value="SITE">Site / sistema</option>
+                <option value="IMPRESSO">Impresso / correio</option>
+                <option value="OUTRO">Outro</option>
+              </select>
+            </div>
+
+            <fieldset class="mt-3 grupo-banco" aria-describedby="ajuda-instituicao">
+              <legend class="form-label fw-semibold fs-6">O banco deste boleto é o que você esperava? <span class="fw-normal text-muted">(opcional)</span></legend>
+              <p class="mb-2" id="banco-do-boleto">Preencha a linha digitável para ver de qual banco é o boleto.</p>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="banco-esperado" id="banco-sim" value="sim">
+                <label class="form-check-label" for="banco-sim">Sim, é o banco de sempre dessa empresa</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="banco-esperado" id="banco-outro" value="outro">
+                <label class="form-check-label" for="banco-outro">Não, ela costuma cobrar por outro banco</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="banco-esperado" id="banco-nao-sei" value="" checked>
+                <label class="form-check-label" for="banco-nao-sei">Não sei</label>
+              </div>
+              <div class="mt-2 ms-4 d-none" id="grupo-instituicao-esperada">
+                <label for="instituicao-esperada" class="form-label">Qual banco ela costuma usar?</label>
+                <select id="instituicao-esperada" class="form-select campo">
+                  <option value="">Não lembro</option>
+                </select>
+              </div>
+              <div class="form-text" id="ajuda-instituicao">Os três primeiros números da linha digitável dizem qual banco registrou o boleto.
+                Golpistas costumam usar a marca da empresa verdadeira, mas registrar o boleto em outro banco.</div>
+            </fieldset>
+
+            <div class="form-check confirmacao-dados mt-4">
+              <input class="form-check-input" type="checkbox" id="confirmo-dados" aria-describedby="erro-confirmo">
+              <label class="form-check-label fw-semibold" for="confirmo-dados">Conferi os dados acima com o boleto e estão corretos.</label>
+              <div id="erro-confirmo" class="texto-erro d-none"></div>
             </div>
           </div>
         </div>
+
+        <div id="erro-geral" class="alert alert-danger d-none" role="alert"></div>
+
+        <div class="d-flex gap-2 mt-3">
+          <button type="button" class="btn-contorno flex-fill" id="btn-voltar"><span aria-hidden="true">←</span> Voltar</button>
+          <button type="button" class="btn-primario flex-fill" id="btn-analisar">Analisar boleto <span aria-hidden="true">→</span></button>
+        </div>
+      </section>
+
+      <!-- Loading -->
+      <div id="secao-loading" class="d-none text-center py-5" role="status">
+        <div class="loading-spinner mx-auto mb-3" aria-hidden="true"></div>
+        <div class="fw-semibold">Analisando boleto...</div>
+        <div class="text-muted small mt-1">Validando estrutura e calculando risco</div>
       </div>
+
+      <!-- Anúncios para leitores de tela (resultado da leitura) -->
+      <p class="visually-hidden" id="anuncio" aria-live="polite"></p>
+
     </div>
-
-    <!-- Entrada manual -->
-    <div class="card-bradesco" id="painel-manual">
-      <div class="card-header">Linha digitável</div>
-      <div class="card-body">
-        <div class="mb-3">
-          <label class="form-label fw-semibold small">Linha digitável (47 dígitos)</label>
-          <input type="text" id="linha-digitavel" class="form-control form-control-bradesco"
-            placeholder="00000.00000 00000.000000 00000.000000 0 00000000000000"
-            maxlength="54" inputmode="numeric" autocomplete="off">
-          <div class="form-text">Digite só os números: pontos e espaços entram sozinhos. Somente boletos bancários de cobrança.</div>
-          <div id="erro-linha" class="text-danger small mt-1 d-none"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Upload -->
-    <div class="card-bradesco d-none" id="painel-upload">
-      <div class="card-header">Enviar imagem ou PDF do boleto</div>
-      <div class="card-body">
-        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" width="48" height="48">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
-          </svg>
-          <div class="fw-semibold mt-2">Clique ou arraste aqui</div>
-          <div class="text-muted small">PNG, JPG ou PDF — máx. 10MB</div>
-          <div id="nome-arquivo" class="mt-2 text-bradesco small fw-semibold d-none"></div>
-        </div>
-        <input type="file" id="file-input" accept="image/png,image/jpeg,application/pdf" class="d-none">
-
-        <div id="aviso-ocr" class="alerta-item mt-3">
-          <b>Limitação do protótipo:</b> O OCR funciona melhor com imagens nítidas e boletos impressos em preto e branco.
-          Após o processamento, você poderá corrigir os dados antes de prosseguir.
-          <br><b>Privacidade:</b> a leitura é feita no próprio servidor. Só se ela falhar, a imagem é enviada
-          à IA (OpenAI) para ler a linha digitável.
-        </div>
-
-        <div id="resultado-ocr" class="d-none mt-3">
-          <div class="fw-semibold small mb-2">Linha digitável extraída:</div>
-          <input type="text" id="linha-ocr" class="form-control form-control-bradesco mb-2"
-            placeholder="Linha extraída pelo OCR" maxlength="54" inputmode="numeric" autocomplete="off">
-          <div class="form-text text-warning">
-            <b>Confirme se a linha está correta</b> antes de prosseguir. OCR pode cometer erros.
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Beneficiário e demais dados (vale para digitação e upload) -->
-    <div class="card-bradesco">
-      <div class="card-header">Quem vai receber</div>
-      <div class="card-body">
-        <div class="row g-2 mb-2">
-          <div class="col-12">
-            <label class="form-label small fw-semibold">Nome do beneficiário <span class="text-danger">*</span></label>
-            <input type="text" id="nome-beneficiario" class="form-control form-control-bradesco"
-              placeholder="Exatamente como aparece no boleto" maxlength="200" autocomplete="off">
-          </div>
-          <div class="col-12">
-            <label class="form-label small fw-semibold">CPF ou CNPJ do beneficiário <span class="text-danger">*</span></label>
-            <input type="text" id="documento-beneficiario" class="form-control form-control-bradesco"
-              placeholder="000.000.000-00 ou 00.000.000/0000-00" maxlength="18" inputmode="numeric" autocomplete="off">
-            <div id="erro-documento" class="text-danger small mt-1 d-none"></div>
-          </div>
-        </div>
-        <div class="form-text mb-2">
-          O nome e o CPF/CNPJ ficam impressos no boleto, no campo "Beneficiário".
-        </div>
-
-        <hr class="my-3">
-        <div class="fw-semibold small mb-2 text-muted">Dados opcionais (melhoram a análise)</div>
-
-        <div class="row g-2 mb-2">
-          <div class="col-12 col-sm-6">
-            <label class="form-label small">Valor do boleto</label>
-            <div class="input-group">
-              <span class="input-group-text">R$</span>
-              <input type="text" id="valor-declarado" class="form-control form-control-bradesco"
-                placeholder="0,00" inputmode="numeric" autocomplete="off">
-            </div>
-          </div>
-          <div class="col-12 col-sm-6">
-            <label class="form-label small">Vencimento</label>
-            <input type="date" id="vencimento-declarado" class="form-control form-control-bradesco">
-          </div>
-        </div>
-
-        <div class="row g-2 mb-3">
-          <div class="col-12">
-            <label class="form-label small">Origem do boleto</label>
-            <select id="origem" class="form-select form-control-bradesco">
-              <option value="">Não informar</option>
-              <option value="WHATSAPP">WhatsApp</option>
-              <option value="EMAIL">E-mail</option>
-              <option value="SITE">Site / sistema</option>
-              <option value="IMPRESSO">Impresso / correio</option>
-              <option value="OUTRO">Outro</option>
-            </select>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="erro-geral" class="alert alert-danger d-none" role="alert"></div>
-
-    <div class="d-flex gap-2 mt-3">
-      <a href="/home.html" class="btn-bradesco-outline flex-fill text-center text-decoration-none py-2">Cancelar</a>
-      <button class="btn-bradesco-primary flex-fill" id="btn-analisar" onclick="analisarBoleto()">
-        Analisar Boleto
-      </button>
-    </div>
-  </div>
-
-  <!-- Loading -->
-  <div id="secao-loading" class="d-none text-center py-5">
-    <div class="loading-spinner mx-auto mb-3"></div>
-    <div class="fw-semibold">Analisando boleto...</div>
-    <div class="text-muted small mt-1">Validando estrutura e calculando risco</div>
-  </div>
-
+  </main>
 </div>
 
 <script src="/js/api.js"></script>
+<script src="/js/leitura-voz.js"></script>
+<script src="/js/layout.js"></script>
 <script>
   if (!API.requireAuth()) {}
 
-  let tipoEntradaAtual = 'manual';
+  const TAMANHO_MAXIMO = 10 * 1024 * 1024;
+  const TEMPO_LIMITE_MS = 90000;
+  const NOMES_FONTE = {
+    TEXTO_PDF: 'Lido do texto do PDF',
+    CODIGO_BARRAS: 'Lido do código de barras',
+    OCR_LOCAL: 'Lido por OCR',
+    IA: 'Lido por IA',
+  };
+  // chave do campo → id do input
+  const CAMPOS = {
+    linha: 'linha-digitavel',
+    nome: 'nome-beneficiario',
+    documento: 'documento-beneficiario',
+    valor: 'valor-declarado',
+    vencimento: 'vencimento-declarado',
+  };
+  const ROTULOS = { linha: 'linha digitável', nome: 'beneficiário', documento: 'CPF/CNPJ', valor: 'valor', vencimento: 'vencimento' };
+
+  let tipoEntrada = 'MANUAL';
+  let leitura = null; // AbortController da leitura em andamento
+  let leituraCanceladaPeloUsuario = false;
+
+  const $ = (id) => document.getElementById(id);
+  // Erro visível (borda vermelha) e anunciado ao leitor de tela (aria-invalid)
+  const marcarInvalido = (el, invalido) => {
+    el.classList.toggle('is-invalid', invalido);
+    if (invalido) el.setAttribute('aria-invalid', 'true'); else el.removeAttribute('aria-invalid');
+  };
+  const docInput = $('documento-beneficiario');
+  const erroDocEl = $('erro-documento');
 
   // Máscaras: o usuário digita só os números
-  Mascara.aplicar(document.getElementById('linha-digitavel'), 'linhaDigitavel');
-  Mascara.aplicar(document.getElementById('linha-ocr'), 'linhaDigitavel');
-  Mascara.aplicar(document.getElementById('documento-beneficiario'), Mascara.cpfCnpj, 14);
-  Mascara.aplicar(document.getElementById('valor-declarado'), Mascara.moeda, 12);
+  Mascara.aplicar($('linha-digitavel'), 'linhaDigitavel');
+  // Enter não quebra linha na linha digitável (é um campo de uma linha só, que apenas pode ocupar duas na tela)
+  $('linha-digitavel').addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
+  Mascara.aplicar(docInput, Mascara.cpfCnpj, 14);
+  Mascara.aplicar($('valor-declarado'), Mascara.moeda, 12);
 
-  const docInput = document.getElementById('documento-beneficiario');
-  const erroDocEl = document.getElementById('erro-documento');
+  // ---------- Etapas ----------
+  function definirEtapa(numero) {
+    document.querySelectorAll('#stepper .step').forEach((li, i) => {
+      const n = i + 1;
+      li.classList.toggle('done', n < numero);
+      li.classList.toggle('active', n === numero);
+      if (n === numero) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+      li.querySelector('.step-circle').textContent = n < numero ? '✓' : n;
+    });
+  }
 
+  function mostrar(secao) {
+    $('etapa-importar').classList.toggle('d-none', secao !== 'importar');
+    $('etapa-conferir').classList.toggle('d-none', secao !== 'conferir');
+    $('secao-loading').classList.toggle('d-none', secao !== 'loading');
+    definirEtapa(secao === 'importar' ? 1 : 2);
+  }
+
+  // ---------- Origem de cada campo ----------
+  // Selo ao lado do rótulo: de onde veio o dado e se precisa de atenção. Editar o campo troca para "Informado por você".
+  function marcarFonte(chave, campo) {
+    const selo = $('fonte-' + chave);
+    const obs = $('obs-' + chave);
+    selo.dataset.fonte = campo ? campo.fonte : '';
+    if (!campo) {
+      selo.classList.add('d-none');
+    } else {
+      let texto, classe;
+      if (campo.fonte === 'NAO_IDENTIFICADO') {
+        texto = 'Não identificado — preencha'; classe = 'selo-medio';
+      } else if (campo.fonte === 'USUARIO') {
+        texto = 'Informado por você'; classe = 'selo-neutro';
+      } else if (campo.confianca === 'ALTA') {
+        texto = `${NOMES_FONTE[campo.fonte] || campo.fonte} · confiável`; classe = 'selo-baixo';
+      } else {
+        texto = `${NOMES_FONTE[campo.fonte] || campo.fonte} · confira`; classe = 'selo-medio';
+      }
+      selo.textContent = texto;
+      selo.className = 'selo selo-fonte ' + classe;
+    }
+    const observacao = campo && campo.fonte !== 'USUARIO' ? campo.observacao : '';
+    obs.textContent = observacao || '';
+    obs.classList.toggle('d-none', !observacao);
+  }
+
+  Object.entries(CAMPOS).forEach(([chave, id]) => {
+    $(id).addEventListener('input', () => {
+      const selo = $('fonte-' + chave);
+      if (!selo.classList.contains('d-none') && selo.dataset.fonte !== 'USUARIO') {
+        marcarFonte(chave, { fonte: 'USUARIO' });
+      }
+    });
+  });
+
+  function limparConferencia() {
+    Object.entries(CAMPOS).forEach(([chave, id]) => { $(id).value = ''; marcarFonte(chave, null); });
+    $('origem').value = '';
+    $('instituicao-esperada').value = '';
+    $('banco-nao-sei').checked = true;
+    $('grupo-instituicao-esperada').classList.add('d-none');
+    $('confirmo-dados').checked = false;
+    ['erro-linha', 'erro-documento', 'erro-confirmo', 'erro-geral'].forEach((id) => $(id).classList.add('d-none'));
+    [docInput, $('nome-beneficiario'), $('linha-digitavel'), $('confirmo-dados')].forEach((el) => marcarInvalido(el, false));
+    if (LeituraVoz.botaoAtivo) LeituraVoz.parar();
+    $('ouvir-leitura').innerHTML = '';
+    $('avisos-leitura').classList.add('d-none');
+    $('dados-codigo').classList.add('d-none');
+    $('resumo-leitura').textContent = 'Preencha os dados exatamente como aparecem no boleto.';
+    mostrarBancoDoBoleto();
+  }
+
+  // ---------- Importar ----------
+  $('btn-camera').addEventListener('click', () => $('input-camera').click());
+  $('btn-arquivo').addEventListener('click', () => $('input-arquivo').click());
+  $('input-camera').addEventListener('change', (e) => processarArquivo(e.target.files[0], e.target));
+  $('input-arquivo').addEventListener('change', (e) => processarArquivo(e.target.files[0], e.target));
+
+  // Área de arrastar e soltar (para mouse; pelo teclado os botões acima fazem o mesmo)
+  const zona = $('upload-zone');
+  zona.addEventListener('click', () => $('input-arquivo').click());
+  zona.addEventListener('dragover', (e) => { e.preventDefault(); zona.classList.add('dragover'); });
+  zona.addEventListener('dragleave', () => zona.classList.remove('dragover'));
+  zona.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zona.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) processarArquivo(e.dataTransfer.files[0]);
+  });
+
+  $('btn-manual').addEventListener('click', () => {
+    limparConferencia();
+    tipoEntrada = 'MANUAL';
+    mostrar('conferir');
+    $('linha-digitavel').focus();
+  });
+
+  $('btn-cancelar-leitura').addEventListener('click', () => {
+    leituraCanceladaPeloUsuario = true;
+    if (leitura) leitura.abort();
+  });
+
+  function erroImportar(msg) {
+    $('erro-importar').textContent = msg;
+    $('erro-importar').classList.remove('d-none');
+  }
+
+  function emLeitura(ativo, arquivo) {
+    $('status-leitura').classList.toggle('d-none', !ativo);
+    $('status-arquivo').textContent = arquivo ? `${arquivo.name} · ${(arquivo.size / 1024 / 1024).toFixed(1).replace('.', ',')} MB` : '';
+    ['btn-camera', 'btn-arquivo', 'btn-manual'].forEach((id) => { $(id).disabled = ativo; });
+    if (ativo) $('anuncio').textContent = 'Lendo o boleto. Aguarde.';
+  }
+
+  async function processarArquivo(arquivo, input) {
+    if (!arquivo) return;
+    $('erro-importar').classList.add('d-none');
+    const pdf = arquivo.type === 'application/pdf' || /\.pdf$/i.test(arquivo.name);
+    // Conferência rápida no navegador; o servidor confere de novo pela assinatura do arquivo
+    if (arquivo.size > TAMANHO_MAXIMO) { erroImportar('O arquivo tem mais de 10 MB. Envie uma imagem menor ou um PDF mais leve.'); return; }
+    if (!pdf && !/^image\/(png|jpe?g)$/.test(arquivo.type) && !/\.(png|jpe?g)$/i.test(arquivo.name)) {
+      erroImportar('Formato não suportado. Envie uma imagem PNG ou JPG, ou um PDF.'); return;
+    }
+
+    const form = new FormData();
+    form.append('arquivo', arquivo);
+    leitura = new AbortController();
+    leituraCanceladaPeloUsuario = false;
+    const limite = setTimeout(() => leitura.abort(), TEMPO_LIMITE_MS);
+    emLeitura(true, arquivo);
+
+    try {
+      const resp = await fetch('/api/boletos/ocr', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${API.getToken()}` },
+        body: form,
+        signal: leitura.signal,
+      });
+      if (resp.status === 401) { API.logout(); return; }
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        const msg = data.erro || 'Não foi possível ler o arquivo.';
+        erroImportar(/manualmente/i.test(msg) ? msg : msg + ' Você também pode digitar os dados manualmente.');
+        return;
+      }
+      tipoEntrada = pdf ? 'PDF' : 'IMAGEM';
+      preencherConferencia(data, arquivo);
+    } catch (e) {
+      erroImportar(leituraCanceladaPeloUsuario
+        ? 'Leitura cancelada.'
+        : e.name === 'AbortError'
+          ? 'A leitura demorou demais. Tente uma imagem menor ou mais nítida, ou digite os dados manualmente.'
+          : 'Falha de conexão durante a leitura. Tente de novo ou digite os dados manualmente.');
+    } finally {
+      clearTimeout(limite);
+      leitura = null;
+      emLeitura(false);
+      if (input) input.value = ''; // permite escolher o mesmo arquivo de novo
+    }
+  }
+
+  function formatarData(iso) {
+    const [a, m, d] = iso.split('-');
+    return `${d}/${m}/${a}`;
+  }
+
+  function preencherConferencia(data, arquivo) {
+    limparConferencia();
+    const c = data.campos || {};
+    const lidos = {
+      linha: data.linha,
+      nome: c.nomeBeneficiario,
+      documento: c.documentoBeneficiario,
+      valor: c.valor,
+      vencimento: c.vencimento,
+    };
+    Object.entries(lidos).forEach(([chave, campo]) => {
+      campo = campo || { fonte: 'NAO_IDENTIFICADO' };
+      const input = $(CAMPOS[chave]);
+      input.value = campo.valor || '';
+      if (input.reformatar) input.reformatar();
+      marcarFonte(chave, campo);
+    });
+
+    const identificados = Object.keys(lidos).filter((k) => lidos[k] && lidos[k].valor);
+    const faltando = Object.keys(lidos).filter((k) => !identificados.includes(k));
+    const segundos = (data.tempoMs / 1000).toFixed(1).replace('.', ',');
+    $('resumo-leitura').textContent =
+      `Lemos "${arquivo.name}" em ${segundos} s: ${identificados.length} de 5 campos identificados. ` +
+      'Confira cada um com o boleto e corrija o que for preciso.';
+
+    if (data.avisos && data.avisos.length) {
+      $('avisos-leitura').textContent = data.avisos.join(' ');
+      $('avisos-leitura').classList.remove('d-none');
+    }
+
+    // Dados gravados no código de barras: informativos. A análise os compara com valor e vencimento acima.
+    if (data.codigo) {
+      const valor = data.codigo.valor != null
+        ? 'R$ ' + Number(data.codigo.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+        : 'em aberto (não gravado)';
+      const venc = data.codigo.vencimento ? formatarData(data.codigo.vencimento) : 'não gravado';
+      const inst = data.codigo.instituicao ? `${data.codigo.instituicao} (${data.codigo.banco})` : `código ${data.codigo.banco}`;
+      $('dados-codigo').innerHTML =
+        `<b>No código de barras:</b> instituição ${Html.escapar(inst)} · valor ${Html.escapar(valor)} · vencimento ${Html.escapar(venc)}.` +
+        '<br><span class="small">A instituição é quem registrou o boleto, não necessariamente o banco de quem recebe. ' +
+        'A análise compara valor e vencimento com os de cima, que devem ser os impressos no boleto.</span>';
+      $('dados-codigo').classList.remove('d-none');
+    }
+
+    mostrarBancoDoBoleto();
+    LeituraVoz.suportado && LeituraVoz.criarBotao($('ouvir-leitura'), textoDaConferencia, 'Ouvir dados lidos');
+    mostrar('conferir');
+    $('anuncio').textContent =
+      `Leitura concluída. ${identificados.length} de 5 campos identificados` +
+      (faltando.length ? `. Não identificados: ${faltando.map((k) => ROTULOS[k]).join(', ')}` : '') +
+      '. Confira cada campo antes de analisar.';
+    $('titulo-conferir').focus();
+  }
+
+  // No "Ouvir esta página": na conferência, a leitura detalhada (número a número); nas outras fases, a genérica
+  LeituraVoz.leitorDaPagina = () => ($('etapa-conferir').classList.contains('d-none') ? null : textoDaConferencia());
+
+  // Texto lido em voz alta: o que está nos campos agora (inclusive o que o usuário corrigiu) e de onde veio
+  function textoDaConferencia() {
+    const partes = ['Dados do boleto para conferir.'];
+    const descrever = (chave, rotulo, valor) => {
+      const fonte = $('fonte-' + chave).textContent;
+      partes.push(valor ? `${rotulo}: ${valor}. ${fonte}.` : `${rotulo}: não preenchido.`);
+    };
+    descrever('linha', 'Linha digitável', LeituraVoz.soletrarNumeros($('linha-digitavel').value));
+    descrever('nome', 'Beneficiário', $('nome-beneficiario').value.trim());
+    descrever('documento', 'CPF ou CNPJ', LeituraVoz.soletrarNumeros($('documento-beneficiario').value.replace(/[./-]/g, ' ')));
+    descrever('valor', 'Valor', $('valor-declarado').value ? 'R$ ' + $('valor-declarado').value : '');
+    descrever('vencimento', 'Vencimento', $('vencimento-declarado').value ? formatarData($('vencimento-declarado').value) : '');
+    const codigo = $('dados-codigo');
+    if (!codigo.classList.contains('d-none')) partes.push(codigo.innerText);
+    partes.push(`Confirmação: ${$('confirmo-dados').checked ? 'marcada' : 'não marcada'}.`);
+    partes.push('Confira cada dado com o boleto, marque a confirmação e use o botão Analisar boleto.');
+    return partes.join(' ');
+  }
+
+  $('btn-voltar').addEventListener('click', () => {
+    limparConferencia();
+    mostrar('importar');
+    $('btn-camera').focus();
+  });
+
+  // ---------- Validações ----------
   // Vazio ou com tamanho errado impede o envio. Dígito verificador errado só avisa:
   // se o número está igual ao do boleto, o próprio boleto é suspeito e a análise vai apontar isso.
   function validarDocumento() {
@@ -233,106 +536,96 @@
     }
     erroDocEl.textContent = msg;
     erroDocEl.classList.toggle('d-none', !msg);
-    docInput.classList.toggle('is-invalid', !!msg);
+    marcarInvalido(docInput, !!msg);
     return !bloqueia;
   }
-  docInput.addEventListener('blur', () => { if (docInput.value) validarDocumento(); });
-  document.getElementById('nome-beneficiario').addEventListener('input',
-    (e) => e.target.classList.remove('is-invalid'));
+  // Ao apertar "Analisar" com o CPF em foco, a mensagem de erro que aparece no blur empurrava o botão para baixo
+  // entre o toque e a soltura, e o clique se perdia. Nesse caso a validação fica para analisarBoleto().
+  let analisando = false;
+  $('btn-analisar').addEventListener('pointerdown', () => { analisando = true; });
+  docInput.addEventListener('blur', () => { if (docInput.value && !analisando) validarDocumento(); });
+  $('nome-beneficiario').addEventListener('input', (e) => marcarInvalido(e.target, false));
+  $('linha-digitavel').addEventListener('input', (e) => { marcarInvalido(e.target, false); $('erro-linha').classList.add('d-none'); });
   docInput.addEventListener('input', () => {
     // Com 14 dígitos o CNPJ está completo; com 11 pode ser CPF ou um CNPJ pela metade,
     // então o CPF só é conferido ao sair do campo
     if (docInput.value.replace(/\D/g, '').length === 14) validarDocumento();
-    else { erroDocEl.classList.add('d-none'); docInput.classList.remove('is-invalid'); }
+    else { erroDocEl.classList.add('d-none'); marcarInvalido(docInput, false); }
   });
+  $('confirmo-dados').addEventListener('change', () => { $('erro-confirmo').classList.add('d-none'); marcarInvalido($('confirmo-dados'), false); });
 
-  function selecionarEntrada(tipo) {
-    tipoEntradaAtual = tipo;
-    document.getElementById('opt-manual').classList.toggle('selected', tipo === 'manual');
-    document.getElementById('opt-upload').classList.toggle('selected', tipo === 'upload');
-    document.getElementById('painel-manual').classList.toggle('d-none', tipo !== 'manual');
-    document.getElementById('painel-upload').classList.toggle('d-none', tipo !== 'upload');
+  // De onde veio cada campo preenchido, como os selos mostram; vazio ou digitado à mão = USUARIO
+  function fontesDosCampos() {
+    const fontes = {};
+    Object.entries(CAMPOS).forEach(([chave, id]) => {
+      if (!$(id).value.trim()) return;
+      const fonte = $('fonte-' + chave).dataset.fonte;
+      fontes[chave] = ['TEXTO_PDF', 'CODIGO_BARRAS', 'OCR_LOCAL', 'IA', 'USUARIO'].includes(fonte) ? fonte : 'USUARIO';
+    });
+    return fontes;
   }
 
-  // Upload de arquivo
-  const fileInput = document.getElementById('file-input');
-  const uploadZone = document.getElementById('upload-zone');
+  // "O banco deste boleto é o que você esperava?": mostramos o banco pelo código da linha
+  // e a pessoa só confirma; a lista completa aparece apenas se ela disser que é outro
+  const nomesInstituicoes = {};
+  API.fetch('/instituicoes').then((r) => (r && r.ok ? r.json() : [])).then((lista) => {
+    const select = $('instituicao-esperada');
+    lista.forEach((i) => {
+      nomesInstituicoes[i.codigo] = i.nome;
+      select.add(new Option(`${i.nome} (${i.codigo})`, i.codigo));
+    });
+    mostrarBancoDoBoleto();
+  }).catch(() => { /* sem a lista, mostra só o código do banco */ });
 
-  fileInput.addEventListener('change', () => processarArquivo(fileInput.files[0]));
-  uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
-  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
-  uploadZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadZone.classList.remove('dragover');
-    if (e.dataTransfer.files[0]) processarArquivo(e.dataTransfer.files[0]);
-  });
-
-  async function processarArquivo(arquivo) {
-    if (!arquivo) return;
-    const nomeEl = document.getElementById('nome-arquivo');
-    nomeEl.textContent = arquivo.name;
-    nomeEl.classList.remove('d-none');
-    document.getElementById('erro-geral').classList.add('d-none');
-
-    const form = new FormData();
-    form.append('arquivo', arquivo);
-
-    try {
-      const resp = await fetch('/api/boletos/ocr', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${API.getToken()}` },
-        body: form
-      });
-      const data = await resp.json();
-      if (resp.ok && data.linhaDigitavel) {
-        document.getElementById('resultado-ocr').classList.remove('d-none');
-        document.getElementById('linha-ocr').value = data.linhaDigitavel;
-        document.getElementById('linha-ocr').reformatar();
-      } else {
-        document.getElementById('resultado-ocr').classList.remove('d-none');
-        document.getElementById('linha-ocr').value = '';
-        document.getElementById('linha-ocr').placeholder = 'OCR não conseguiu extrair — digite manualmente';
-        if (data.erro) {
-          const erroEl = document.getElementById('erro-geral');
-          erroEl.textContent = data.erro;
-          erroEl.classList.remove('d-none');
-        }
-      }
-    } catch {
-      document.getElementById('resultado-ocr').classList.remove('d-none');
-      document.getElementById('linha-ocr').value = '';
-      document.getElementById('linha-ocr').placeholder = 'Erro no OCR — digite a linha manualmente';
-    }
+  function bancoDaLinha() {
+    const digitos = $('linha-digitavel').value.replace(/\D/g, '');
+    return digitos.length >= 3 && !digitos.startsWith('8') ? digitos.slice(0, 3) : null;
   }
+
+  function mostrarBancoDoBoleto() {
+    const codigo = bancoDaLinha();
+    const nome = codigo && nomesInstituicoes[codigo];
+    $('banco-do-boleto').innerHTML = !codigo
+      ? 'Preencha a linha digitável para ver de qual banco é o boleto.'
+      : nome
+        ? `Pelo código, este boleto foi registrado no <b>${Html.escapar(nome)} (${codigo})</b>.`
+        : `Pelo código, este boleto foi registrado no banco de código <b>${codigo}</b>.`;
+  }
+  $('linha-digitavel').addEventListener('input', mostrarBancoDoBoleto);
+
+  document.querySelectorAll('input[name="banco-esperado"]').forEach((r) => r.addEventListener('change', () => {
+    $('grupo-instituicao-esperada').classList.toggle('d-none', !$('banco-outro').checked);
+  }));
+
+  function instituicaoEsperada() {
+    if ($('banco-sim').checked) return bancoDaLinha();
+    if ($('banco-outro').checked) return $('instituicao-esperada').value || null;
+    return null;
+  }
+
+  // ---------- Análise ----------
+  $('btn-analisar').addEventListener('click', analisarBoleto);
 
   async function analisarBoleto() {
-    const erroEl = document.getElementById('erro-geral');
-    const erroLinhaEl = document.getElementById('erro-linha');
+    analisando = false;
+    const erroEl = $('erro-geral');
+    const erroLinhaEl = $('erro-linha');
     erroEl.classList.add('d-none');
     erroLinhaEl.classList.add('d-none');
 
-    let linha;
-    let tipoEntrada;
-
-    if (tipoEntradaAtual === 'manual') {
-      linha = document.getElementById('linha-digitavel').value.trim();
-      tipoEntrada = 'MANUAL';
-    } else {
-      linha = document.getElementById('linha-ocr').value.trim();
-      tipoEntrada = 'IMAGEM';
-    }
-
+    const linhaInput = $('linha-digitavel');
+    const linha = linhaInput.value.trim();
     if (!linha) {
-      // No modo upload o aviso da linha fica escondido; usa o alerta geral
-      const alvo = tipoEntradaAtual === 'manual' ? erroLinhaEl : erroEl;
-      alvo.textContent = 'Informe a linha digitável do boleto.';
-      alvo.classList.remove('d-none');
+      erroLinhaEl.textContent = 'Informe a linha digitável do boleto.';
+      erroLinhaEl.classList.remove('d-none');
+      marcarInvalido(linhaInput, true);
+      linhaInput.focus();
       return;
     }
 
-    const nomeInput = document.getElementById('nome-beneficiario');
+    const nomeInput = $('nome-beneficiario');
     const nome = nomeInput.value.trim();
-    nomeInput.classList.toggle('is-invalid', !nome);
+    marcarInvalido(nomeInput, !nome);
     const documentoOk = validarDocumento();
     if (!nome || !documentoOk) {
       erroEl.textContent = !nome
@@ -343,27 +636,36 @@
       return;
     }
 
+    // Confirmação explícita: dados lidos automaticamente nunca são aceitos sem conferência
+    if (!$('confirmo-dados').checked) {
+      $('erro-confirmo').textContent = 'Marque esta opção depois de conferir os dados com o boleto.';
+      $('erro-confirmo').classList.remove('d-none');
+      marcarInvalido($('confirmo-dados'), true);
+      $('confirmo-dados').focus();
+      return;
+    }
+
     const payload = {
       linhaDigitavel: linha,
       tipoEntrada,
-      origem: document.getElementById('origem')?.value || null,
+      origem: $('origem').value || null,
       nomeBeneficiarioDeclarado: nome,
       documentoBeneficiarioDeclarado: docInput.value,
-      valorDeclarado: document.getElementById('valor-declarado')?.value?.trim() || null,
-      vencimentoDeclarado: document.getElementById('vencimento-declarado')?.value || null,
+      valorDeclarado: $('valor-declarado').value.trim() || null,
+      vencimentoDeclarado: $('vencimento-declarado').value || null,
+      fontes: fontesDosCampos(),
+      dadosConferidos: $('confirmo-dados').checked,
+      instituicaoEsperada: instituicaoEsperada(),
     };
 
-    document.getElementById('secao-entrada').classList.add('d-none');
-    document.getElementById('secao-loading').classList.remove('d-none');
-
+    mostrar('loading');
     const { ok, data } = await API.analisarBoleto(payload);
 
     if (ok) {
       sessionStorage.setItem('bs_analise', JSON.stringify(data));
       window.location.href = '/resultado.html';
     } else {
-      document.getElementById('secao-entrada').classList.remove('d-none');
-      document.getElementById('secao-loading').classList.add('d-none');
+      mostrar('conferir');
       const msg = data.erro || data.linhaDigitavel || Object.values(data)[0] || 'Erro ao analisar boleto.';
       erroEl.textContent = msg;
       erroEl.classList.remove('d-none');

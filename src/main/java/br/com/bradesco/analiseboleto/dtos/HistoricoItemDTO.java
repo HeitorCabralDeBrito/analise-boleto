@@ -22,4 +22,6 @@ public class HistoricoItemDTO {
     private String origem;
     private boolean pago; // usuário confirmou o pagamento (simulado) após a análise
     private String explicacao; // texto mostrado ao cliente no resultado; nulo em análises antigas
+    private boolean explicacaoGeradaPorIa; // explicacao veio da IA (reescrita a partir das regras)
+    private boolean denunciado; // o próprio usuário denunciou o CPF/CNPJ deste boleto
 }

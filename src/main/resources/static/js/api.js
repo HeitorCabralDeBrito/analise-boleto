@@ -65,6 +65,23 @@ const API = {
     return { ok: resp.ok, data };
   },
 
+  async denunciar(boletoId, motivo, descricao) {
+    const resp = await this.fetch(`/boletos/${boletoId}/denunciar`, {
+      method: 'POST',
+      body: JSON.stringify({ motivo, descricao })
+    });
+    if (!resp) return { ok: false, data: {} };
+    const data = await resp.json().catch(() => ({}));
+    return { ok: resp.ok, data };
+  },
+
+  async explicacaoIa(boletoId) {
+    const resp = await this.fetch(`/boletos/${boletoId}/explicacao-ia`, { method: 'POST' });
+    if (!resp) return { ok: false, data: {} };
+    const data = await resp.json().catch(() => ({}));
+    return { ok: resp.ok, data };
+  },
+
   async historico() {
     const resp = await this.fetch('/historico');
     if (!resp) return { ok: false, data: [] };
@@ -189,13 +206,10 @@ const Documento = {
   }
 };
 
-// Exibe nome do usuário no navbar se existir #usuario-nome
-document.addEventListener('DOMContentLoaded', () => {
-  const el = document.getElementById('usuario-nome');
-  if (el) {
-    const u = API.getUsuario();
-    if (u) el.textContent = u.nome.split(' ')[0];
+// Texto vindo do usuário ou da API deve passar por aqui antes de entrar em innerHTML
+const Html = {
+  escapar(texto) {
+    return String(texto ?? '').replace(/[&<>"']/g, (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
-  const btnLogout = document.getElementById('btn-logout');
-  if (btnLogout) btnLogout.addEventListener('click', () => API.logout());
-});
+};

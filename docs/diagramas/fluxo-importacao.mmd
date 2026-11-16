@@ -1,0 +1,19 @@
+sequenceDiagram
+    actor U as Usuário
+    participant T as Tela "Pagar boleto"
+    participant API as POST /api/boletos/ocr
+    participant V as ArquivoBoletoValidador
+    participant L as LeitorBoletoServico
+    participant X as ExtratorCamposBoleto
+
+    U->>T: fotografa, seleciona ou arrasta o arquivo
+    T->>API: arquivo (multipart, até 10 MB)
+    API->>V: tipo pela assinatura dos bytes, tamanho, pixels, páginas
+    V-->>API: ok (ou erro amigável)
+    API->>L: leitura (no máximo 2 simultâneas, prazo total 60 s)
+    Note over L: Linha: texto do PDF → código de barras (ZXing)<br/>→ OCR dos números (Tesseract) → IA (último recurso)
+    L->>X: texto do PDF ou OCR em português
+    X-->>L: beneficiário, CPF/CNPJ, valor, vencimento<br/>(cada um com fonte e confiança)
+    L-->>T: linha + campos + dados do código de barras + tempo
+    T->>U: tela "Conferir": selo de origem em cada campo,<br/>"Não identificado — preencha", resumo para leitor de tela
+    U->>T: corrige o que precisar e marca "Conferi os dados"

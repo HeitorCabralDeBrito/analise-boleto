@@ -3,87 +3,147 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Boleto Seguro — Login</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <title>Entrar — Boleto Seguro</title>
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <script src="/js/tema.js"></script>
+  <script src="/js/preferencias.js"></script>
+  <link rel="stylesheet" href="/vendor/bootstrap-5.3.3/bootstrap.min.css">
   <link rel="stylesheet" href="/css/boleto-seguro.css">
 </head>
 <body>
-<div class="login-wrapper">
-  <div class="container px-3">
-    <div class="login-card">
-
-      <div class="login-logo">
-        <div class="logo-circle">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
-            <path d="M9 8h2v8H9zm4 0h2v8h-2z" style="fill:rgba(255,255,255,0.6)"/>
-            <circle cx="12" cy="12" r="10" fill="none"/>
-            <path d="M20 12c0-4.42-3.58-8-8-8S4 7.58 4 12s3.58 8 8 8 8-3.58 8-8zm-8 6c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" fill="rgba(255,255,255,0.3)"/>
-          </svg>
-        </div>
-        <h1>Boleto Seguro</h1>
-        <div class="mt-1">
-          <span class="badge-academico">Protótipo acadêmico — Anhembi Morumbi × Bradesco</span>
-        </div>
-      </div>
-
-      <div id="erro-login" class="alert alert-danger d-none" role="alert"></div>
-
-      <form id="form-login" novalidate>
-        <div class="mb-3">
-          <label class="form-label fw-semibold small">Agência</label>
-          <input type="text" id="agencia" class="form-control form-control-bradesco"
-            placeholder="Ex: 0001" maxlength="4" inputmode="numeric" autocomplete="off" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold small">Conta</label>
-          <input type="text" id="conta" class="form-control form-control-bradesco"
-            placeholder="Ex: 12345-6" maxlength="7" inputmode="numeric" autocomplete="off" required>
-        </div>
-        <div class="mb-4">
-          <label class="form-label fw-semibold small">Senha</label>
-          <div class="input-group">
-            <input type="password" id="senha" class="form-control form-control-bradesco"
-              placeholder="Sua senha" autocomplete="current-password" required>
-            <button type="button" class="btn btn-outline-secondary" id="btn-ver-senha"
-              style="border-radius:0 8px 8px 0; border-color: var(--bradesco-gray-mid)">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
-                <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <button type="submit" class="btn-bradesco-primary" id="btn-entrar">
-          <span id="btn-texto">Entrar</span>
-          <span id="btn-loading" class="d-none">
-            <span class="spinner-border spinner-border-sm me-2"></span>Aguarde...
-          </span>
-        </button>
-      </form>
-
-      <div class="mt-4 p-3 rounded" style="background:#f8f9fa; font-size:0.8rem;">
-        <div class="fw-semibold mb-1 text-muted">Usuários de demonstração:</div>
-        <div>Ag: <b>0001</b> &nbsp; Conta: <b>12345-6</b> &nbsp; Senha: <b>senha123</b></div>
-        <div>Ag: <b>0001</b> &nbsp; Conta: <b>98765-4</b> &nbsp; Senha: <b>senha456</b></div>
-      </div>
-
+<main class="login-pagina">
+  <div class="login-acess">
+    <button type="button" class="btn-acess login-acess__abrir" id="btn-login-acess" aria-expanded="false" aria-controls="login-acess-painel">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="4.5" r="2" fill="currentColor"/><path d="M5 8.5l7 1.5 7-1.5M12 10v5m0 0l-3 6m3-6l3 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Acessibilidade</span>
+      <svg class="login-acess__seta" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+        <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="login-acess__painel" id="login-acess-painel" hidden>
+      <div id="login-preferencias"></div>
+      <a href="/acessibilidade.html">Sobre a acessibilidade do sistema</a>
     </div>
   </div>
-</div>
+  <div class="login-card">
+
+    <div class="login-logo">
+      <h1 class="visually-hidden">Entrar no Boleto Seguro</h1>
+      <div id="login-marca"></div>
+      <span class="badge-academico" id="login-aviso">Protótipo acadêmico — nenhuma transação financeira real</span>
+    </div>
+
+    <div id="erro-login" class="alert alert-danger d-none" role="alert"></div>
+
+    <form id="form-login" novalidate>
+      <div class="mb-3">
+        <label for="agencia" class="form-label fw-semibold">Agência</label>
+        <input type="text" id="agencia" class="form-control campo"
+          placeholder="Ex: 0001" maxlength="4" inputmode="numeric" autocomplete="off" required aria-describedby="erro-login">
+      </div>
+      <div class="mb-3">
+        <label for="conta" class="form-label fw-semibold">Conta</label>
+        <input type="text" id="conta" class="form-control campo"
+          placeholder="Ex: 12345-6" maxlength="7" inputmode="numeric" autocomplete="off" required aria-describedby="erro-login">
+      </div>
+      <div class="mb-4">
+        <label for="senha" class="form-label fw-semibold">Senha</label>
+        <div class="input-group">
+          <input type="password" id="senha" class="form-control campo"
+            placeholder="Senha de demonstração" autocomplete="current-password" required aria-describedby="erro-login">
+          <button type="button" class="btn btn-contorno" id="btn-ver-senha" aria-pressed="false"
+            style="border-radius:0 var(--radius-sm) var(--radius-sm) 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+              <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+            </svg>
+            <span class="visually-hidden">Mostrar senha</span>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primario btn-bloco" id="btn-entrar">
+        <span id="btn-texto">Entrar</span>
+        <span id="btn-loading" class="d-none">
+          <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Aguarde...
+        </span>
+      </button>
+    </form>
+
+    <div class="login-demo">
+      <p class="fw-semibold mb-1">Usuários de demonstração (fictícios):</p>
+      <div>Ag: <b>0001</b> &nbsp; Conta: <b>12345-6</b> &nbsp; Senha: <b>senha123</b></div>
+      <div>Ag: <b>0001</b> &nbsp; Conta: <b>98765-4</b> &nbsp; Senha: <b>senha456</b></div>
+      <p class="mt-2 mb-0 text-muted">Nunca digite aqui a senha da sua conta bancária real.</p>
+    </div>
+
+  </div>
+
+  <!-- Aparece só quando os logotipos acadêmicos estão disponíveis no servidor -->
+  <fieldset class="seletor-tema d-none" id="seletor-tema">
+    <legend>Identidade visual:</legend>
+    <div class="seletor-tema__opcoes">
+      <label><input type="radio" name="tema" value="proprio"> Boleto Seguro</label>
+      <label><input type="radio" name="tema" value="academico"> Bradesco (acadêmico)</label>
+    </div>
+  </fieldset>
+</main>
 
 <script src="/js/api.js"></script>
+<script src="/js/leitura-voz.js"></script>
 <script>
   // Se já logado, vai para home
   if (API.getToken()) window.location.href = '/home.html';
 
+  function renderizarMarca() {
+    const academico = Tema.atual() === 'academico';
+    document.getElementById('login-marca').innerHTML = academico
+      ? '<img src="/marca-academica/logo-horizontal.png" class="logo-bradesco" alt="Bradesco">' +
+        '<p class="login-logo__produto">Boleto Seguro</p>'
+      : '<img src="/img/logo-boleto-seguro.svg" class="logo-proprio" alt="Boleto Seguro">';
+    document.getElementById('login-aviso').textContent = academico
+      ? 'Protótipo acadêmico — Anhembi Morumbi × Bradesco. Nenhuma transação financeira real.'
+      : 'Protótipo acadêmico — nenhuma transação financeira real';
+    document.querySelectorAll('input[name="tema"]').forEach((r) => { r.checked = r.value === Tema.atual(); });
+  }
+  renderizarMarca();
+  document.addEventListener('temachange', renderizarMarca);
+  Preferencias.montarControles(document.getElementById('login-preferencias'));
+
+  // As preferências ficam recolhidas atrás de um botão só; o estado aberto/fechado é lembrado
+  const btnAcess = document.getElementById('btn-login-acess');
+  const painelAcess = document.getElementById('login-acess-painel');
+  function abrirPainelAcess(aberto) {
+    btnAcess.setAttribute('aria-expanded', String(aberto));
+    painelAcess.hidden = !aberto;
+    try { localStorage.setItem('bs_login_acess', aberto ? 'aberto' : 'fechado'); } catch { /* navegação privada */ }
+  }
+  let painelAberto = false;
+  try { painelAberto = localStorage.getItem('bs_login_acess') === 'aberto'; } catch { /* navegação privada */ }
+  abrirPainelAcess(painelAberto);
+  btnAcess.addEventListener('click', () => abrirPainelAcess(painelAcess.hidden));
+  if (LeituraVoz.suportado) {
+    LeituraVoz.criarBotao(document.getElementById('login-preferencias').querySelector('.controles-acess'),
+      () => LeituraVoz.textoDaArea(document.querySelector('.login-card')),
+      'Ouvir esta página', { compacto: true, classe: 'btn-acess', id: 'btn-ouvir-pagina' });
+  }
+
+  Tema.config.then((cfg) => {
+    if (cfg.academicoDisponivel) document.getElementById('seletor-tema').classList.remove('d-none');
+  });
+  document.querySelectorAll('input[name="tema"]').forEach((r) =>
+    r.addEventListener('change', () => Tema.definir(r.value)));
+
   Mascara.aplicar(document.getElementById('agencia'), 'agencia');
   Mascara.aplicar(document.getElementById('conta'), 'conta');
 
-  document.getElementById('btn-ver-senha').addEventListener('click', () => {
+  document.getElementById('btn-ver-senha').addEventListener('click', (e) => {
     const input = document.getElementById('senha');
-    input.type = input.type === 'password' ? 'text' : 'password';
+    const mostrar = input.type === 'password';
+    input.type = mostrar ? 'text' : 'password';
+    e.currentTarget.setAttribute('aria-pressed', String(mostrar));
   });
 
   document.getElementById('form-login').addEventListener('submit', async (e) => {
@@ -93,9 +153,14 @@
     const senha = document.getElementById('senha').value;
     const erroEl = document.getElementById('erro-login');
 
-    if (!agencia || !conta || !senha) {
+    // Campos vazios ficam marcados (aria-invalid) e o foco vai para o primeiro deles
+    const vazios = ['agencia', 'conta', 'senha'].filter((id) => !document.getElementById(id).value.trim());
+    ['agencia', 'conta', 'senha'].forEach((id) =>
+      document.getElementById(id).setAttribute('aria-invalid', String(vazios.includes(id))));
+    if (vazios.length) {
       erroEl.textContent = 'Preencha todos os campos.';
       erroEl.classList.remove('d-none');
+      document.getElementById(vazios[0]).focus();
       return;
     }
 

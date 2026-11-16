@@ -3,97 +3,93 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Boleto Seguro — Histórico</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <title>Histórico — Boleto Seguro</title>
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <script src="/js/tema.js"></script>
+  <script src="/js/preferencias.js"></script>
+  <link rel="stylesheet" href="/vendor/bootstrap-5.3.3/bootstrap.min.css">
   <link rel="stylesheet" href="/css/boleto-seguro.css">
 </head>
-<body>
+<body data-pagina="historico">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header class="app-topo" id="app-topo"></header>
+<div class="app-corpo">
+  <nav class="app-menu" id="app-menu" aria-label="Menu principal"></nav>
+  <main class="app-principal" id="conteudo" tabindex="-1">
+    <div class="app-conteudo app-conteudo--largo">
 
-<nav class="navbar-bradesco">
-  <div class="container d-flex align-items-center justify-content-between">
-    <div class="d-flex align-items-center gap-2">
-      <a href="/home.html" style="color:rgba(255,255,255,0.7); text-decoration:none; font-size:1.1rem;">&#8592;</a>
-      <span class="navbar-brand mb-0">Histórico de análises</span>
-      <span class="badge-prototipo">Protótipo acadêmico</span>
-    </div>
-    <div class="d-flex align-items-center gap-3">
-      <span class="usuario-info d-none d-sm-inline">Olá, <b id="usuario-nome"></b></span>
-      <button class="btn-logout" id="btn-logout">Sair</button>
-    </div>
-  </div>
-</nav>
+      <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <h1 class="titulo-pagina mb-0">Seus boletos analisados</h1>
+        <a href="/pagar-boleto.html" class="btn-primario">+ Analisar novo boleto</a>
+      </div>
 
-<div class="container py-4" style="max-width:720px;">
-
-  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-    <h5 class="mb-0 fw-bold">Seus boletos analisados</h5>
-    <a href="/pagar-boleto.html" class="btn-bradesco-primary text-decoration-none px-3 py-2 d-inline-block" style="font-size:0.88rem;">
-      + Analisar novo boleto
-    </a>
-  </div>
-
-  <!-- Filtros -->
-  <div class="card-bradesco mb-3">
-    <div class="card-body py-2 px-3">
-      <div class="row g-2 align-items-center">
-        <div class="col-12 col-sm-3">
-          <label class="form-label small mb-1">Situação:</label>
-          <select id="filtro-pago" class="form-select form-select-sm" onchange="filtrar()">
-            <option value="">Todos</option>
-            <option value="PAGO">Pagos</option>
-            <option value="NAO_PAGO">Não pagos</option>
-          </select>
+      <!-- Filtros -->
+      <section class="cartao mb-3" aria-label="Filtros do histórico">
+        <div class="cartao__corpo py-3">
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-sm-3">
+              <label for="filtro-pago" class="form-label small mb-1">Situação</label>
+              <select id="filtro-pago" class="form-select campo" onchange="filtrar()">
+                <option value="">Todos</option>
+                <option value="PAGO">Pagos</option>
+                <option value="NAO_PAGO">Não pagos</option>
+              </select>
+            </div>
+            <div class="col-12 col-sm-3">
+              <label for="filtro-risco" class="form-label small mb-1">Risco</label>
+              <select id="filtro-risco" class="form-select campo" onchange="filtrar()">
+                <option value="">Todos</option>
+                <option value="BAIXO">Baixo</option>
+                <option value="MEDIO">Médio</option>
+                <option value="ALTO">Alto</option>
+              </select>
+            </div>
+            <div class="col-12 col-sm-6">
+              <label for="filtro-busca" class="form-label small mb-1">Buscar</label>
+              <input type="search" id="filtro-busca" class="form-control campo"
+                placeholder="Linha digitável ou beneficiário" oninput="filtrar()">
+            </div>
+          </div>
         </div>
-        <div class="col-12 col-sm-3">
-          <label class="form-label small mb-1">Risco:</label>
-          <select id="filtro-risco" class="form-select form-select-sm" onchange="filtrar()">
-            <option value="">Todos</option>
-            <option value="BAIXO">Baixo</option>
-            <option value="MEDIO">Médio</option>
-            <option value="ALTO">Alto</option>
-          </select>
-        </div>
-        <div class="col-12 col-sm-6">
-          <label class="form-label small mb-1">Buscar:</label>
-          <input type="text" id="filtro-busca" class="form-control form-control-sm"
-            placeholder="Linha digitável ou beneficiário" oninput="filtrar()">
+      </section>
+
+      <!-- Loading -->
+      <div id="loading-hist" class="text-center py-4" role="status">
+        <div class="loading-spinner mx-auto" aria-hidden="true"></div>
+        <div class="mt-2 text-muted small">Carregando histórico...</div>
+      </div>
+
+      <!-- Lista vazia -->
+      <div id="sem-historico" class="cartao d-none">
+        <div class="cartao__corpo text-center py-4">
+          <div class="mb-2" style="font-size:2rem;" aria-hidden="true">📋</div>
+          <div class="fw-semibold">Nenhum boleto analisado ainda</div>
+          <div class="small text-muted mt-1">Seus boletos analisados aparecerão aqui</div>
+          <a href="/pagar-boleto.html" class="btn-primario mt-3">Analisar meu primeiro boleto</a>
         </div>
       </div>
+
+      <!-- Quantidade de resultados, anunciada a leitores de tela ao filtrar -->
+      <p id="contagem-historico" class="visually-hidden" aria-live="polite"></p>
+
+      <!-- Lista de boletos -->
+      <ul id="lista-historico" class="list-unstyled mb-0 lista-historico"></ul>
+
     </div>
-  </div>
-
-  <!-- Loading -->
-  <div id="loading-hist" class="text-center py-4">
-    <div class="loading-spinner mx-auto"></div>
-    <div class="mt-2 text-muted small">Carregando histórico...</div>
-  </div>
-
-  <!-- Lista vazia -->
-  <div id="sem-historico" class="card-bradesco d-none">
-    <div class="card-body text-center py-4">
-      <div class="text-muted mb-2" style="font-size:2rem;">📋</div>
-      <div class="fw-semibold">Nenhum boleto analisado ainda</div>
-      <div class="small text-muted mt-1">Seus boletos analisados aparecerão aqui</div>
-      <a href="/pagar-boleto.html" class="btn-bradesco-primary mt-3 d-inline-block text-decoration-none px-4 py-2" style="font-size:0.88rem;">
-        Analisar meu primeiro boleto
-      </a>
-    </div>
-  </div>
-
-  <!-- Lista de boletos -->
-  <div id="lista-historico"></div>
-
+  </main>
 </div>
 
 <script src="/js/api.js"></script>
+<script src="/js/denuncia.js"></script>
+<script src="/js/leitura-voz.js"></script>
+<script src="/js/layout.js"></script>
 <script>
   if (!API.requireAuth()) {}
 
   let todosItens = [];
 
-  const niveisLabel = { BAIXO: 'Baixo', MEDIO: 'Médio', ALTO: 'Alto' };
-  const niveisCor = { BAIXO: '#198754', MEDIO: '#fd7e14', ALTO: '#dc3545' };
-  const niveisBg = { BAIXO: '#d1fae5', MEDIO: '#fff3cd', ALTO: '#fee2e2' };
+  const niveisLabel = { BAIXO: 'Risco baixo', MEDIO: 'Risco médio', ALTO: 'Risco alto' };
+  const niveisSelo = { BAIXO: 'selo-baixo', MEDIO: 'selo-medio', ALTO: 'selo-alto' };
   const tiposLabel = { MANUAL: 'Manual', IMAGEM: 'Imagem', PDF: 'PDF' };
 
   async function carregarHistorico() {
@@ -129,72 +125,77 @@
   function renderizar(itens) {
     const lista = document.getElementById('lista-historico');
     lista.innerHTML = '';
+    document.getElementById('contagem-historico').textContent =
+      itens.length === 1 ? '1 boleto encontrado.' : `${itens.length} boletos encontrados.`;
 
     if (!itens.length) {
-      lista.innerHTML = '<div class="text-center text-muted py-3 small">Nenhum resultado para os filtros selecionados.</div>';
+      lista.innerHTML = '<li class="text-center text-muted py-3 small">Nenhum resultado para os filtros selecionados.</li>';
       return;
     }
 
+    const e = Html.escapar;
     itens.forEach(item => {
       const data = new Date(item.dataSubmissao).toLocaleDateString('pt-BR', {
         day: '2-digit', month: '2-digit', year: 'numeric',
         hour: '2-digit', minute: '2-digit'
       });
 
-      const riscoCor = niveisCor[item.nivelRisco] || '#666';
-      const riscoBg = niveisBg[item.nivelRisco] || '#f5f5f5';
+      const riscoSelo = niveisSelo[item.nivelRisco] || 'selo-neutro';
       const riscoLabel = niveisLabel[item.nivelRisco] || item.nivelRisco;
       const tipoLabel = tiposLabel[item.tipoEntrada] || item.tipoEntrada;
 
       // Pago com risco alto fica em vermelho: o usuário ignorou o alerta
       const situacao = !item.pago
-        ? { texto: 'Não pago', cor: '#6c757d', bg: '#e9ecef' }
+        ? { texto: 'Não pago', selo: 'selo-neutro' }
         : item.nivelRisco === 'ALTO'
-          ? { texto: '✓ Pago apesar do risco alto', cor: '#dc3545', bg: '#fee2e2' }
-          : { texto: '✓ Pago', cor: '#198754', bg: '#d1fae5' };
+          ? { texto: '✓ Pago apesar do risco alto', selo: 'selo-alto' }
+          : { texto: '✓ Pago', selo: 'selo-baixo' };
 
-      const div = document.createElement('div');
-      div.className = 'historico-item';
-      div.innerHTML = `
+      const li = document.createElement('li');
+      li.className = 'historico-item';
+      li.innerHTML = `
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
           <div class="d-flex align-items-center gap-2 flex-wrap">
-            <span style="background:${riscoBg};color:${riscoCor};border-radius:20px;padding:3px 12px;font-size:0.78rem;font-weight:700;">
-              ${riscoLabel}
-            </span>
-            <span style="font-size:1.3rem;font-weight:800;color:${riscoCor};">${item.score}<span style="font-size:0.7rem;font-weight:400;color:#999;">/100</span></span>
-            <span class="badge-entrada badge-${(item.tipoEntrada || 'manual').toLowerCase()}">${tipoLabel}</span>
-            <span style="background:${situacao.bg};color:${situacao.cor};border-radius:20px;padding:3px 12px;font-size:0.78rem;font-weight:700;">
-              ${situacao.texto}
-            </span>
+            <span class="selo ${riscoSelo}">${e(riscoLabel)}</span>
+            <span class="historico-score ${'score-' + (item.nivelRisco || '').toLowerCase()}">${e(item.score)}<small>/100</small></span>
+            <span class="selo selo-entrada">${e(tipoLabel)}</span>
+            <span class="selo ${situacao.selo}">${situacao.texto}</span>
+            ${item.denunciado ? '<span class="selo selo-alto"><span aria-hidden="true">⚑ </span>Denunciado por você</span>' : ''}
           </div>
-          <div class="text-muted" style="font-size:0.75rem;">${data}</div>
+          <div class="text-muted small">${e(data)}</div>
         </div>
-        <div class="historico-linha mb-2">${item.linhaDigitavel || '—'}</div>
-        <div class="row g-1" style="font-size:0.82rem;">
+        <div class="historico-linha mb-2">${e(item.linhaDigitavel || '—')}</div>
+        <div class="row g-1 small">
           <div class="col-auto text-muted">Beneficiário:</div>
-          <div class="col fw-semibold">${item.nomeBeneficiario || 'Não informado'}</div>
+          <div class="col fw-semibold">${e(item.nomeBeneficiario || 'Não informado')}</div>
           <div class="w-100"></div>
           <div class="col-auto text-muted">Valor:</div>
-          <div class="col">${item.valor || '—'}</div>
+          <div class="col">${e(item.valor || '—')}</div>
           <div class="col-auto text-muted ms-2">Vencimento:</div>
-          <div class="col">${item.vencimento || '—'}</div>
-          ${item.origem ? `<div class="w-100"></div><div class="col-auto text-muted">Origem:</div><div class="col">${item.origem.toLowerCase()}</div>` : ''}
+          <div class="col">${e(item.vencimento || '—')}</div>
+          ${item.origem ? `<div class="w-100"></div><div class="col-auto text-muted">Origem:</div><div class="col">${e(item.origem.toLowerCase())}</div>` : ''}
         </div>
       `;
       // Explicação salva na análise (análises feitas antes desta versão não têm)
       if (item.explicacao) {
         const detalhes = document.createElement('details');
-        detalhes.className = 'mt-2';
-        detalhes.style.fontSize = '0.82rem';
-        detalhes.innerHTML = '<summary class="text-bradesco fw-semibold" style="cursor:pointer;">Ver explicação</summary>';
+        detalhes.className = 'mt-2 small';
+        detalhes.innerHTML = `<summary>Ver explicação${item.explicacaoGeradaPorIa ? ' (reescrita por IA)' : ''}</summary>`;
         const texto = document.createElement('p');
         texto.className = 'mb-0 mt-1';
         texto.style.whiteSpace = 'pre-line';
         texto.textContent = item.explicacao;
         detalhes.appendChild(texto);
-        div.appendChild(detalhes);
+        li.appendChild(detalhes);
       }
-      lista.appendChild(div);
+      // Quem descobre o golpe depois (ex.: já pagou) também pode denunciar daqui
+      if (!item.denunciado) {
+        const area = document.createElement('div');
+        area.className = 'mt-2';
+        li.appendChild(area);
+        Denuncia.montar(area, item.boletoId, { rotulo: 'Denunciar', aoConcluir: () => { item.denunciado = true; } });
+      }
+      lista.appendChild(li);
     });
   }
 

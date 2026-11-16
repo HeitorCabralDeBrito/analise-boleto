@@ -3,152 +3,167 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Boleto Seguro — Resultado da Análise</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <title>Resultado da análise — Boleto Seguro</title>
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <script src="/js/tema.js"></script>
+  <script src="/js/preferencias.js"></script>
+  <link rel="stylesheet" href="/vendor/bootstrap-5.3.3/bootstrap.min.css">
   <link rel="stylesheet" href="/css/boleto-seguro.css">
 </head>
-<body>
+<body data-pagina="pagar">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header class="app-topo" id="app-topo"></header>
+<div class="app-corpo">
+  <nav class="app-menu" id="app-menu" aria-label="Menu principal"></nav>
+  <main class="app-principal" id="conteudo" tabindex="-1">
+    <div class="app-conteudo">
 
-<nav class="navbar-bradesco">
-  <div class="container d-flex align-items-center justify-content-between">
-    <div class="d-flex align-items-center gap-2">
-      <span class="navbar-brand mb-0">Resultado da Análise</span>
-      <span class="badge-prototipo">Protótipo acadêmico</span>
-    </div>
-    <div class="d-flex align-items-center gap-3">
-      <span class="usuario-info d-none d-sm-inline">Olá, <b id="usuario-nome"></b></span>
-      <button class="btn-logout" id="btn-logout">Sair</button>
-    </div>
-  </div>
-</nav>
+      <h1 class="titulo-pagina">Resultado da análise</h1>
+      <p class="subtitulo-pagina">Confira o nível de risco antes de decidir se vai pagar.</p>
 
-<div class="container py-4" style="max-width:680px;">
+      <ol class="stepper" aria-label="Etapas do pagamento">
+        <li class="step done"><span class="step-circle" aria-hidden="true">✓</span><span class="step-label">Importar<span class="visually-hidden"> (concluída)</span></span></li>
+        <li class="step done"><span class="step-circle" aria-hidden="true">✓</span><span class="step-label">Conferir<span class="visually-hidden"> (concluída)</span></span></li>
+        <li class="step active" aria-current="step"><span class="step-circle" aria-hidden="true">3</span><span class="step-label">Resultado</span></li>
+        <li class="step"><span class="step-circle" aria-hidden="true">4</span><span class="step-label">Confirmar</span></li>
+      </ol>
 
-  <!-- Stepper -->
-  <div class="stepper">
-    <div class="step done" id="step-1">
-      <div class="step-circle">✓</div>
-      <div class="step-label">Dados</div>
-    </div>
-    <div class="step-line"></div>
-    <div class="step done" id="step-2">
-      <div class="step-circle">✓</div>
-      <div class="step-label">Análise</div>
-    </div>
-    <div class="step-line"></div>
-    <div class="step active" id="step-3">
-      <div class="step-circle">3</div>
-      <div class="step-label">Resultado</div>
-    </div>
-    <div class="step-line"></div>
-    <div class="step" id="step-4">
-      <div class="step-circle">4</div>
-      <div class="step-label">Confirmar</div>
-    </div>
-  </div>
-
-  <!-- Score principal -->
-  <div class="card-bradesco" id="card-score">
-    <div class="card-body">
-      <div class="score-container" id="score-container">
-        <div class="score-gauge" id="score-gauge">
-          <div class="score-value" id="score-valor"></div>
-          <div class="score-label" id="score-rotulo"></div>
-          <div class="score-bar-wrap mt-3">
-            <div class="score-bar-track">
-              <div class="score-bar-pointer" id="score-pointer"></div>
+      <!-- Score principal -->
+      <section class="cartao" id="card-score" aria-label="Nível de risco">
+        <div class="cartao__corpo">
+          <div class="score-container">
+            <div class="score-gauge" id="score-gauge">
+              <div class="score-value"><span id="score-valor"></span><small> /100</small></div>
+              <div class="score-label" id="score-rotulo"></div>
+              <div class="score-bar-wrap mt-3" aria-hidden="true">
+                <div class="score-bar-track">
+                  <div class="score-bar-pointer" id="score-pointer"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-1 score-escala">
+                  <span>0 BAIXO</span><span>MÉDIO</span><span>ALTO 100</span>
+                </div>
+              </div>
             </div>
-            <div class="d-flex justify-content-between mt-1" style="font-size:0.7rem; color:var(--bradesco-muted);">
-              <span>0 BAIXO</span><span>MÉDIO</span><span>ALTO 100</span>
-            </div>
+            <div id="ouvir-resultado" class="mt-3"></div>
           </div>
         </div>
+      </section>
+
+      <!-- Explicação do risco em linguagem simples -->
+      <section class="cartao d-none" id="card-ia" aria-labelledby="titulo-explicacao">
+        <h2 class="cartao__cabecalho d-flex align-items-center gap-2 flex-wrap" id="titulo-explicacao">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="18" height="18" aria-hidden="true" focusable="false">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+          </svg>
+          O que isso significa
+          <span class="selo selo-neutro ms-auto fw-normal" id="origem-explicacao"></span>
+        </h2>
+        <div class="cartao__corpo">
+          <p class="mb-0" id="explicacao-ia" style="white-space:pre-line;"></p>
+          <p class="small text-muted mt-2 mb-0 d-none" id="ia-status" role="status"></p>
+          <details class="small mt-2 d-none" id="ia-original">
+            <summary>Ver o texto original (gerado pelas regras)</summary>
+            <p class="mt-1 mb-0" style="white-space:pre-line;" id="ia-original-texto"></p>
+          </details>
+        </div>
+      </section>
+
+      <!-- Dados do boleto -->
+      <section class="cartao" aria-labelledby="titulo-dados">
+        <h2 class="cartao__cabecalho" id="titulo-dados">Dados do boleto</h2>
+        <div class="cartao__corpo">
+          <dl class="row g-2 mb-0">
+            <div class="col-12">
+              <dt class="fw-normal text-muted">Linha digitável:</dt>
+              <dd class="historico-linha mt-1 mb-0" id="dados-linha"></dd>
+            </div>
+            <div class="col-6">
+              <dt class="fw-normal text-muted">Valor no código de barras:</dt>
+              <dd class="fw-semibold mb-0" id="dados-valor"></dd>
+            </div>
+            <div class="col-6">
+              <dt class="fw-normal text-muted">Vencimento no código de barras:</dt>
+              <dd class="fw-semibold mb-0" id="dados-vencimento"></dd>
+            </div>
+            <div class="col-12" id="dados-beneficiario-wrap">
+              <dt class="fw-normal text-muted">Beneficiário informado:</dt>
+              <dd class="fw-semibold mb-0" id="dados-beneficiario"></dd>
+            </div>
+            <div class="col-12 d-none" id="dados-instituicao-wrap">
+              <dt class="fw-normal text-muted">Instituição indicada no código:</dt>
+              <dd class="mb-0"><span class="fw-semibold" id="dados-instituicao"></span>
+                <span class="d-block small text-muted">É quem registrou o boleto, não necessariamente o banco de quem recebe.</span></dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- Consulta pública do CNPJ (Receita Federal via BrasilAPI) -->
+      <section class="cartao d-none" id="card-cnpj" aria-labelledby="titulo-cnpj">
+        <h2 class="cartao__cabecalho d-flex align-items-center gap-2 flex-wrap" id="titulo-cnpj">
+          Consulta pública do CNPJ
+          <span class="selo ms-auto fw-normal" id="cnpj-estado"></span>
+        </h2>
+        <div class="cartao__corpo">
+          <dl class="row g-2 mb-2" id="cnpj-dados"></dl>
+          <p class="small text-muted mb-0" id="cnpj-aviso">
+            Dados públicos da Receita Federal. Mostram se a empresa existe e está ativa, mas <b>não comprovam
+            que este boleto é dela</b> nem quem vai receber o pagamento: na tela do banco, confira o nome do recebedor.
+          </p>
+        </div>
+      </section>
+
+      <!-- Alertas -->
+      <section id="secao-alertas" class="cartao d-none" aria-labelledby="titulo-alertas">
+        <h2 class="cartao__cabecalho titulo-alerta" id="titulo-alertas"><span aria-hidden="true">⚠ </span>Alertas identificados</h2>
+        <ul class="cartao__corpo list-unstyled mb-0" id="lista-alertas"></ul>
+      </section>
+
+      <!-- Verificações detalhadas -->
+      <section class="cartao" aria-labelledby="titulo-verificacoes">
+        <h2 class="cartao__cabecalho" id="titulo-verificacoes">Verificações realizadas</h2>
+        <ul class="list-unstyled mb-0 px-3" id="lista-verificacoes"></ul>
+      </section>
+
+      <!-- Denunciar boleto -->
+      <section class="cartao" aria-labelledby="titulo-denuncia">
+        <h2 class="cartao__cabecalho" id="titulo-denuncia">Este boleto parece golpe?</h2>
+        <div class="cartao__corpo">
+          <p class="mb-3">Se você não reconhece a cobrança ou descobriu que é golpe, denuncie. Quem analisar um boleto com o
+            mesmo CPF/CNPJ de beneficiário vai saber que houve denúncias — sem saber quem denunciou.</p>
+          <div id="area-denuncia"></div>
+        </div>
+      </section>
+
+      <!-- Aviso risco ALTO -->
+      <div class="d-none" id="aviso-alto">
+        <div class="alerta-item critico">
+          <b>Risco ALTO detectado.</b> Recomendamos não prosseguir com o pagamento.
+          Entre em contato diretamente com o beneficiário por canal oficial para confirmar a cobrança.
+          Se prosseguir, faça-o com consciência total do risco identificado.
+        </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Explicação do risco em linguagem simples -->
-  <div class="card-bradesco d-none" id="card-ia">
-    <div class="card-header d-flex align-items-center gap-2">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-      </svg>
-      O que isso significa
-      <span class="badge bg-secondary ms-auto" style="font-size:0.65rem; font-weight:400;" id="origem-explicacao"></span>
-    </div>
-    <div class="card-body">
-      <p class="mb-0 small" id="explicacao-ia" style="white-space:pre-line;"></p>
-    </div>
-  </div>
-
-  <!-- Dados do boleto -->
-  <div class="card-bradesco">
-    <div class="card-header">Dados do boleto</div>
-    <div class="card-body">
-      <div class="row g-2" style="font-size:0.88rem;">
-        <div class="col-12">
-          <span class="text-muted">Linha digitável:</span>
-          <div class="historico-linha mt-1" id="dados-linha"></div>
-        </div>
-        <div class="col-6">
-          <span class="text-muted">Valor codificado:</span>
-          <div class="fw-semibold" id="dados-valor"></div>
-        </div>
-        <div class="col-6">
-          <span class="text-muted">Vencimento codificado:</span>
-          <div class="fw-semibold" id="dados-vencimento"></div>
-        </div>
-        <div class="col-12" id="dados-beneficiario-wrap">
-          <span class="text-muted">Beneficiário declarado:</span>
-          <div class="fw-semibold" id="dados-beneficiario"></div>
-        </div>
+      <!-- Ações -->
+      <div class="d-flex gap-2 mt-3 flex-wrap">
+        <a href="/pagar-boleto.html" class="btn-contorno flex-fill">Analisar outro</a>
+        <button type="button" class="btn-primario flex-fill" id="btn-prosseguir" onclick="prosseguir()">
+          Prosseguir mesmo assim
+        </button>
+        <button type="button" class="btn-sucesso flex-fill d-none" id="btn-confirmar" onclick="prosseguir()">
+          Confirmar pagamento
+        </button>
       </div>
+      <p class="text-center mt-2 small text-muted">A confirmação é uma simulação — nenhum pagamento real será realizado</p>
+
     </div>
-  </div>
-
-  <!-- Alertas -->
-  <div id="secao-alertas" class="d-none">
-    <div class="card-bradesco">
-      <div class="card-header text-danger">⚠ Alertas identificados</div>
-      <div class="card-body" id="lista-alertas"></div>
-    </div>
-  </div>
-
-  <!-- Verificações detalhadas -->
-  <div class="card-bradesco">
-    <div class="card-header">Verificações realizadas</div>
-    <div class="card-body p-0 px-3" id="lista-verificacoes"></div>
-  </div>
-
-
-  <!-- Aviso risco ALTO -->
-  <div class="d-none" id="aviso-alto">
-    <div class="alerta-item critico">
-      <b>Risco ALTO detectado.</b> Recomendamos não prosseguir com o pagamento.
-      Entre em contato diretamente com o beneficiário por canal oficial para confirmar a cobrança.
-      Se prosseguir, faça-o com consciência total do risco identificado.
-    </div>
-  </div>
-
-  <!-- Ações -->
-  <div class="d-flex gap-2 mt-3 flex-wrap">
-    <a href="/pagar-boleto.html" class="btn-bradesco-outline text-center text-decoration-none py-2 flex-fill">
-      Analisar outro
-    </a>
-    <button class="btn-bradesco-primary flex-fill" id="btn-prosseguir" onclick="prosseguir()">
-      Prosseguir mesmo assim
-    </button>
-    <button class="btn-bradesco-success flex-fill d-none" id="btn-confirmar" onclick="prosseguir()">
-      Confirmar pagamento
-    </button>
-  </div>
-  <div class="text-center mt-2">
-    <small class="text-muted">A confirmação é uma simulação — nenhum pagamento real será realizado</small>
-  </div>
-
+  </main>
 </div>
 
 <script src="/js/api.js"></script>
+<script src="/js/denuncia.js"></script>
+<script src="/js/leitura-voz.js"></script>
+<script src="/js/layout.js"></script>
 <script>
   if (!API.requireAuth()) {}
 
@@ -159,9 +174,7 @@
   const nivel = analise.nivelRisco; // BAIXO, MEDIO, ALTO
 
   // Score visual
-  const scoreContainer = document.getElementById('score-container');
-  const scoreGauge = document.getElementById('score-gauge');
-  scoreGauge.classList.add('score-' + nivel.toLowerCase().replace('é','e').replace('edio','edio'));
+  document.getElementById('score-gauge').classList.add('score-' + nivel.toLowerCase());
   document.getElementById('score-valor').textContent = score;
   const rotuloTexto = { BAIXO: 'Risco Baixo', MEDIO: 'Risco Médio', ALTO: 'Risco Alto' };
   document.getElementById('score-rotulo').textContent = rotuloTexto[nivel] || nivel;
@@ -179,56 +192,158 @@
     document.getElementById('dados-beneficiario-wrap').classList.add('d-none');
   }
 
+  // Instituição indicada pelo código
+  if (analise.instituicao) {
+    document.getElementById('dados-instituicao').textContent = analise.instituicao.nome
+      ? `${analise.instituicao.nome} (${analise.instituicao.codigo})`
+      : `Código ${analise.instituicao.codigo} (não está na tabela local)`;
+    document.getElementById('dados-instituicao-wrap').classList.remove('d-none');
+  }
+
+  // Consulta pública do CNPJ
+  const ESTADOS_CNPJ = {
+    ENCONTRADO: ['Consultado', 'selo-baixo'],
+    NAO_ENCONTRADO: ['Não encontrado na base', 'selo-alto'],
+    DESATUALIZADO: ['Desatualizado', 'selo-medio'],
+    INDISPONIVEL: ['Consulta indisponível', 'selo-neutro'],
+  };
+  const SEMELHANCA = {
+    CONFERE: 'confere com o cadastro',
+    PARECIDO: 'é parecido com o cadastro: confira',
+    DIFERENTE: 'é diferente do cadastro: revise',
+  };
+  const c = analise.consultaCnpj;
+  if (c) {
+    const [rotulo, selo] = ESTADOS_CNPJ[c.estado] || [c.estado, 'selo-neutro'];
+    const estadoEl = document.getElementById('cnpj-estado');
+    estadoEl.textContent = c.estado === 'DESATUALIZADO' && c.consultadoEm ? `${rotulo} (de ${c.consultadoEm})` : rotulo;
+    estadoEl.classList.add(selo);
+    const linhas = [['CNPJ', c.cnpj]];
+    if (c.estado === 'INDISPONIVEL') {
+      linhas.push(['Situação', 'A consulta não respondeu agora; a análise seguiu sem ela (isso não indica fraude).']);
+    } else if (c.estado === 'NAO_ENCONTRADO') {
+      linhas.push(['Situação', 'Os dígitos do CNPJ são válidos, mas ele não foi encontrado na base pública consultada.']);
+    } else {
+      linhas.push(['Razão social', c.razaoSocial || 'não informada']);
+      if (c.nomeFantasia) linhas.push(['Nome fantasia', c.nomeFantasia]);
+      linhas.push(['Situação cadastral', (c.situacaoCadastral || 'não informada') + (c.dataSituacaoCadastral ? ` desde ${c.dataSituacaoCadastral}` : '')]);
+      if (c.semelhancaNome) linhas.push(['Nome informado', `${analise.nomeBeneficiario} — ${SEMELHANCA[c.semelhancaNome]}`]);
+    }
+    if (c.consultadoEm) linhas.push(['Consultado em', `${c.consultadoEm} · fonte: ${c.fonte}`]);
+    document.getElementById('cnpj-dados').innerHTML = linhas.map(([rot, val]) =>
+      `<div class="col-12 col-sm-6"><dt class="fw-normal text-muted small">${Html.escapar(rot)}:</dt>
+        <dd class="fw-semibold mb-0">${Html.escapar(val)}</dd></div>`).join('');
+    document.getElementById('card-cnpj').classList.remove('d-none');
+  }
+
   // Alertas
   if (analise.alertas && analise.alertas.length > 0) {
     document.getElementById('secao-alertas').classList.remove('d-none');
     const listaAlertas = document.getElementById('lista-alertas');
     analise.alertas.forEach(a => {
-      const div = document.createElement('div');
-      div.className = 'alerta-item' + (nivel === 'ALTO' ? ' critico' : '');
-      div.textContent = a;
-      listaAlertas.appendChild(div);
+      const li = document.createElement('li');
+      li.className = 'alerta-item' + (nivel === 'ALTO' ? ' critico' : '');
+      li.textContent = a;
+      listaAlertas.appendChild(li);
     });
   }
 
-  // Verificações
+  // Verificações: o estado aparece em texto, não só pela cor/ícone
   const listaVerif = document.getElementById('lista-verificacoes');
   (analise.verificacoes || []).forEach(v => {
-    const estadoClass = { 'PASSOU': 'v-passou', 'FALHOU': 'v-falhou', 'NAO_VERIFICADO': 'v-nao_verificado' };
-    const estadoLabel = { 'PASSOU': '✓', 'FALHOU': '✗', 'NAO_VERIFICADO': '—' };
-    const div = document.createElement('div');
-    div.className = 'verificacao-item';
-    div.innerHTML = `
-      <div class="verificacao-icon ${estadoClass[v.estado] || 'v-nao_verificado'}">
-        ${estadoLabel[v.estado] || '?'}
+    const estadoClass = { 'PASSOU': 'v-passou', 'FALHOU': 'v-falhou', 'ATENCAO': 'v-atencao', 'NAO_VERIFICADO': 'v-nao_verificado' };
+    const estadoIcone = { 'PASSOU': '✓', 'FALHOU': '✗', 'ATENCAO': '!', 'NAO_VERIFICADO': '—' };
+    const estadoTexto = { 'PASSOU': 'Passou', 'FALHOU': 'Falhou', 'ATENCAO': 'Atenção', 'NAO_VERIFICADO': 'Não verificado' };
+    const li = document.createElement('li');
+    li.className = 'verificacao-item';
+    li.innerHTML = `
+      <div class="verificacao-icon ${estadoClass[v.estado] || 'v-nao_verificado'}" aria-hidden="true">
+        ${estadoIcone[v.estado] || '?'}
       </div>
       <div class="flex-grow-1">
-        <div class="verificacao-nome">${v.nome}</div>
-        <div class="verificacao-desc">${v.descricao}</div>
+        <div class="verificacao-nome">${Html.escapar(v.nome)}
+          <span class="verificacao-estado text-muted">— ${estadoTexto[v.estado] || Html.escapar(v.estado)}</span></div>
+        <div class="verificacao-desc">${Html.escapar(v.descricao)}</div>
         ${v.pontosAdicionados > 0 ? `<div class="verificacao-pontos">+${v.pontosAdicionados} pts</div>` : ''}
       </div>
     `;
-    listaVerif.appendChild(div);
+    listaVerif.appendChild(li);
   });
 
-  // IA
-  if (analise.explicacao) {
+  // Explicação: aparece na hora (regras); se a IA estiver configurada, é trocada pela versão reescrita.
+  // O texto das regras continua disponível em "Ver o texto original".
+  function mostrarExplicacao() {
+    if (!analise.explicacao) return;
     document.getElementById('card-ia').classList.remove('d-none');
     document.getElementById('explicacao-ia').textContent = analise.explicacao;
     document.getElementById('origem-explicacao').textContent =
-      analise.explicacaoGeradaPorIa ? 'texto gerado por IA' : 'gerada pelas regras de análise';
+      analise.explicacaoGeradaPorIa ? 'reescrita por IA a partir das regras' : 'gerada pelas regras de análise';
+    const original = document.getElementById('ia-original');
+    if (analise.explicacaoGeradaPorIa && analise.explicacaoRegras) {
+      document.getElementById('ia-original-texto').textContent = analise.explicacaoRegras;
+      original.classList.remove('d-none');
+    }
   }
+  mostrarExplicacao();
+
+  async function pedirExplicacaoIa() {
+    if (!analise.iaDisponivel || analise.explicacaoGeradaPorIa) return;
+    const status = document.getElementById('ia-status');
+    status.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>' +
+      'Gerando uma explicação mais simples com IA…';
+    status.classList.remove('d-none');
+    const { ok, data } = await API.explicacaoIa(analise.boletoId);
+    if (ok && data.geradaPorIa) {
+      analise.explicacao = data.explicacao;
+      analise.explicacaoRegras = data.textoRegras;
+      analise.explicacaoGeradaPorIa = true;
+      sessionStorage.setItem('bs_analise', JSON.stringify(analise));
+      mostrarExplicacao();
+      status.textContent = 'Explicação atualizada (reescrita por IA).';
+    } else {
+      status.textContent = 'Mantida a explicação gerada pelas regras.';
+    }
+    setTimeout(() => status.classList.add('d-none'), 4000);
+  }
+  pedirExplicacaoIa();
+
+  // Denunciar
+  Denuncia.montar(document.getElementById('area-denuncia'), analise.boletoId, {
+    jaDenunciado: analise.denunciadoPorMim,
+    aoConcluir: () => {
+      analise.denunciadoPorMim = true;
+      sessionStorage.setItem('bs_analise', JSON.stringify(analise));
+    },
+  });
 
   // Botões de ação conforme nível de risco
   if (nivel === 'ALTO') {
     document.getElementById('aviso-alto').classList.remove('d-none');
     document.getElementById('btn-prosseguir').textContent = 'Prosseguir mesmo assim (risco alto)';
-    document.getElementById('btn-prosseguir').classList.add('btn-bradesco-danger');
-    document.getElementById('btn-prosseguir').classList.remove('btn-bradesco-primary');
+    document.getElementById('btn-prosseguir').classList.add('btn-perigo');
+    document.getElementById('btn-prosseguir').classList.remove('btn-primario');
   } else {
     document.getElementById('btn-prosseguir').classList.add('d-none');
     document.getElementById('btn-confirmar').classList.remove('d-none');
   }
+
+  // Leitura em voz alta sob demanda: nota, explicação, alertas e cada verificação com o seu estado.
+  // Usada pelo botão desta tela e pelo "Ouvir esta página" do cabeçalho.
+  function textoDoResultado() {
+    const estados = { PASSOU: 'passou', FALHOU: 'falhou', ATENCAO: 'atenção', NAO_VERIFICADO: 'não verificado' };
+    const partes = [`Resultado da análise: ${rotuloTexto[nivel] || nivel}, nota ${score} de 100.`];
+    if (analise.explicacao) partes.push('O que isso significa. ' + analise.explicacao);
+    if (c && c.razaoSocial) partes.push(`Consulta pública do CNPJ: ${c.razaoSocial}, situação ${c.situacaoCadastral || 'não informada'}.`);
+    if (analise.alertas && analise.alertas.length) partes.push('Alertas. ' + analise.alertas.join(' '));
+    (analise.verificacoes || []).forEach(v => partes.push(`${v.nome}: ${estados[v.estado] || v.estado}. ${v.descricao}`));
+    if (nivel === 'ALTO') partes.push('Recomendamos não prosseguir com o pagamento.');
+    partes.push(nivel === 'ALTO'
+      ? 'Botões: Analisar outro, ou Prosseguir mesmo assim.'
+      : 'Botões: Analisar outro, ou Confirmar pagamento.');
+    return partes.join(' ');
+  }
+  LeituraVoz.leitorDaPagina = textoDoResultado;
+  LeituraVoz.criarBotao(document.getElementById('ouvir-resultado'), textoDoResultado, 'Ouvir resultado');
 
   async function prosseguir() {
     sessionStorage.setItem('bs_analise', JSON.stringify(analise));

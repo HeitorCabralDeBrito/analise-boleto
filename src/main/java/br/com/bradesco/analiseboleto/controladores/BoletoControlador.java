@@ -2,8 +2,10 @@ package br.com.bradesco.analiseboleto.controladores;
 
 import br.com.bradesco.analiseboleto.dtos.AnaliseResponseDTO;
 import br.com.bradesco.analiseboleto.dtos.BoletoSubmissaoDTO;
+import br.com.bradesco.analiseboleto.dtos.DenunciaRequestDTO;
 import br.com.bradesco.analiseboleto.seguranca.UsuarioPrincipal;
 import br.com.bradesco.analiseboleto.servicos.BoletoServico;
+import br.com.bradesco.analiseboleto.servicos.DenunciaServico;
 import br.com.bradesco.analiseboleto.servicos.LeitorBoletoServico;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +22,13 @@ public class BoletoControlador {
 
     private final BoletoServico boletoServico;
     private final LeitorBoletoServico leitorBoletoServico;
+    private final DenunciaServico denunciaServico;
 
-    public BoletoControlador(BoletoServico boletoServico, LeitorBoletoServico leitorBoletoServico) {
+    public BoletoControlador(BoletoServico boletoServico, LeitorBoletoServico leitorBoletoServico,
+                             DenunciaServico denunciaServico) {
         this.boletoServico = boletoServico;
         this.leitorBoletoServico = leitorBoletoServico;
+        this.denunciaServico = denunciaServico;
     }
 
     @PostMapping("/analisar")
@@ -48,5 +53,22 @@ public class BoletoControlador {
             "mensagem", "Confirmação simulada registrada. ESTE NÃO É UM PAGAMENTO REAL.",
             "aviso", "Protótipo acadêmico — nenhuma transação financeira foi realizada."
         ));
+    }
+
+    /** Denuncia o beneficiário (CPF/CNPJ) de um boleto do próprio usuário. Repetir não cria outra denúncia. */
+    @PostMapping("/{boletoId}/denunciar")
+    public ResponseEntity<DenunciaServico.ResultadoDenuncia> denunciar(
+            @PathVariable UUID boletoId,
+            @Valid @RequestBody DenunciaRequestDTO dto,
+            @AuthenticationPrincipal UsuarioPrincipal principal) {
+        return ResponseEntity.ok(denunciaServico.denunciar(boletoId, dto, principal));
+    }
+
+    /** Explicação reescrita pela IA (ou o texto das regras, se a IA não estiver disponível). */
+    @PostMapping("/{boletoId}/explicacao-ia")
+    public ResponseEntity<BoletoServico.ExplicacaoIa> explicacaoIa(
+            @PathVariable UUID boletoId,
+            @AuthenticationPrincipal UsuarioPrincipal principal) {
+        return ResponseEntity.ok(boletoServico.explicacaoIa(boletoId, principal));
     }
 }

@@ -102,4 +102,20 @@ class BoletoValidadorTest {
         String normalizada = validador.normalizar(formatada);
         assertEquals(47, normalizada.length());
     }
+
+    @Test
+    @DisplayName("Conta de consumo (48 dígitos começando com 8) recebe mensagem clara de tipo não suportado")
+    void arrecadacaoNaoSuportada() {
+        var r = validador.validar("83620000000 6 78900000010 0 12345678901 2 34567890123 4");
+        assertTrue(r.bloqueioTecnico());
+        assertTrue(r.motivoBloqueio().contains("arrecadação"), r.motivoBloqueio());
+    }
+
+    @Test
+    @DisplayName("Conta de consumo truncada em 47 dígitos: a mensagem de dígito errado lembra do tipo não suportado")
+    void arrecadacaoTruncada() {
+        var r = validador.validar("83620000000678900000010012345678901234567890123");
+        assertTrue(r.bloqueioTecnico());
+        assertTrue(r.motivoBloqueio().contains("boletos bancários de cobrança"), r.motivoBloqueio());
+    }
 }

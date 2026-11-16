@@ -1,0 +1,55 @@
+# Render Blueprint: cria o site (Docker) e o banco PostgreSQL de uma vez.
+# No Render: New > Blueprint > escolher este repositório. Passo a passo em DEPLOY_RENDER.md.
+# Nada secreto aqui: a senha do banco vem do próprio Render, a chave do login é gerada por ele
+# e a chave da OpenAI é digitada no painel (sync: false).
+
+services:
+  - type: web
+    name: boleto-seguro
+    runtime: docker
+    plan: free
+    region: virginia
+    healthCheckPath: /api/config/tema
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: boleto-seguro-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: boleto-seguro-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: boleto-seguro-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: boleto-seguro-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: boleto-seguro-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+      # Plano gratuito: 512 MB e pouca CPU. Uma leitura de boleto por vez e mais tempo para o OCR.
+      - key: BOLETO_SEGURO_LEITURA_MAX_SIMULTANEAS
+        value: "1"
+      - key: BOLETO_SEGURO_LEITURA_PRAZO_SEGUNDOS
+        value: "120"
+      - key: BOLETO_SEGURO_TESSERACT_TIMEOUT_SEGUNDOS
+        value: "45"
+      - key: DB_POOL
+        value: "3"
+
+databases:
+  - name: boleto-seguro-db
+    plan: free
+    region: virginia
+    databaseName: boleto_seguro
+    user: boleto_seguro
+    # Só o próprio site (rede interna do Render) acessa o banco
+    ipAllowList: []

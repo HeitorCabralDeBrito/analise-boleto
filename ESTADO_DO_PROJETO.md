@@ -1,9 +1,9 @@
-# Boleto Seguro — Estado atual do projeto (para gerar a documentação final)
+# Boleto Seguro — Estado atual do projeto (Checkpoint 3)
 
-> **Instrução para quem for ler (GPT):** este documento descreve o que está **realmente implementado** no protótipo
-> em 27/10/2026, após o Checkpoint 2. Use-o junto com o briefing original para produzir a documentação final e completa.
-> Onde houver diferença entre o briefing e este documento, **este documento reflete o código atual**.
-> As seções "Limitações" e "Próximos passos" devem ser mantidas: são decisões conscientes, não falhas esquecidas.
+> **Instrução para quem for ler (pessoa ou IA que vai gerar a documentação final):** este documento descreve o que está
+> **realmente implementado** em 13/11/2026, ao fim do Checkpoint 3 (branch `checkpoint3`). Onde houver diferença entre o
+> briefing e este documento, **este documento reflete o código atual**. As seções "Limitações" e "Próximos passos" são
+> decisões conscientes e devem ser mantidas. Não apresente como pronto nada que esteja em "Próximos passos".
 
 ---
 
@@ -13,13 +13,15 @@
 |---|---|
 | Nome | Boleto Seguro |
 | Tipo | Protótipo acadêmico de alta fidelidade (atividade A3 — Ciência da Computação) |
-| Instituição | Universidade Anhembi Morumbi, em parceria com o Bradesco |
+| Instituição | Universidade Anhembi Morumbi, em atividade acadêmica com o Bradesco |
 | Equipe | Bruno Henrique e Heitor Cabral de Brito |
-| Repositório | https://github.com/HeitorCabralDeBrito/analise-boleto |
-| Objetivo | Analisar o risco de fraude de um boleto bancário **antes** de o usuário confirmar o pagamento |
+| Repositório | https://github.com/HeitorCabralDeBrito/analise-boleto (branch `checkpoint3`) |
+| Objetivo | Analisar o risco de golpe de um boleto bancário **antes** de o usuário confirmar o pagamento |
 
-**Princípio do projeto:** o protótipo não simula chamadas reais a bancos nem à CIP (Câmara Interbancária de Pagamentos).
-Todas as verificações são feitas com dados que o próprio sistema consegue conferir. O pagamento é **simulado**.
+**Princípios:** o pagamento é **simulado**; não há integração com bancos nem com a CIP. Tudo o que é verificado é verificável
+com dados disponíveis ao sistema (código de barras, documentos, base pública de CNPJ). A análise é **determinística**
+(regras); a IA só reescreve textos e lê imagens difíceis, nunca decide. Nada lido automaticamente é aceito sem conferência
+humana.
 
 ---
 
@@ -28,109 +30,109 @@ Todas as verificações são feitas com dados que o próprio sistema consegue co
 | Camada | Tecnologia |
 |---|---|
 | Backend | Java 21 LTS, Spring Boot 4.1.1 (Web MVC, Data JPA, Validation, Security) |
-| Banco de dados | PostgreSQL (porta local 5433, banco `boleto_seguro`); H2 em memória nos testes |
-| Autenticação | Spring Security + JWT sem estado (jjwt 0.12.6) |
-| Frontend | HTML + Bootstrap 5.3 + JavaScript puro, servido pelo próprio Spring Boot (`static/`) |
-| Leitura de código de barras | ZXing 3.5.3 (formato ITF, 44 dígitos) |
+| Banco | PostgreSQL; tabelas criadas por **migrações Flyway** (V1–V3); `ddl-auto=validate`. H2 nos testes |
+| Autenticação | Spring Security + JWT sem estado (jjwt 0.12.6), senha BCrypt |
+| Frontend | HTML + Bootstrap 5.3.3 (servido pelo próprio app) + JavaScript puro |
 | Leitura de PDF | Apache PDFBox 3.0.5 |
-| OCR local | Tesseract OCR (programa instalado no Windows, chamado pelo backend) |
-| IA (opcional) | API da OpenAI (modelo `gpt-4o-mini`), chamada direta via `RestClient` |
-| Testes | JUnit 5 — 43 testes (unitários e de integração com H2) |
+| Código de barras | ZXing 3.5.3 (ITF, 44 dígitos) |
+| OCR | Tesseract OCR 5 (processo local; idiomas: dígitos e português) |
+| Dados externos | BrasilAPI (CNPJ, Receita Federal), sem chave |
+| IA (opcional) | OpenAI (`gpt-4o-mini`), chamada direta via `RestClient` |
+| Testes | JUnit 5 — **104 testes**, todos passando |
+| Nuvem (preparado) | Docker + Render (`render.yaml`); ainda não publicado |
 
 ---
 
 ## 3. Fluxo do usuário
 
-1. **Login** com agência, conta e senha (usuários fictícios de demonstração).
-2. **Pagar boleto** — o usuário escolhe como informar o boleto:
-   - digitando a linha digitável, ou
-   - enviando imagem (PNG/JPG) ou PDF. No celular, pode tirar a foto na hora.
-3. Preenche **quem vai receber** (obrigatório): nome e CPF/CNPJ do beneficiário.
-4. Opcionalmente informa valor, vencimento e origem do boleto (WhatsApp, e-mail, site, impresso, outro).
-5. **Análise** — validação técnica e cálculo do risco.
-6. **Resultado** — nota de 0 a 100, nível de risco, explicação em linguagem simples, alertas e verificações detalhadas.
-7. **Confirmação simulada** do pagamento. No risco alto, o botão muda para "Confirmar mesmo assim".
-8. **Histórico** — todas as análises, com filtros por risco, por situação (pago / não pago) e por busca.
+1. **Login** com agência, conta e senha (usuários fictícios).
+2. **Início:** painel com resumo (analisados, risco alto, pagos apesar do alerta), últimas análises e dicas contra golpes.
+3. **Pagar boleto → Importar:** fotografar com a câmera, selecionar ou arrastar imagem/PDF — ou **digitar manualmente**.
+4. **Conferir:** campos editáveis (linha, beneficiário, CPF/CNPJ, valor, vencimento) com **selo de origem e confiança**;
+   dados do código de barras (instituição, valor, vencimento) em quadro à parte; origem do boleto; "o banco deste boleto é o que você esperava?" (opcional: mostra o banco pelo código e a pessoa só confirma);
+   confirmação obrigatória "Conferi os dados".
+5. **Resultado:** nota 0–100, nível, explicação em linguagem simples (regras, depois reescrita pela IA), consulta pública
+   do CNPJ, instituição, alertas, verificações detalhadas, botão **Denunciar** e "Ouvir resultado".
+6. **Confirmação simulada** (no risco alto: "Confirmar mesmo assim").
+7. **Histórico:** filtros por situação, risco e busca; selos "Pago", "Pago apesar do risco alto", "Denunciado por você";
+   denunciar a partir do histórico.
 
 ---
 
-## 4. Funcionalidades implementadas
+## 4. Funcionalidades
 
-### 4.1 Validação técnica da linha digitável (bloqueio)
-- Exige 47 dígitos e aceita a linha com ou sem pontos e espaços.
-- Confere os dígitos verificadores dos campos 1, 2 e 3 (Módulo 10) e o dígito geral do código de barras (Módulo 11).
-- Se falhar, a análise é **bloqueada** antes do motor de risco, com mensagem explicando o motivo.
-- Calcula a data de vencimento a partir do fator FEBRABAN, considerando o reinício do fator em 22/02/2025.
+### 4.1 Do Checkpoint 2 (mantidas)
+- Validação técnica da linha digitável (47 dígitos, Módulo 10 dos campos e Módulo 11 geral), com bloqueio antes da análise.
+- Fator de vencimento FEBRABAN com o reinício de 22/02/2025.
+- Validação de CPF/CNPJ (dígitos verificadores) e coerência empresa × CPF.
+- Explicação do risco gerada por regras; histórico; confirmação simulada; JWT; acesso só aos próprios boletos.
 
-### 4.2 Motor de risco determinístico
-Nota de 0 a 100, limitada a 100. Classificação: **0–30 BAIXO**, **31–70 MÉDIO**, **71–100 ALTO**.
-O risco ALTO sinaliza que o pagamento deveria ser bloqueado.
+### 4.2 Identidade visual — dois temas, um código (Etapa 1)
+- **Tema próprio "Boleto Seguro"** (padrão; azul-marinho `#0B1F3B` e azul `#1366D6`; logotipo SVG original).
+- **Tema acadêmico Bradesco** (vermelho `#CC092F`), só quando os logotipos estão na pasta local `marca-academica/`
+  (fora do Git, sem autorização de redistribuição). Seletor na tela de login.
+- Cores definidas por variáveis CSS por tema; contraste medido por teste automatizado (WCAG AA).
+- Cabeçalho e menu lateral comuns; no celular o menu vira gaveta; aviso permanente "Protótipo acadêmico".
+- Bootstrap servido pelo próprio app: as telas funcionam sem internet.
+
+### 4.3 Importação prioritária e leitura inteligente (Etapa 2)
+- Linha digitável, nesta ordem: texto do PDF → código de barras (ZXing, também girado e ampliado) → OCR dos números
+  (Tesseract) → IA (último recurso, só com chave).
+- **Campos impressos** (beneficiário, CPF/CNPJ, valor, vencimento) extraídos do texto do PDF ou por uma passada de OCR em
+  português, localizados pelos rótulos. O CPF/CNPJ só é procurado perto de "Beneficiário" (nunca o do pagador).
+- Cada campo volta com **fonte** (`TEXTO_PDF`, `CODIGO_BARRAS`, `OCR_LOCAL`, `IA`, `NAO_IDENTIFICADO`) e **confiança**
+  (alta, média, baixa). Editar um campo o marca como "Informado por você".
+- **Valor e vencimento nunca vêm da linha digitável**: são os impressos ou digitados, comparados de forma independente com
+  os gravados no código de barras.
+- Proteções do upload: tipo pela assinatura do arquivo; 10 MB; 40 megapixels (lidos do cabeçalho); 10 páginas; render de PDF
+  limitado; até 2 leituras simultâneas (as demais recebem 503); prazo total por leitura; timeout real do Tesseract;
+  temporários apagados; o arquivo não é guardado.
+- Contas de consumo (arrecadação, começam com 8) recebem mensagem clara de tipo não suportado.
+
+### 4.4 Acessibilidade (Etapa 3) — objetivo WCAG 2.2 AA, verificado (não certificado)
+- HTML semântico, rótulos ligados, `aria-invalid`, `aria-live` (inclusive resumo da leitura do boleto), foco visível,
+  "Pular para o conteúdo", navegação completa por teclado.
+- Preferências opcionais (salvas no navegador): **texto A−/A/A+** (87,5% a 150%), **alto contraste**, **Ler ao apontar**.
+- **Ouvir esta página** em todas as telas (Web Speech API, sob demanda, Esc para parar) — para baixa visão e dificuldade de
+  leitura; leitores de tela (NVDA etc.) são atendidos pelo HTML.
+- Página pública `/acessibilidade.html` com instruções e declaração.
+- Verificação: axe-core sem violações em todas as telas (dois temas, alto contraste, texto 150%); fluxo completo só por
+  teclado; 320 px sem rolagem lateral; teste preliminar com NVDA feito pela equipe sem problemas.
+
+### 4.5 Validações externas (Etapa 4)
+- **Consulta pública de CNPJ** (BrasilAPI): razão social, nome fantasia, situação cadastral e data; comparação do nome
+  informado (ignora acentos, pontuação e forma jurídica). Cache no PostgreSQL (24 h), timeout de 5 s, tratamento de
+  404/429/5xx e disjuntor (pausa após 3 falhas). Sem dados → "não verificado"; cache vencido → "desatualizado".
+  **CPF nunca é consultado.** Sempre acompanhada do aviso de que não comprova que o boleto é da empresa.
+- **Instituição pelo código** de 3 dígitos (tabela local `dados/instituicoes.csv`, 39 instituições, atualizável), descrita
+  como "quem registrou o boleto, não necessariamente o banco de quem recebe". Comparação com o banco esperado, se informado.
+- **Vencimento:** sem data no código de barras, o prazo é conferido pela data informada — muito vencida gera **Atenção**
+  sem pontos (sem evidência independente). Termos "codificado" substituídos por "gravado no código de barras".
+- **Origem de cada dado** e momento da conferência gravados no boleto (migração V2).
+
+### 4.6 Denúncias e IA (Etapa 4b)
+- **Denunciar boleto** (resultado e histórico): motivo + descrição opcional; vale para o CPF/CNPJ do beneficiário; um por
+  usuário e documento; só o dono do boleto denuncia; outros veem só a **quantidade** de pessoas. 1 denúncia = atenção sem
+  pontos; 2 ou mais pessoas = +25.
+- **Explicação reescrita pela IA:** o resultado aparece na hora (regras) e a versão da IA substitui o texto depois
+  (`POST /explicacao-ia`), salva em `justificativa_ia`; "Ver o texto original" mostra o das regras. A IA recebe só nível,
+  nota e nome/estado das verificações. Respostas que suavizam risco alto, prometem segurança ou dizem "não há problemas"
+  quando algo falhou são descartadas. Testado com a OpenAI real.
+
+### 4.7 Motor de risco (nota 0–100; baixo 0–30, médio 31–70, alto 71–100)
 
 | # | Verificação | Critério | Pontos |
 |---|---|---|---|
-| 1 | Valor | Valor informado ≠ valor gravado no código de barras | +40 |
-| 2 | Vencimento | Vencimento informado ≠ vencimento gravado no código de barras | +30 |
-| 3 | Prazo de validade | Boleto vencido há mais de 60 dias | +20 |
-| 4 | Origem | Boleto recebido pelo WhatsApp (orientação contextual, não acusação) | +15 |
-| 5 | Beneficiário | CPF/CNPJ com dígitos verificadores inválidos (documento inexistente) | +50 |
-| 5 | Beneficiário | Nome de empresa (LTDA, S.A., Banco, Condomínio…) recebendo em CPF | +30 |
-| 5 | Beneficiário | Nome incompleto ou com sequência de números | +20 |
+| 1 | Valor | Informado ≠ gravado no código de barras | +40 |
+| 2 | Vencimento | Informado ≠ gravado no código | +30 |
+| 3 | Prazo | Vencido há > 60 dias pelo código · pela data só informada | +20 · atenção 0 |
+| 4 | Origem | WhatsApp | +15 |
+| 5 | Beneficiário | CPF/CNPJ inexistente · empresa em CPF · nome incompleto | +50 · +30 · +20 |
+| 6 | Cadastro público do CNPJ | Não ativo · não encontrado · nome diferente | +30 · +20 · +20 |
+| 7 | Instituição | Diferente da esperada (se informada) | +15 |
+| 8 | Denúncias de outros usuários | 1 · 2 ou mais | atenção 0 · +25 |
 
-Cada verificação retorna um destes estados: **PASSOU**, **FALHOU** ou **NÃO VERIFICADO**. Este último aparece quando falta
-dado para comparar, por exemplo em boletos com valor em aberto, sem vencimento no código, ou quando o usuário não informou o dado.
-
-### 4.3 Validação do beneficiário (novo)
-- Nome e CPF/CNPJ do beneficiário são **obrigatórios**, tanto no frontend quanto no backend.
-- O CPF/CNPJ é validado pelos dígitos verificadores (Módulo 11 da Receita Federal), no navegador e no servidor.
-- Coerência entre o tipo de pessoa e o documento: empresa recebendo em CPF é um sinal clássico de golpe.
-- Um CPF/CNPJ com dígito errado **não impede** o envio: a análise segue e aponta o risco, deixando o caso registrado.
-- **Não confere** se o CNPJ pertence de fato à empresa informada (ver Próximos passos).
-
-### 4.4 Leitura automática do boleto (imagem/PDF)
-A leitura tenta, nesta ordem:
-1. **Texto do PDF** (PDFs digitais): procura a linha digitável impressa.
-2. **Código de barras** (ZXing): na imagem original, girada 90° e ampliada.
-3. **OCR local** (Tesseract): lê os números impressos da linha digitável. Resolve prints de celular em baixa resolução,
-   em que as barras ficam finas demais para o leitor de código de barras. Roda no próprio computador.
-4. **IA (OpenAI)**: só se as etapas anteriores falharem e houver chave configurada com créditos.
-
-Toda linha lida passa pela validação dos dígitos verificadores antes de ser aceita, então uma leitura errada é descartada.
-O usuário sempre confere e pode corrigir a linha antes da análise.
-Privacidade: a imagem só sai do servidor na etapa 4.
-
-### 4.5 Explicação do risco em linguagem simples (novo)
-- Um cartão "O que isso significa" aparece logo abaixo da nota, explicando o resultado para quem não entende de boletos.
-- O texto traz a conclusão pelo nível de risco, os motivos e o que fazer. Exemplo: "não pague; fale com a empresa por um canal
-  oficial, nunca pelos contatos que vieram junto com o boleto".
-- Inclui uma dica quando faltam dados que deixariam a análise mais completa.
-- É **gerado pelas regras do motor, sem IA**: funciona sem internet e sem créditos, e os mesmos dados sempre produzem a mesma
-  explicação. A tela indica se o texto veio das regras ou da IA.
-
-### 4.6 Formatação automática dos campos (novo)
-O usuário digita só números e o campo se formata sozinho:
-
-| Campo | Formato |
-|---|---|
-| Linha digitável | `00000.00000 00000.000000 00000.000000 0 00000000000000` |
-| CPF / CNPJ | `000.000.000-00`; a partir do 12º dígito vira `00.000.000/0000-00` |
-| Valor | Estilo app de banco: digitar `15000` mostra `150,00` |
-| Agência / Conta (login) | `0000` / `00000-0` |
-
-O cursor é mantido no lugar ao editar no meio do campo, e apagar em cima de um separador remove o dígito anterior.
-
-### 4.7 Histórico com situação de pagamento (novo)
-- Cada análise mostra o selo **Não pago**, **✓ Pago** ou **✓ Pago apesar do risco alto** (em vermelho).
-- Há filtro por situação, por nível de risco e busca por linha digitável ou beneficiário.
-
-### 4.8 Segurança e acesso
-- Login com JWT. Cada usuário só vê e confirma os próprios boletos; acessar o boleto de outro usuário retorna 403.
-- A chave da OpenAI fica em variável de ambiente (`OPENAI_API_KEY`) e nunca no repositório.
-- O `application.properties` está no `.gitignore` porque contém a senha do banco.
-
-### 4.9 Responsividade e uso no celular
-- As telas usam Bootstrap. A tela de login foi corrigida para celular.
-- O app pode ser acessado pelo celular na mesma rede Wi-Fi: `http://<IP-do-notebook>:8080`.
-  Para isso, a porta 8080 precisa estar liberada no firewall e a rede marcada como Privada.
+Estados: **Passou**, **Falhou**, **Atenção**, **Não verificado** (dado ausente ou fonte indisponível — nunca conta como fraude).
 
 ---
 
@@ -138,14 +140,17 @@ O cursor é mantido no lugar ao editar no meio do campo, e apagar em cima de um 
 
 | Método | Rota | Descrição |
 |---|---|---|
-| POST | `/api/auth/login` | Autentica (agência, conta, senha) e retorna o JWT |
-| POST | `/api/boletos/analisar` | Valida e analisa um boleto; retorna nota, nível, verificações, alertas e explicação |
-| POST | `/api/boletos/ocr` | Recebe imagem/PDF (multipart) e retorna a linha digitável lida |
-| POST | `/api/boletos/{boletoId}/confirmar` | Registra a confirmação simulada do pagamento |
-| GET | `/api/historico` | Lista as análises do usuário, incluindo `pago` |
+| POST | `/api/auth/login` | Login; devolve JWT |
+| GET | `/api/config/tema` | Tema padrão e disponibilidade do tema acadêmico (público) |
+| POST | `/api/boletos/ocr` | Lê imagem/PDF: linha e campos com fonte e confiança |
+| POST | `/api/boletos/analisar` | Valida e analisa |
+| POST | `/api/boletos/{id}/explicacao-ia` | Explicação reescrita pela IA |
+| POST | `/api/boletos/{id}/confirmar` | Confirmação simulada |
+| POST | `/api/boletos/{id}/denunciar` | Denúncia do beneficiário |
+| GET | `/api/historico` | Histórico do usuário |
+| GET | `/api/instituicoes` | Tabela de instituições |
 
-Campos obrigatórios em `/analisar`: `linhaDigitavel`, `nomeBeneficiarioDeclarado`, `documentoBeneficiarioDeclarado`
-(com 11 ou 14 dígitos). Opcionais: `valorDeclarado`, `vencimentoDeclarado`, `origem`, `tipoEntrada`.
+Exemplos reais de requisição e resposta: `docs/API.md`.
 
 ---
 
@@ -153,108 +158,139 @@ Campos obrigatórios em `/analisar`: `linhaDigitavel`, `nomeBeneficiarioDeclarad
 
 | Classe | Papel |
 |---|---|
-| `BoletoValidador` | Validação técnica da linha digitável (Módulo 10 e 11) e conversão linha ↔ código de barras |
-| `MotorRiscoServico` | As 5 verificações, a nota e a classificação de risco |
-| `DocumentoValidador` | Validação e formatação de CPF/CNPJ |
-| `ExplicacaoRiscoServico` | Monta a explicação em linguagem simples |
-| `LeitorBoletoServico` | Orquestra a leitura de imagem/PDF (PDF → código de barras → OCR → IA) |
-| `OcrLocalServico` | Chama o Tesseract e extrai uma linha digitável válida do texto lido |
-| `LeitorIaServico` | Leitura por IA (OpenAI), usada como último recurso |
-| `BoletoServico` | Fluxo de análise, histórico e confirmação simulada |
-| `SecurityConfig`, `JwtUtil`, `JwtAuthFilter` | Autenticação JWT |
-| `DataSeeder` | Cria os usuários de demonstração na primeira execução |
-| `static/js/api.js` | Comunicação com a API, máscaras de digitação e validação de CPF/CNPJ no navegador |
+| `BoletoValidador` | Linha digitável: Módulo 10/11, conversão linha ↔ código de barras, arrecadação |
+| `ArquivoBoletoValidador` | Assinatura, tamanho, pixels e páginas do arquivo enviado |
+| `LeitorBoletoServico` | Orquestra a leitura (PDF → código de barras → OCR → IA), limites, prazo e tempo |
+| `ExtratorCamposBoleto` | Campos impressos a partir do texto, com fonte e confiança |
+| `OcrLocalServico` | Tesseract (dígitos e português) com tempo limite |
+| `LeitorIaServico` | Leitura por IA (último recurso) |
+| `MotorRiscoServico` | As 8 verificações, nota e nível |
+| `ExplicacaoRiscoServico` | Explicação por regras (cita exatamente o que faltou informar) |
+| `ExplicacaoIaServico` | Reescrita da explicação pela IA, com conferências |
+| `ConsultaCnpjServico` + `ComparadorNomes` | Consulta pública de CNPJ com cache e disjuntor; comparação de nomes |
+| `InstituicaoServico` | Tabela local de instituições |
+| `DenunciaServico` | Denúncias e contagem por documento |
+| `BoletoServico` | Fluxo de análise, histórico, confirmação, explicação por IA |
+| `TemaConfig`, `MigracoesConfig`, `DataSeeder` | Temas e logotipos locais; Flyway; usuários de demonstração |
+| `SecurityConfig`, `JwtUtil`, `JwtAuthFilter` | Autenticação, CORS configurável, rotas públicas |
+| `static/js/*` | `api.js`, `layout.js`, `tema.js`, `preferencias.js`, `leitura-voz.js`, `denuncia.js` |
 
-Entidades: `Usuario`, `Boleto`, `Analise` (nota, nível, verificações, explicação, confirmação simulada) e `Alerta`.
-
-### Modelo de dados (confere com o PostgreSQL)
-
-| Relacionamento | Garantia no banco |
-|---|---|
-| USUARIO 1:N BOLETO | `boletos.usuario_id` NOT NULL + FK |
-| BOLETO 1:0..1 ANALISE | `analises.boleto_id` NOT NULL + FK + **UNIQUE** |
-| ANALISE 1:0..N ALERTA | `alertas.analise_id` NOT NULL + FK |
-| Login único | `usuarios`: **UNIQUE (agencia, conta)** (`uk_usuarios_agencia_conta`) |
-
-Todas as tabelas usam UUID como chave primária. Na tabela `analises`, o campo `explicacao_resultado` guarda o texto mostrado
-ao cliente, e `justificativa_ia` fica reservado para a integração futura com IA.
+Arquitetura e diagramas: `docs/ARQUITETURA.md`.
 
 ---
 
-## 7. Testes automatizados (43, todos passando)
+## 7. Modelo de dados
 
-| Classe de teste | Testes | Cobre |
+Seis tabelas: `usuarios`, `boletos`, `analises`, `alertas`, `denuncias`, `consulta_cnpj_cache` (+ `flyway_schema_history`).
+
+| Relacionamento | Garantia |
+|---|---|
+| USUARIO 1:N BOLETO | FK `boletos.usuario_id` |
+| BOLETO 1:0..1 ANALISE | FK + **UNIQUE** `analises.boleto_id` |
+| ANALISE 1:0..N ALERTA | FK `alertas.analise_id` |
+| USUARIO 1:N DENUNCIA, BOLETO 1:N DENUNCIA | FKs; **UNIQUE** (`usuario_id`, `documento_beneficiario`) |
+| Login único | **UNIQUE** (`agencia`, `conta`) |
+| Cache de CNPJ | ligação lógica pelo CNPJ (sem FK); só dados públicos |
+
+Migrações: V1 (esquema do CP2, extraído do banco real), V2 (cache de CNPJ, origem dos dados, conferência, banco esperado),
+V3 (denúncias). MER/DER e dicionário: `docs/MODELO_DE_DADOS.md`.
+
+---
+
+## 8. Testes automatizados (104, todos passando)
+
+| Classe | Testes | Cobre |
 |---|---|---|
-| `BoletoValidadorTest` | 10 | Dígitos verificadores, tamanho, formatos aceitos e bloqueios |
-| `MotorRiscoServicoTest` | 7 | Fator de vencimento, risco baixo, valor em aberto e as regras do beneficiário |
-| `LeitorBoletoServicoTest` | 6 | Leitura de código de barras e PDF |
-| `DocumentoValidadorTest` | 4 | CPF/CNPJ válidos, inválidos, repetidos e formatação |
-| `OcrLocalServicoTest` | 4 | Extração da linha no meio do texto, linha quebrada e descarte de leitura errada |
-| `ExplicacaoRiscoServicoTest` | 4 | Textos de risco baixo (com e sem ponto de atenção) e alto, e dica de dados faltando |
-| `PersistenciaIntegracaoTest` | 7 | Agência + conta únicas, uma análise por boleto, explicação salva e recuperada no histórico, alertas salvos, confirmação só pelo dono |
+| `MotorRiscoServicoTest` | 17 | Regras de pontuação, CNPJ (ativo, baixado, não encontrado, nome diferente, indisponível, desatualizado), instituição, denúncias, vencimento só informado, ausência do termo "codificado" |
+| `BoletoValidadorTest` | 12 | Dígitos verificadores, formatos, bloqueios, arrecadação |
+| `LeitorBoletoServicoTest` | 11 | Código de barras, PDF textual com campos, limite de leituras simultâneas, Tesseract real (quando instalado), arrecadação por imagem |
+| `ExtratorCamposBoletoTest` | 8 | Campos de PDF e de OCR, CPF do pagador ignorado, rótulo vizinho, data impossível |
+| `ConsultaCnpjServicoTest` | 7 | Servidor falso: 200 com cache, CPF não consultado, 404, 500, 429 com cache vencido, timeout, disjuntor |
+| `ExplicacaoIaServicoTest` | 7 | Servidor falso: sem dados pessoais no pedido, descarte de respostas perigosas, timeout, sem chave |
+| `PersistenciaIntegracaoTest` | 7 | Restrições do banco, explicação salva, alertas, confirmação só pelo dono |
+| `ArquivoBoletoValidadorTest` | 6 | Assinatura do arquivo, arquivo disfarçado, imagem gigante pelo cabeçalho, páginas demais |
+| `OcrLocalServicoTest` | 5 | Extração da linha, leitura errada descartada, Tesseract travado encerrado no prazo |
+| `ExplicacaoRiscoServicoTest` | 5 | Textos por nível e dica com exatamente o que faltou |
+| `ComparadorNomesEInstituicaoTest` | 4 | Comparação de nomes e tabela de instituições |
+| `DocumentoValidadorTest` | 4 | CPF/CNPJ |
+| `ContrasteTemasTest` | 3 | Contraste WCAG AA dos dois temas e do alto contraste, lido do CSS real |
+| `TemaConfigTest` | 3 | Tema acadêmico só com os logotipos presentes |
+| `DenunciaIntegracaoTest` | 3 | Só o dono denuncia, uma por usuário/documento, 1 = atenção e 2 = +25 |
+| `MigracoesBancoTest` | 1 | Migrações em banco vazio validadas contra as entidades |
 | `BradescoAnaliseboletoApplicationTests` | 1 | O app inteiro sobe |
 
+Além disso: auditoria axe-core, fluxo completo por teclado, testes de ponta a ponta com a BrasilAPI e a OpenAI reais e
+screenshots — registrados nas evidências do Checkpoint 3. Roteiro manual em `docs/testes/ROTEIRO_DE_TESTES.md`.
+
 ---
 
-## 8. Cenários de demonstração
+## 9. Cenários de demonstração
 
-Linha de teste (fictícia, não pagável): `23790.91016 23456.789017 23456.000001 3 16260000015000` — R$ 150,00, vencimento 10/11/2026.
+Linha de teste (fictícia, não pagável): `23790.91016 23456.789017 23456.000001 3 16260000015000` — R$ 150,00, vencimento
+10/11/2026, instituição 237 (Bradesco). Boletos fictícios prontos em `docs/testes/amostras/`.
 
 | Cenário | Entrada | Resultado esperado |
 |---|---|---|
-| A — Baixo risco | Linha acima + `Maria da Silva` / CPF `529.982.247-25` | Nota 0, BAIXO |
-| B — Origem suspeita | A + origem WhatsApp | +15 |
+| A — Baixo risco | Linha + `Maria da Silva` / CPF `529.982.247-25` | Nota 0, baixo |
+| B — Origem | A + WhatsApp | +15 |
 | C — Bloqueio técnico | `12345678901234567890123456789012345678901234567` | Bloqueado antes da análise |
-| D — Upload | Imagem ou PDF do boleto | Linha preenchida automaticamente |
-| E — Valor divergente | A + valor diferente de 150,00 | +40 |
-| F1 — Documento inexistente | CPF `529.982.247-26` | +50, MÉDIO |
+| D — Importação | `1_boleto_textual.pdf` / `2_boleto_nitido.png` | Campos lidos com origem e confiança |
+| E — Valor divergente | A + valor ≠ 150,00 | +40 |
+| F1 — Documento inexistente | CPF `529.982.247-26` | +50, médio |
 | F2 — Empresa em CPF | `Condomínio Edifício Primavera` + CPF válido | +30 |
-| F3 — Empresa com CNPJ | `Energia Paulista S.A.` + CNPJ `11.222.333/0001-81` | Sem pontos |
+| F3 — CNPJ confere | `Banco Bradesco S.A.` + `60.746.948/0001-12` | CNPJ ativo, nome confere, 0 |
+| F4 — Nome diferente do cadastro | `Energia Paulista S.A.` + `11.222.333/0001-81` (CNPJ real de uma escola) | +20 |
+| G — Banco esperado | A + "Não, outro banco" → Itaú (341) | +15 |
+| H — Risco alto | E + F1 | Alto; "Confirmar mesmo assim"; IA começa com "Não pague este boleto." |
+| I — Denúncias | Mesmo CPF denunciado por 2 outros usuários | +25 |
 
-Usuários de demonstração: Ag `0001` / Conta `12345-6` / Senha `senha123` e Ag `0001` / Conta `98765-4` / Senha `senha456`.
-
-Caso real testado: um print de celular em baixa resolução de uma fatura de cartão do C6. O leitor de código de barras falhou e o
-OCR local leu a linha corretamente. Esse tipo de fatura traz valor R$ 0,00 e vencimento 0000 no código de barras (valor em
-aberto), por isso as verificações de valor, vencimento e prazo aparecem como "não verificado".
-
----
-
-## 9. Limitações conhecidas (decisões conscientes)
-
-- **O nome do beneficiário não é confirmado em base oficial.** O nome não vem no código de barras. A confirmação real exige a
-  consulta à base de boletos registrados (CIP/Nova Plataforma de Cobrança), que o protótipo não acessa por princípio.
-- **Faturas com valor em aberto ou sem vencimento** (como as de cartão) não permitem comparar valor, vencimento e prazo.
-- **IA sem créditos:** a integração com a OpenAI está pronta, mas a conta está sem créditos. O sistema funciona sem ela.
-- **OCR local depende do Tesseract instalado** (`C:\Program Files\Tesseract-OCR`). Sem ele, essa etapa é pulada.
-- **Pagamento simulado:** nenhum valor é movimentado; a confirmação apenas registra a decisão do usuário no protótipo.
-- **Máscara da conta aceita só números.** No Bradesco real, o dígito da conta pode ser a letra "P".
-- Execução local; o acesso externo exige rede compartilhada ou túnel.
+Usuários: Ag `0001` / Conta `12345-6` / `senha123` · Ag `0001` / Conta `98765-4` / `senha456` · Ag `0002` / Conta `11111-1` / `teste123`.
 
 ---
 
-## 10. Próximos passos (planejados)
+## 10. Limitações conhecidas (decisões conscientes)
 
-**Próximos checkpoints**
-1. **Consulta de CNPJ na BrasilAPI** (base pública da Receita, gratuita e sem chave): comparar a razão social com o nome
-   informado e verificar a situação cadastral (ativa, baixada, inapta).
-2. **Mostrar o banco emissor:** os 3 primeiros dígitos da linha identificam o banco (ex.: 237 = Bradesco, 336 = C6).
-3. **Boletos sem vencimento no código:** usar o vencimento informado na verificação de prazo e trocar o rótulo
-   "valor/vencimento codificado" quando o dado veio do usuário.
-
-**Versão final**
-4. **Créditos na OpenAI:** ativar a leitura por IA e fazer a IA reescrever a explicação de risco de forma mais natural, mantendo a
-   explicação por regras como reserva.
-5. **Histórico de golpes do beneficiário:** botão "Denunciar boleto" e uma verificação "CPF/CNPJ denunciado por outros usuários".
-   Inspirado no compartilhamento de dados de fraude entre instituições exigido pelo Banco Central (Resolução Conjunta nº 6/2023).
+- **Quem recebe o dinheiro não é confirmado.** Só a base de boletos registrados (CIP/NPC) confirmaria; o protótipo não a acessa.
+  O CNPJ na Receita mostra existência e situação da empresa, não a titularidade do boleto.
+- **Boletos de arrecadação** (contas de consumo, tributos — começam com 8) não são analisados.
+- **OCR depende da qualidade da imagem** e do Tesseract com o idioma português instalado; fotos muito ruins pedem digitação.
+- **Denúncias não são verificadas** e a base é só a deste protótipo.
+- **IA opcional:** depende de chave e créditos da OpenAI; sem ela, tudo funciona com o texto das regras.
+- **Tema acadêmico** só na máquina que tem os logotipos (não publicados).
+- **Máscara da conta aceita só números** (no Bradesco real, o dígito pode ser "P").
+- **Testes com leitores de tela por usuários reais** (NVDA, TalkBack, VoiceOver) ainda não foram feitos; houve teste
+  preliminar com NVDA pela equipe.
+- **Pagamento simulado:** nenhum valor é movimentado.
 
 ---
 
-## 11. Histórico de entregas (commits)
+## 11. Próximos passos
+
+1. Testes manuais completos pelo roteiro (`docs/testes/ROTEIRO_DE_TESTES.md`) com boletos reais e no celular.
+2. Publicação no Render (tudo preparado: `Dockerfile`, `render.yaml`, `DEPLOY_RENDER.md`) — **a confirmar com a professora
+   se é necessária**; a apresentação pode ser feita a partir do notebook.
+3. Repositório próprio da equipe no GitHub.
+4. Teste com usuários de leitores de tela e TalkBack.
+5. Futuro (não implementado): agente com Spring AI usando o histórico; consulta a fontes oficiais de boletos registrados
+   mediante convênio; boletos de arrecadação.
+
+---
+
+## 12. Histórico de entregas (commits do Checkpoint 3)
 
 | Commit | Descrição |
 |---|---|
-| `1f494e3` | Estrutura base da aplicação de prevenção a fraudes |
-| `505c43a` | Protótipo do Checkpoint 2, com leitura de boleto e IA |
-| `4b21efd` | Validação do beneficiário, máscaras, OCR local, explicação do risco e status de pagamento |
-| `6348205` | Tela de login responsiva no celular |
-| (próximo) | Correções de consistência: agência + conta únicas, uma análise por boleto explícita, explicação salva no histórico, textos revisados |
+| `52eee3f` | Design system com dois temas (próprio e acadêmico Bradesco) |
+| `5b3c621`, `1b52fd2` | Ajustes visuais do login e do logotipo |
+| `98137b5` | Importação prioritária com leitura dos campos impressos |
+| `98f2570` | Painel em duas colunas na tela inicial |
+| `9097ff3` | Acessibilidade: preferências, voz sob demanda, página de acessibilidade |
+| `eed3e22`, `31eebe1` | "Ouvir esta página" em todas as telas e "Ler ao apontar" |
+| `e6033a8` | Consulta pública de CNPJ, instituição pelo código, migrações Flyway |
+| `93b3a1a` | Denunciar boleto e explicação reescrita pela IA |
+| `83511f3` | Preparação para a nuvem sem segredos no repositório |
+| `08a6430` | Bootstrap local e kit de testes |
+| `81895cc` | Mensagem clara para contas de consumo |
+| (este) | Documentação final: README, arquitetura, modelo de dados, API, roteiro do vídeo |
+
+Checkpoint 2: `1f494e3`, `505c43a`, `4b21efd`, `6348205`, `50338e3`.

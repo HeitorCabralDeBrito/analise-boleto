@@ -3,100 +3,135 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Boleto Seguro — Home</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <title>Início — Boleto Seguro</title>
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <script src="/js/tema.js"></script>
+  <script src="/js/preferencias.js"></script>
+  <link rel="stylesheet" href="/vendor/bootstrap-5.3.3/bootstrap.min.css">
   <link rel="stylesheet" href="/css/boleto-seguro.css">
 </head>
-<body>
+<body data-pagina="home">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header class="app-topo" id="app-topo"></header>
+<div class="app-corpo">
+  <nav class="app-menu" id="app-menu" aria-label="Menu principal"></nav>
+  <main class="app-principal" id="conteudo" tabindex="-1">
+    <!-- No computador: painel em duas colunas. No celular: tudo empilhado, na ordem do HTML. -->
+    <div class="app-conteudo app-conteudo--largo painel-inicio">
 
-<nav class="navbar-bradesco">
-  <div class="container d-flex align-items-center justify-content-between">
-    <div class="d-flex align-items-center gap-2">
-      <span class="navbar-brand mb-0">Boleto Seguro</span>
-      <span class="badge-prototipo">Protótipo acadêmico</span>
-    </div>
-    <div class="d-flex align-items-center gap-3">
-      <span class="usuario-info d-none d-sm-inline">Olá, <b id="usuario-nome"></b></span>
-      <button class="btn-logout" id="btn-logout">Sair</button>
-    </div>
-  </div>
-</nav>
+      <section class="saudacao-card painel-inicio__saudacao" aria-labelledby="titulo-saudacao">
+        <h1 id="titulo-saudacao">Olá, <span id="nome-saudacao">usuário</span>!</h1>
+        <p>Bem-vindo ao Boleto Seguro. O que deseja fazer hoje?</p>
+        <p class="saudacao-card__conta">
+          Agência <b id="agencia-display"></b> &nbsp;·&nbsp; Conta <b id="conta-display"></b>
+        </p>
+      </section>
 
-<div class="container py-4" style="max-width:720px;">
-
-  <div class="saudacao-card">
-    <h2>Olá, <span id="nome-saudacao">usuário</span>!</h2>
-    <p>Bem-vindo ao Boleto Seguro. O que deseja fazer hoje?</p>
-    <div class="mt-2" style="font-size:0.8rem; opacity:0.8;">
-      Agência <b id="agencia-display"></b> &nbsp;·&nbsp; Conta <b id="conta-display"></b>
-    </div>
-  </div>
-
-  <div class="row g-3 mb-4">
-    <div class="col-6">
-      <a href="/pagar-boleto.html" class="acao-card h-100">
-        <div class="acao-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 2.5 2 2.5-2 3.5 2z"/>
-          </svg>
+      <div class="painel-inicio__principal">
+        <!-- Grade que se ajusta ao tamanho do texto: com letra grande os cartões ficam um embaixo do outro -->
+        <div class="acoes-inicio mb-3">
+          <div>
+            <a href="/pagar-boleto.html" class="acao-card">
+              <span class="acao-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 2.5 2 2.5-2 3.5 2z"/>
+                </svg>
+              </span>
+              <h2>Pagar Boleto</h2>
+              <p>Análise preventiva de fraude antes de pagar</p>
+            </a>
+          </div>
+          <div>
+            <a href="/historico.html" class="acao-card">
+              <span class="acao-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+              </span>
+              <h2>Histórico</h2>
+              <p>Boletos analisados anteriormente</p>
+            </a>
+          </div>
         </div>
-        <h3>Pagar Boleto</h3>
-        <p>Análise preventiva de fraude antes de pagar</p>
-      </a>
-    </div>
-    <div class="col-6">
-      <a href="/historico.html" class="acao-card h-100">
-        <div class="acao-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-          </svg>
-        </div>
-        <h3>Histórico</h3>
-        <p>Boletos analisados anteriormente</p>
-      </a>
-    </div>
-  </div>
 
-  <div class="card-bradesco">
-    <div class="card-header">Como funciona a análise?</div>
-    <div class="card-body">
-      <div class="d-flex gap-3 mb-3">
-        <div class="text-bradesco fw-bold" style="font-size:1.3rem; min-width:28px;">1.</div>
-        <div>
-          <div class="fw-semibold small">Digite ou envie o boleto</div>
-          <div class="small text-muted">Informe a linha digitável manualmente ou faça upload da imagem/PDF</div>
-        </div>
+        <section class="cartao" aria-labelledby="titulo-resumo">
+          <h2 class="cartao__cabecalho" id="titulo-resumo">Seu resumo</h2>
+          <div class="cartao__corpo">
+            <dl class="resumo-numeros mb-0" id="resumo-numeros" aria-busy="true">
+              <div><dt>Boletos analisados</dt><dd id="num-total">—</dd></div>
+              <div><dt>Com risco alto</dt><dd id="num-alto">—</dd></div>
+              <div><dt>Pagos apesar do alerta</dt><dd id="num-ignorados">—</dd></div>
+            </dl>
+          </div>
+        </section>
+
+        <section class="cartao" aria-labelledby="titulo-como-funciona">
+          <h2 class="cartao__cabecalho" id="titulo-como-funciona">Como funciona a análise?</h2>
+          <ol class="cartao__corpo list-unstyled mb-0">
+            <li class="d-flex gap-3 mb-3">
+              <span class="passo-numero" aria-hidden="true">1.</span>
+              <div>
+                <div class="fw-semibold">Envie, fotografe ou digite o boleto</div>
+                <div class="text-muted">O sistema lê o código de barras e os dados impressos</div>
+              </div>
+            </li>
+            <li class="d-flex gap-3 mb-3">
+              <span class="passo-numero" aria-hidden="true">2.</span>
+              <div>
+                <div class="fw-semibold">Confira os dados</div>
+                <div class="text-muted">Você corrige o que for preciso e confirma antes da análise</div>
+              </div>
+            </li>
+            <li class="d-flex gap-3">
+              <span class="passo-numero" aria-hidden="true">3.</span>
+              <div>
+                <div class="fw-semibold">Veja o risco antes de pagar</div>
+                <div class="text-muted">Nota de 0 a 100 (baixo, médio ou alto) com explicação em linguagem simples</div>
+              </div>
+            </li>
+          </ol>
+        </section>
       </div>
-      <div class="d-flex gap-3 mb-3">
-        <div class="text-bradesco fw-bold" style="font-size:1.3rem; min-width:28px;">2.</div>
-        <div>
-          <div class="fw-semibold small">Análise automática</div>
-          <div class="small text-muted">Validação técnica + motor de risco determinístico antes da confirmação</div>
-        </div>
-      </div>
-      <div class="d-flex gap-3">
-        <div class="text-bradesco fw-bold" style="font-size:1.3rem; min-width:28px;">3.</div>
-        <div>
-          <div class="fw-semibold small">Resultado com score 0–100</div>
-          <div class="small text-muted">BAIXO / MÉDIO / ALTO com explicação detalhada e orientações</div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="card-bradesco">
-    <div class="card-body text-center py-3">
-      <small class="text-muted">
-        <b>Boleto Seguro</b> é um protótipo acadêmico desenvolvido por alunos da <b>Universidade Anhembi Morumbi</b>
-        em parceria educacional com o Bradesco. Não realiza transações financeiras reais.
-      </small>
+      <div class="painel-inicio__lateral">
+        <section class="cartao" aria-labelledby="titulo-ultimas">
+          <div class="cartao__cabecalho d-flex align-items-center justify-content-between gap-2">
+            <h2 class="fs-6 fw-semibold mb-0" id="titulo-ultimas">Suas últimas análises</h2>
+            <a href="/historico.html" class="small fw-semibold">Ver histórico</a>
+          </div>
+          <div class="cartao__corpo py-2" id="ultimas-analises">
+            <p class="text-muted small my-2" role="status">Carregando…</p>
+          </div>
+        </section>
+
+        <section class="cartao" aria-labelledby="titulo-dicas">
+          <h2 class="cartao__cabecalho" id="titulo-dicas">Dicas contra golpes de boleto</h2>
+          <ul class="cartao__corpo lista-dicas mb-0">
+            <li>Confira se o <b>nome e o CNPJ do beneficiário</b> são da empresa que você espera pagar.</li>
+            <li>Prefira gerar a segunda via no <b>site ou app oficial</b> da empresa, e não pelo link recebido por mensagem.</li>
+            <li>Desconfie de <b>urgência</b>, descontos fora do comum ou de um beneficiário diferente do de costume.</li>
+            <li>Os três primeiros números da linha digitável indicam a <b>instituição que emitiu o boleto</b>, que nem sempre é o banco da empresa.</li>
+            <li>Na dúvida, ligue para a empresa por um <b>telefone que você já conhece</b>, nunca pelo que veio junto com o boleto.</li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="cartao painel-inicio__rodape">
+        <p class="cartao__corpo text-center py-3 mb-0 rodape-academico">
+          <b>Boleto Seguro</b> é um protótipo acadêmico desenvolvido por alunos da <b>Universidade Anhembi Morumbi</b>.
+          Não realiza transações financeiras reais.
+        </p>
+      </div>
+
     </div>
-  </div>
+  </main>
 </div>
 
 <script src="/js/api.js"></script>
+<script src="/js/leitura-voz.js"></script>
+<script src="/js/layout.js"></script>
 <script>
   if (!API.requireAuth()) {}
   const u = API.getUsuario();
@@ -105,6 +140,38 @@
     document.getElementById('agencia-display').textContent = u.agencia;
     document.getElementById('conta-display').textContent = u.conta;
   }
+
+  const ROTULOS_RISCO = { BAIXO: 'Risco baixo', MEDIO: 'Risco médio', ALTO: 'Risco alto' };
+  const SELOS_RISCO = { BAIXO: 'selo-baixo', MEDIO: 'selo-medio', ALTO: 'selo-alto' };
+
+  async function carregarPainel() {
+    const { ok, data } = await API.historico();
+    const itens = ok && Array.isArray(data) ? data : [];
+    document.getElementById('resumo-numeros').removeAttribute('aria-busy');
+    document.getElementById('num-total').textContent = itens.length;
+    document.getElementById('num-alto').textContent = itens.filter(i => i.nivelRisco === 'ALTO').length;
+    document.getElementById('num-ignorados').textContent = itens.filter(i => i.nivelRisco === 'ALTO' && i.pago).length;
+
+    const lista = document.getElementById('ultimas-analises');
+    if (!itens.length) {
+      lista.innerHTML = '<p class="text-muted small my-2">Nenhum boleto analisado ainda. ' +
+        '<a href="/pagar-boleto.html">Analise o seu primeiro boleto</a>.</p>';
+      return;
+    }
+    const e = Html.escapar;
+    const recentes = [...itens].sort((a, b) => new Date(b.dataSubmissao) - new Date(a.dataSubmissao)).slice(0, 4);
+    lista.innerHTML = '<ul class="list-unstyled mb-0">' + recentes.map(i => {
+      const data = new Date(i.dataSubmissao).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+      return `<li class="ultima-analise">
+        <div class="ultima-analise__texto">
+          <span class="fw-semibold">${e(i.nomeBeneficiario || 'Beneficiário não informado')}</span>
+          <span class="small text-muted">${e(data)} · ${e(i.valor || 'valor não informado')}${i.pago ? ' · pago' : ''}</span>
+        </div>
+        <span class="selo ${SELOS_RISCO[i.nivelRisco] || 'selo-neutro'}">${e(ROTULOS_RISCO[i.nivelRisco] || i.nivelRisco)}</span>
+      </li>`;
+    }).join('') + '</ul>';
+  }
+  carregarPainel();
 </script>
 </body>
 </html>

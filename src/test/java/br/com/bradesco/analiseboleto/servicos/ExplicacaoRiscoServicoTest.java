@@ -54,6 +54,19 @@ class ExplicacaoRiscoServicoTest {
         assertTrue(explicar(b).contains("Dica:"));
     }
 
+    @Test
+    @DisplayName("A dica cita só o que realmente faltou (origem informada não aparece)")
+    void dicaCitaSoOQueFaltou() {
+        Boleto b = boleto("150.00", "Maria da Silva", "52998224725", Boleto.OrigemBoleto.SITE);
+        b.setValorDeclarado(null);
+        String texto = explicar(b);
+        assertTrue(texto.contains("Dica: você não informou o valor."), texto);
+        assertFalse(texto.contains("recebeu"), texto);
+
+        b.setOrigem(null);
+        assertTrue(explicar(b).contains("você não informou o valor e como recebeu o boleto"));
+    }
+
     private String explicar(Boleto b) {
         return explicacao.explicar(motor.calcular(validador.extrairCodigoBarras(LINHA_150), b));
     }

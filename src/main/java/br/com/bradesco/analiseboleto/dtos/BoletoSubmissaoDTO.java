@@ -27,4 +27,17 @@ public class BoletoSubmissaoDTO {
     private String documentoBeneficiarioDeclarado;
     private String valorDeclarado;
     private String vencimentoDeclarado;
+
+    /**
+     * De onde veio cada campo, como a tela de conferência mostrou: chaves linha, nome, documento, valor, vencimento;
+     * valores TEXTO_PDF, CODIGO_BARRAS, OCR_LOCAL, IA ou USUARIO. Opcional (clientes antigos não enviam).
+     */
+    private java.util.Map<String, String> fontes;
+
+    /** O usuário marcou "conferi os dados" antes de analisar. */
+    private boolean dadosConferidos;
+
+    /** Instituição que o usuário esperava (código de 3 dígitos), opcional. */
+    @Pattern(regexp = "^$|^\\d{3}$", message = "Instituição esperada deve ter 3 dígitos")
+    private String instituicaoEsperada;
 }
