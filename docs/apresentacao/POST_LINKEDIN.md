@@ -1,6 +1,7 @@
 # Post para o LinkedIn
 
-> Texto final. Anexe uma imagem só do tema próprio (nunca com a marca Bradesco). Ao colar no LinkedIn, refaça cada
+> Texto final. Anexe a imagem `post_linkedin_bradesco.png` (tema Bradesco, liberado pela professora desde que fique
+> claro que é trabalho acadêmico — a imagem e o texto já dizem isso). Ao colar no LinkedIn, refaça cada
 > marcação digitando `@` e escolhendo a pessoa ou página na lista.
 
 ---
