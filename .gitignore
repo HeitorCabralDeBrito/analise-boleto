@@ -42,3 +42,7 @@ config/application.properties
 # Logotipos Bradesco (tema acadêmico): uso acadêmico autorizado, sem autorização de redistribuição.
 # Ficam só na máquina local; sem esta pasta o sistema usa a identidade própria.
 marca-academica/
+
+# Material de entrega dos checkpoints (post, roteiro do vídeo e derivados): fica fora do Git, na pasta
+# Desktop\Boleto_Seguro_Checkpoint3\08_ENTREGA_CHECKPOINT3
+docs/apresentacao/

@@ -69,7 +69,6 @@ Para testar: [`docs/testes/`](docs/testes/)
 | [`docs/MODELO_DE_DADOS.md`](docs/MODELO_DE_DADOS.md) | MER/DER do banco real e dicionário de dados |
 | [`docs/API.md`](docs/API.md) | Rotas da API REST com exemplos reais |
 | [`docs/diagramas/`](docs/diagramas/) | Diagramas em PNG (arquitetura, fluxos, implantação, MER e DER) para slides |
-| [`docs/apresentacao/`](docs/apresentacao/) | Roteiro do vídeo e rascunho de post |
 | [`docs/scripts/LIMPAR_DADOS.md`](docs/scripts/LIMPAR_DADOS.md) | Limpar os dados de teste do banco antes de apresentar |
 | [`docs/testes/ROTEIRO_DE_TESTES.md`](docs/testes/ROTEIRO_DE_TESTES.md) | Roteiro de testes manuais |
 | [`ESTADO_DO_PROJETO.md`](ESTADO_DO_PROJETO.md) | O que está implementado, limitações e próximos passos |
