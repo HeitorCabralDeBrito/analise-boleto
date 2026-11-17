@@ -36,7 +36,10 @@ dados lidos e recebe uma nota de risco de 0 a 100 com explicação em linguagem 
 
 - **Não confirma quem recebe o dinheiro.** Isso só a base de boletos registrados (CIP / Nova Plataforma de Cobrança)
   confirmaria, e o protótipo não a acessa. O CNPJ na Receita mostra se a empresa existe e está ativa — não que o boleto é dela.
-- **Não analisa contas de consumo** (luz, água, telefone, tributos — boletos de arrecadação, que começam com 8).
+- **Não analisa contas de consumo** (luz, água, gás, telefone, tributos — boletos de arrecadação, que começam com 8 e têm
+  48 números). Elas são reconhecidas (digitadas, por foto ou PDF) e recusadas com uma explicação. Motivo: seguem outro
+  padrão Febraban, sem banco nem (em geral) vencimento no código, então quase nenhuma verificação se aplica. Detalhes e
+  como seria a evolução em [`ESTADO_DO_PROJETO.md`](ESTADO_DO_PROJETO.md#10-limitações-conhecidas-decisões-conscientes).
 - **Não paga nada:** a confirmação é simulada.
 
 ## Tecnologias
@@ -80,7 +83,9 @@ acessa os próprios boletos.
 
 ## Equipe
 
-Bruno Henrique · Heitor Cabral de Brito
+Bruno Henrique · Heitor Cabral de Brito · Miguel Antonio dos Santos Silva
+
+Orientação: Profa. Cassilene Assis
 
 Projeto desenvolvido para a Universidade Anhembi Morumbi, em atividade acadêmica com o Bradesco.
 A marca Bradesco **não** faz parte deste repositório; o tema acadêmico usa logotipos mantidos localmente, com autorização
