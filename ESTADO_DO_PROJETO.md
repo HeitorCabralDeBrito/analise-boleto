@@ -1,7 +1,7 @@
 # Boleto Seguro — Estado atual do projeto (Checkpoint 3)
 
 > **Instrução para quem for ler (pessoa ou IA que vai gerar a documentação final):** este documento descreve o que está
-> **realmente implementado** em 13/11/2026, ao fim do Checkpoint 3 (branch `checkpoint3`). Onde houver diferença entre o
+> **realmente implementado** em 16/11/2026, ao fim do Checkpoint 3 (branch `checkpoint3`). Onde houver diferença entre o
 > briefing e este documento, **este documento reflete o código atual**. As seções "Limitações" e "Próximos passos" são
 > decisões conscientes e devem ser mantidas. Não apresente como pronto nada que esteja em "Próximos passos".
 
@@ -14,7 +14,8 @@
 | Nome | Boleto Seguro |
 | Tipo | Protótipo acadêmico de alta fidelidade (atividade A3 — Ciência da Computação) |
 | Instituição | Universidade Anhembi Morumbi, em atividade acadêmica com o Bradesco |
-| Equipe | Bruno Henrique e Heitor Cabral de Brito |
+| Equipe | Bruno Henrique, Heitor Cabral de Brito e Miguel Antonio dos Santos Silva |
+| Orientação | Profa. Cassilene Assis |
 | Repositório | https://github.com/HeitorCabralDeBrito/analise-boleto (branch `checkpoint3`) |
 | Objetivo | Analisar o risco de golpe de um boleto bancário **antes** de o usuário confirmar o pagamento |
 
@@ -252,7 +253,20 @@ Usuários: Ag `0001` / Conta `12345-6` / `senha123` · Ag `0001` / Conta `98765-
 
 - **Quem recebe o dinheiro não é confirmado.** Só a base de boletos registrados (CIP/NPC) confirmaria; o protótipo não a acessa.
   O CNPJ na Receita mostra existência e situação da empresa, não a titularidade do boleto.
-- **Boletos de arrecadação** (contas de consumo, tributos — começam com 8) não são analisados.
+- **Boletos de arrecadação** (contas de luz, água, gás, telefone e tributos) não são analisados. O sistema os
+  **reconhece** — pela linha digitada (começa com 8 e tem 48 números) e também por foto ou PDF, pelo código de barras —
+  e mostra: *"Este parece ser um boleto de arrecadação (...). O Boleto Seguro analisa somente boletos bancários de
+  cobrança (47 números)."* Nada é gravado. Por que ficou de fora:
+  - seguem **outro padrão Febraban**: no lugar do banco, o código traz o segmento (energia, água, telefone, órgão público)
+    e a **empresa que cobra** (concessionária) — a verificação "é o banco que você esperava?" não se aplica;
+  - o **vencimento em geral não vem no código**, então não há como comparar com o impresso;
+  - os **dígitos verificadores** são calculados de outro jeito (Módulo 10 ou 11 conforme o 3º dígito, em 4 blocos de 11);
+  - é um canal com menos golpes de boleto adulterado do que o boleto de cobrança, foco do desafio.
+
+  **Como seria a evolução** (não implementada): validar os 4 blocos e o dígito geral; conferir o valor impresso contra o
+  do código; mostrar o segmento (ex.: "conta de energia"); identificar a empresa pelo código Febraban (ou CNPJ, em alguns
+  segmentos) e alertar quando não bater com o nome impresso. Mexe na leitura, na validação e no motor de risco, por isso
+  ficou para depois da entrega.
 - **OCR depende da qualidade da imagem** e do Tesseract com o idioma português instalado; fotos muito ruins pedem digitação.
 - **Denúncias não são verificadas** e a base é só a deste protótipo.
 - **IA opcional:** depende de chave e créditos da OpenAI; sem ela, tudo funciona com o texto das regras.
@@ -266,13 +280,14 @@ Usuários: Ag `0001` / Conta `12345-6` / `senha123` · Ag `0001` / Conta `98765-
 
 ## 11. Próximos passos
 
-1. Testes manuais completos pelo roteiro (`docs/testes/ROTEIRO_DE_TESTES.md`) com boletos reais e no celular.
+1. ~~Testes manuais pelo roteiro~~ — feitos pela equipe em 16/11/2026, sem defeitos abertos; dados de teste apagados do
+   banco local na mesma data (backup guardado fora do repositório).
 2. Publicação no Render (tudo preparado: `Dockerfile`, `render.yaml`, `DEPLOY_RENDER.md`) — **a confirmar com a professora
    se é necessária**; a apresentação pode ser feita a partir do notebook.
 3. Repositório próprio da equipe no GitHub.
 4. Teste com usuários de leitores de tela e TalkBack.
 5. Futuro (não implementado): agente com Spring AI usando o histórico; consulta a fontes oficiais de boletos registrados
-   mediante convênio; boletos de arrecadação.
+   mediante convênio; boletos de arrecadação (ver Limitações).
 
 ---
 
@@ -291,6 +306,9 @@ Usuários: Ag `0001` / Conta `12345-6` / `senha123` · Ag `0001` / Conta `98765-
 | `83511f3` | Preparação para a nuvem sem segredos no repositório |
 | `08a6430` | Bootstrap local e kit de testes |
 | `81895cc` | Mensagem clara para contas de consumo |
-| (este) | Documentação final: README, arquitetura, modelo de dados, API, roteiro do vídeo |
+| `a80c1fc` | Documentação final: README, arquitetura, modelo de dados, API, roteiro do vídeo |
+| `9dacf20`, `7e4ef5d` | Hifenização desligada; login mais limpo, dicas no celular e pergunta do banco |
+| `7f161bb` | Erros de requisição com status correto (400/405/413) e erros internos registrados no log |
+| (este) | Documentação: limitação das contas de consumo, equipe e post |
 
 Checkpoint 2: `1f494e3`, `505c43a`, `4b21efd`, `6348205`, `50338e3`.
