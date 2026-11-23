@@ -70,8 +70,8 @@ humana.
 
 ### 4.2 Identidade visual — dois temas, um código (Etapa 1)
 - **Tema próprio "Boleto Seguro"** (padrão; azul-marinho `#0B1F3B` e azul `#1366D6`; logotipo SVG original).
-- **Tema acadêmico Bradesco** (vermelho `#CC092F`), só quando os logotipos estão na pasta local `marca-academica/`
-  (fora do Git, sem autorização de redistribuição). Seletor na tela de login.
+- **Tema acadêmico Bradesco** (vermelho `#CC092F`), com os logotipos da pasta `marca-academica/`
+  (uso acadêmico autorizado pela professora, só para a apresentação; vai também para o Render). Seletor na tela de login.
 - Cores definidas por variáveis CSS por tema; contraste medido por teste automatizado (WCAG AA).
 - Cabeçalho e menu lateral comuns; no celular o menu vira gaveta; aviso permanente "Protótipo acadêmico".
 - Bootstrap servido pelo próprio app: as telas funcionam sem internet.
@@ -270,7 +270,7 @@ Usuários: Ag `0001` / Conta `12345-6` / `senha123` · Ag `0001` / Conta `98765-
 - **OCR depende da qualidade da imagem** e do Tesseract com o idioma português instalado; fotos muito ruins pedem digitação.
 - **Denúncias não são verificadas** e a base é só a deste protótipo.
 - **IA opcional:** depende de chave e créditos da OpenAI; sem ela, tudo funciona com o texto das regras.
-- **Tema acadêmico** só na máquina que tem os logotipos (não publicados).
+- **Tema acadêmico**: logotipos do Bradesco com uso acadêmico autorizado pela professora, só para a apresentação; o site no Render sai do ar depois dela.
 - **Máscara da conta aceita só números** (no Bradesco real, o dígito pode ser "P").
 - **Testes com leitores de tela por usuários reais** (NVDA, TalkBack, VoiceOver) ainda não foram feitos; houve teste
   preliminar com NVDA pela equipe.

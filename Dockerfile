@@ -19,6 +19,8 @@ RUN apt-get update \
     && useradd --system --uid 1001 --no-create-home boleto
 WORKDIR /app
 COPY --from=build /src/target/*.jar app.jar
+# Logotipos do tema acadêmico Bradesco (uso acadêmico autorizado pela professora; só para a apresentação)
+COPY marca-academica marca-academica
 USER boleto
 
 ENV TESSERACT_CAMINHO=/usr/bin/tesseract \

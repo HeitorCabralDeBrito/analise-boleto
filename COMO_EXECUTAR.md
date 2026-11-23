@@ -184,8 +184,8 @@ mesmo documento vê só **quantas pessoas** denunciaram (nem quem, nem o texto).
 O sistema tem dois temas com as mesmas telas e o mesmo backend; só mudam cores e logotipo (tokens CSS em `css/boleto-seguro.css`).
 
 - **Tema próprio (Boleto Seguro)** — padrão, azul-marinho. Funciona sem nenhuma configuração.
-- **Tema acadêmico (Bradesco)** — uso acadêmico autorizado. Os logotipos do Bradesco **não ficam no repositório**
-  (não há autorização de redistribuição). Para ativar, crie na raiz do projeto a pasta `marca-academica/` (já está no `.gitignore`) com:
+- **Tema acadêmico (Bradesco)** — uso acadêmico autorizado. Os logotipos do Bradesco ficam na pasta
+  `marca-academica/` na raiz do projeto (uso acadêmico autorizado pela professora, só para a apresentação; também vão para a imagem do Render):
   - `logo-horizontal.png` — logotipo horizontal (cabeçalho e login)
   - `logo-vertical.png` — logotipo vertical (reservado)
 

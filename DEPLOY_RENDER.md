@@ -21,7 +21,7 @@ O repositório já tem tudo o que o Render precisa:
 | Consulta de CNPJ (BrasilAPI), instituição pelo código | ✅ |
 | IA (leitura difícil e explicação reescrita) | ✅ se `OPENAI_API_KEY` for preenchida |
 | Acessibilidade, voz, temas, celular (câmera) | ✅ (HTTPS do Render ajuda a câmera do celular) |
-| **Tema acadêmico Bradesco** | ❌ **por decisão**: os logotipos não estão no Git (sem autorização de redistribuição). Use o app local para mostrar esse tema |
+| **Tema acadêmico Bradesco** | ✅ os logotipos (`marca-academica/`) vão na imagem; uso acadêmico autorizado pela professora, só para a apresentação. O site fica no ar só durante o período de apresentação |
 
 ## Limites do plano gratuito (confira em https://render.com/docs/free)
 
@@ -41,9 +41,9 @@ git remote rename origin heitor
 git remote add origin https://github.com/SEU-USUARIO/boleto-seguro.git
 git push -u origin checkpoint3:main
 ```
-Antes do push, confira que nada sensível vai junto (deve aparecer **só** o `.example`):
+Antes do push, confira que nada sensível vai junto (deve aparecer **só** o `.example` e o `src/main/resources/application.properties`, que não tem segredos):
 ```powershell
-git ls-files | Select-String "application.properties|marca-academica"
+git ls-files | Select-String "application.properties"
 ```
 
 ### 2. Criar no Render

@@ -41,7 +41,7 @@ Rotas com `{boletoId}` só funcionam para boletos **do próprio usuário**; de o
 
 ## GET `/api/config/tema`
 **200** `{ "padrao": "proprio", "academicoDisponivel": true }`
-(`academicoDisponivel` é `true` só quando a pasta local `marca-academica` existe.)
+(`academicoDisponivel` é `true` só quando a pasta `marca-academica` com os logotipos existe.)
 
 ## POST `/api/boletos/ocr`
 `multipart/form-data` com o campo **`arquivo`** (PNG, JPG ou PDF; até 10 MB, 40 megapixels e 10 páginas; o tipo é

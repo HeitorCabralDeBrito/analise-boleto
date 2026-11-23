@@ -87,5 +87,5 @@ Bruno Henrique · Heitor Cabral de Brito · Miguel Antonio dos Santos Silva
 Orientação: Profa. Cassilene Assis
 
 Projeto desenvolvido para a Universidade Anhembi Morumbi, em atividade acadêmica com o Bradesco.
-A marca Bradesco **não** faz parte deste repositório; o tema acadêmico usa logotipos mantidos localmente, com autorização
-de uso restrita à atividade.
+Os logotipos do Bradesco (pasta `marca-academica/`, tema acadêmico) são usados com autorização restrita a esta atividade
+acadêmica, só para a apresentação; este é um trabalho acadêmico, sem vínculo oficial com o banco.

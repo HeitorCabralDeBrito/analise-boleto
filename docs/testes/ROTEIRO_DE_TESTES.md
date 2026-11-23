@@ -36,7 +36,7 @@ renomeado para `.png`
 - [ ] Login com Ag `0001` / Conta `12345-6` / Senha `senha123`
 - [ ] Senha errada → mensagem de erro, sem travar
 - [ ] Botão de olho mostra/esconde a senha
-- [ ] Seletor "Identidade visual" (só aparece com a pasta `marca-academica`) troca o tema sem recarregar
+- [ ] Seletor "Identidade visual" (só aparece com os logotipos em `marca-academica`) troca o tema sem recarregar
 - [ ] Fechar e abrir o navegador → o tema escolhido continua
 - [ ] Aviso "Protótipo acadêmico" aparece em todas as telas
 - [ ] **Sair** volta ao login; abrir `/home.html` depois disso → volta ao login

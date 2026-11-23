@@ -11,8 +11,8 @@ import java.nio.file.Path;
 /**
  * Identidade visual: tema próprio (padrão) e tema acadêmico Bradesco.
  *
- * Os logotipos do Bradesco NÃO ficam no repositório: são lidos de uma pasta local fora do git
- * (por padrão ./marca-academica) e servidos em /marca-academica/**. Sem essa pasta, o tema acadêmico
+ * Os logotipos do Bradesco (uso acadêmico autorizado, só para a apresentação) são lidos de uma pasta
+ * (por padrão ./marca-academica; na imagem Docker, /app/marca-academica) e servidos em /marca-academica/**. Sem essa pasta, o tema acadêmico
  * fica indisponível e o sistema usa sempre a identidade própria.
  */
 @Configuration

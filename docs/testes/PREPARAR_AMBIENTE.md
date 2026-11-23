@@ -65,9 +65,8 @@ Os segredos ficam num arquivo **só seu**, fora do Git:
 
 ## 5. Opcionais
 
-- **Tema acadêmico Bradesco:** os logotipos **não estão no Git** (uso acadêmico, sem autorização para publicar).
-  Peça ao Bruno a pasta `marca-academica` (por mensagem privada) e coloque em `analise-boleto/marca-academica/`.
-  Sem ela, o sistema usa só o tema próprio — o resto funciona igual.
+- **Tema acadêmico Bradesco:** os logotipos já vêm no repositório, na pasta `marca-academica/`
+  (uso acadêmico autorizado pela professora, só para a apresentação). Sem ela, o sistema usa só o tema próprio — o resto funciona igual.
 - **IA (OpenAI):** sem chave tudo funciona, e a explicação vem "das regras". Para testar a IA, use **a sua própria chave**
   (não compartilhem chaves em grupo). No PowerShell, em qualquer pasta:
   ```powershell

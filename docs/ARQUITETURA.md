@@ -114,7 +114,7 @@ flowchart TB
         A1["mvnw spring-boot:run<br/>porta 8080"] --> P1[("PostgreSQL local")]
         A1 --> T1["Tesseract (Windows)"]
         CFG["config/application.properties<br/>(segredos locais, fora do Git)"] -.-> A1
-        LOGO["marca-academica/<br/>(logos Bradesco, fora do Git)"] -.-> A1
+        LOGO["marca-academica/<br/>(logos Bradesco, uso acadêmico)"] -.-> A1
     end
     subgraph Render["Render (opcional)"]
         A2["Contêiner Docker<br/>Java 21 + Tesseract por<br/>HTTPS automático"] --> P2[("PostgreSQL gerenciado<br/>só rede interna")]
@@ -131,7 +131,7 @@ flowchart TB
 | Conferência humana obrigatória antes da análise | OCR e IA erram; nenhum dado lido automaticamente é aceito sem o "Conferi os dados" |
 | Dados públicos (CNPJ) mostrados como indício, não prova | A Receita mostra se a empresa existe, não quem recebe o dinheiro do boleto (isso só a CIP/NPC confirmaria) |
 | Denúncia com 1 voto = só atenção | Uma pessoa sozinha não pode prejudicar uma empresa com denúncias falsas |
-| Dois temas por variáveis CSS, um só código | Identidade própria pública; tema acadêmico Bradesco só com os logotipos locais |
+| Dois temas por variáveis CSS, um só código | Identidade própria pública; tema acadêmico Bradesco com os logotipos de `marca-academica/` (uso acadêmico autorizado) |
 | Migrações versionadas (Flyway) + `ddl-auto=validate` | O banco da nuvem nasce igual ao local; mudança de tabela só por migração revisável |
 
 ## Segurança e privacidade

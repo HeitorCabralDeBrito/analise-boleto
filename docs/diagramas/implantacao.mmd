@@ -3,7 +3,7 @@ flowchart TB
         A1["mvnw spring-boot:run<br/>porta 8080"] --> P1[("PostgreSQL local")]
         A1 --> T1["Tesseract (Windows)"]
         CFG["config/application.properties<br/>(segredos locais, fora do Git)"] -.-> A1
-        LOGO["marca-academica/<br/>(logos Bradesco, fora do Git)"] -.-> A1
+        LOGO["marca-academica/<br/>(logos Bradesco, uso acadêmico)"] -.-> A1
     end
     subgraph Render["Render (opcional)"]
         A2["Contêiner Docker<br/>Java 21 + Tesseract por<br/>HTTPS automático"] --> P2[("PostgreSQL gerenciado<br/>só rede interna")]
