@@ -130,6 +130,8 @@ Se instalar em outro lugar, ajuste `boleto.seguro.tesseract.caminho` no `applica
 Ordem de leitura da linha digitável: texto do PDF → código de barras → OCR local → IA (só com chave e créditos).
 Os campos impressos (beneficiário, CPF/CNPJ, valor e vencimento) vêm do texto do PDF ou, em imagens e PDFs escaneados,
 de uma passada de OCR em português (o pacote de idioma `por` precisa estar instalado no Tesseract).
+Em fotos, prints e PDFs escaneados, o que ainda faltar (linha e/ou campos) a IA tenta ler numa só chamada, se houver chave;
+ela nunca substitui o que a leitura local já achou, e tudo passa pelas mesmas conferências (DVs, data e valor válidos).
 Tudo o que é lido aparece na tela **Conferir** com a origem de cada campo; o usuário corrige e confirma antes da análise.
 
 Limites da leitura (opcionais no `application.properties`; os valores abaixo são os padrões):

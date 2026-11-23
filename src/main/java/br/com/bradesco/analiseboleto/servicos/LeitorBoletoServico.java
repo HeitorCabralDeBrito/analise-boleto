@@ -55,7 +55,8 @@ import java.util.regex.Pattern;
  *   PDF/imagem  → código de barras ITF de 44 dígitos (ZXing) e reconstrução da linha
  *   PDF/imagem  → OCR local (Tesseract) dos números impressos, para prints de baixa resolução
  *   PDF/imagem  → IA (OpenAI), só se tudo acima falhar e houver chave configurada
- * Campos impressos: texto do PDF ou, se não houver texto, uma passada de OCR local.
+ * Campos impressos: texto do PDF ou, se não houver texto, uma passada de OCR local; o que faltar em fotos,
+ * prints e PDFs escaneados a IA completa (mesma chamada da linha), sem substituir o que já foi lido.
  *
  * Proteções: tipo verificado pela assinatura do arquivo, limites de tamanho, pixels e páginas
  * (ArquivoBoletoValidador), no máximo N leituras ao mesmo tempo, prazo total por leitura e tempo limite
@@ -171,11 +172,18 @@ public class LeitorBoletoServico {
                 campos = ocrLocal.lerTexto(imagemOcr).map(t -> extrator.extrair(t, Fonte.OCR_LOCAL)).orElse(campos);
             }
 
-            // Plano C: IA lê a linha digitável impressa (ex.: código de barras coberto ou borrado)
-            if (linha.isEmpty() && leitorIa.disponivel() && dentroDoPrazo(limite, avisos)) {
+            // Plano C: IA lê o que ficou faltando (linha digitável e/ou campos impressos), em fotos, prints e
+            // PDFs escaneados. PDF com texto não precisa: o que não está no texto também não está impresso.
+            boolean faltaAlgo = linha.isEmpty() || campos.identificados() < 4;
+            boolean temImagem = !arquivo.pdf() || imagemOcr != null;
+            if (faltaAlgo && temImagem && leitorIa.disponivel() && dentroDoPrazo(limite, avisos)) {
                 byte[] imagemIa = arquivo.pdf() ? comoPng(imagemOcr) : arquivo.bytes();
                 String mime = arquivo.pdf() || arquivo.tipo() == ArquivoBoletoValidador.Tipo.PNG ? "image/png" : "image/jpeg";
-                linha = leitorIa.lerLinhaDigitavel(imagemIa, mime).map(l -> new Leitura(l, Fonte.IA));
+                Optional<LeitorIaServico.LeituraIa> ia = leitorIa.ler(imagemIa, mime);
+                if (ia.isPresent()) {
+                    if (linha.isEmpty()) linha = ia.get().linhaDigitavel().map(l -> new Leitura(l, Fonte.IA));
+                    campos = completar(campos, ia.get().campos());
+                }
             }
 
             if (linha.isEmpty() && campos.identificados() == 0) {
@@ -209,6 +217,15 @@ public class LeitorBoletoServico {
     // texto do PDF ela é exata. OCR e IA passaram nos DVs, mas ainda pedem conferência visual.
     private static Confianca confiancaDaLinha(Fonte fonte) {
         return fonte == Fonte.CODIGO_BARRAS || fonte == Fonte.TEXTO_PDF ? Confianca.ALTA : Confianca.MEDIA;
+    }
+
+    /** A leitura local tem prioridade; a IA só preenche os campos que ficaram sem leitura. */
+    static Campos completar(Campos local, Campos ia) {
+        return new Campos(
+            local.nomeBeneficiario().identificado() ? local.nomeBeneficiario() : ia.nomeBeneficiario(),
+            local.documentoBeneficiario().identificado() ? local.documentoBeneficiario() : ia.documentoBeneficiario(),
+            local.valor().identificado() ? local.valor() : ia.valor(),
+            local.vencimento().identificado() ? local.vencimento() : ia.vencimento());
     }
 
     private boolean dentroDoPrazo(long limite, List<String> avisos) {

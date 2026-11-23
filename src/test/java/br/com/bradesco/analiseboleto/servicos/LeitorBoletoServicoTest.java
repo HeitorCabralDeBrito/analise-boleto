@@ -156,6 +156,30 @@ class LeitorBoletoServicoTest {
     }
 
     @Test
+    @DisplayName("Quando a leitura local não lê nada, a IA preenche a linha e os campos impressos")
+    void iaPreencheOQueALeituraLocalNaoLeu() throws Exception {
+        // IA falsa (sem rede): responde como a OpenAI responderia, passando pelas mesmas conferências
+        LeitorIaServico iaFalsa = new LeitorIaServico(validador, "chave-de-teste", "gpt-4o-mini") {
+            @Override public java.util.Optional<LeituraIa> ler(byte[] imagem, String mimeType) {
+                return java.util.Optional.of(interpretar("""
+                    {"linha_digitavel": "%s", "beneficiario_nome": "Loja Exemplo LTDA",
+                     "beneficiario_documento": "11222333000181", "valor": "150,00", "vencimento": "10/11/2026"}"""
+                    .formatted(LINHA)));
+            }
+        };
+        LeitorBoletoServico comIa = new LeitorBoletoServico(validador, iaFalsa,
+            new OcrLocalServico(validador, "tesseract-inexistente.exe"));
+
+        var r = comIa.ler(new MockMultipartFile("arquivo", "foto.png", "image/png", imagemEmBranco()));
+
+        assertEquals(LINHA, r.linhaDigitavel());
+        assertEquals("IA", r.metodo());
+        assertEquals("Loja Exemplo LTDA", r.campos().nomeBeneficiario().valor());
+        assertEquals(ExtratorCamposBoleto.Fonte.IA, r.campos().valor().fonte());
+        assertEquals("2026-11-10", r.campos().vencimento().valor());
+    }
+
+    @Test
     @DisplayName("Com o limite de leituras simultâneas atingido, a próxima recebe 'servidor ocupado'")
     void limiteDeLeiturasSimultaneas() throws Exception {
         CountDownLatch dentroDoOcr = new CountDownLatch(1);

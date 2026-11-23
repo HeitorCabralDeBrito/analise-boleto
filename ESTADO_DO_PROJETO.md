@@ -39,7 +39,7 @@ humana.
 | OCR | Tesseract OCR 5 (processo local; idiomas: dígitos e português) |
 | Dados externos | BrasilAPI (CNPJ, Receita Federal), sem chave |
 | IA (opcional) | OpenAI (`gpt-4o-mini`), chamada direta via `RestClient` |
-| Testes | JUnit 5 — **104 testes**, todos passando |
+| Testes | JUnit 5 — **112 testes**, todos passando |
 | Nuvem (preparado) | Docker + Render (`render.yaml`); ainda não publicado |
 
 ---
@@ -164,7 +164,7 @@ Exemplos reais de requisição e resposta: `docs/API.md`.
 | `LeitorBoletoServico` | Orquestra a leitura (PDF → código de barras → OCR → IA), limites, prazo e tempo |
 | `ExtratorCamposBoleto` | Campos impressos a partir do texto, com fonte e confiança |
 | `OcrLocalServico` | Tesseract (dígitos e português) com tempo limite |
-| `LeitorIaServico` | Leitura por IA (último recurso) |
+| `LeitorIaServico` | Leitura por IA (último recurso): linha digitável e campos impressos que a leitura local não achou |
 | `MotorRiscoServico` | As 8 verificações, nota e nível |
 | `ExplicacaoRiscoServico` | Explicação por regras (cita exatamente o que faltou informar) |
 | `ExplicacaoIaServico` | Reescrita da explicação pela IA, com conferências |
@@ -198,15 +198,16 @@ V3 (denúncias). MER/DER e dicionário: `docs/MODELO_DE_DADOS.md`.
 
 ---
 
-## 8. Testes automatizados (104, todos passando)
+## 8. Testes automatizados (112, todos passando)
 
 | Classe | Testes | Cobre |
 |---|---|---|
 | `MotorRiscoServicoTest` | 17 | Regras de pontuação, CNPJ (ativo, baixado, não encontrado, nome diferente, indisponível, desatualizado), instituição, denúncias, vencimento só informado, ausência do termo "codificado" |
 | `BoletoValidadorTest` | 12 | Dígitos verificadores, formatos, bloqueios, arrecadação |
-| `LeitorBoletoServicoTest` | 11 | Código de barras, PDF textual com campos, limite de leituras simultâneas, Tesseract real (quando instalado), arrecadação por imagem |
+| `LeitorBoletoServicoTest` | 12 | Código de barras, PDF textual com campos, IA completando o que a leitura local não leu, limite de leituras simultâneas, Tesseract real (quando instalado), arrecadação por imagem |
 | `ExtratorCamposBoletoTest` | 8 | Campos de PDF e de OCR, CPF do pagador ignorado, rótulo vizinho, data impossível |
 | `ConsultaCnpjServicoTest` | 7 | Servidor falso: 200 com cache, CPF não consultado, 404, 500, 429 com cache vencido, timeout, disjuntor |
+| `LeitorIaServicoTest` | 7 | Linha e campos lidos pela IA, descarte do que não passa nas conferências, prioridade da leitura local, sem chave |
 | `ExplicacaoIaServicoTest` | 7 | Servidor falso: sem dados pessoais no pedido, descarte de respostas perigosas, timeout, sem chave |
 | `PersistenciaIntegracaoTest` | 7 | Restrições do banco, explicação salva, alertas, confirmação só pelo dono |
 | `ArquivoBoletoValidadorTest` | 6 | Assinatura do arquivo, arquivo disfarçado, imagem gigante pelo cabeçalho, páginas demais |
