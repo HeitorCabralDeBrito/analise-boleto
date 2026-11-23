@@ -180,6 +180,44 @@ class LeitorBoletoServicoTest {
     }
 
     @Test
+    @DisplayName("Sem código de barras, a IA roda em paralelo e o Tesseract lento para assim que ela lê a linha")
+    void iaEmParaleloInterrompeOcrLento() throws Exception {
+        LeitorIaServico iaFalsa = new LeitorIaServico(validador, "chave-de-teste", "gpt-4o-mini") {
+            @Override public java.util.Optional<LeituraIa> ler(byte[] imagem, String mimeType) {
+                return java.util.Optional.of(interpretar("""
+                    {"linha_digitavel": "%s", "beneficiario_nome": "Loja Exemplo LTDA",
+                     "beneficiario_documento": "11222333000181", "valor": "150,00", "vencimento": "10/11/2026"}"""
+                    .formatted(LINHA)));
+            }
+        };
+        java.util.concurrent.atomic.AtomicBoolean ocrDeTextoChamado = new java.util.concurrent.atomic.AtomicBoolean();
+        // Tesseract falso e lento: cada "passada" demora, e ele só para quando o leitor manda parar
+        OcrLocalServico ocrLento = new OcrLocalServico(validador, "tesseract-inexistente.exe") {
+            @Override public boolean disponivel() { return true; }
+            @Override public java.util.Optional<String> lerLinhaDigitavel(BufferedImage imagem, java.util.function.BooleanSupplier continuar) {
+                long fim = System.nanoTime() + TimeUnit.SECONDS.toNanos(20);
+                while (continuar.getAsBoolean() && System.nanoTime() < fim) {
+                    try { Thread.sleep(20); } catch (InterruptedException e) { return java.util.Optional.empty(); }
+                }
+                return java.util.Optional.empty();
+            }
+            @Override public java.util.Optional<String> lerTexto(BufferedImage imagem) {
+                ocrDeTextoChamado.set(true);
+                return java.util.Optional.empty();
+            }
+        };
+        LeitorBoletoServico comIa = new LeitorBoletoServico(validador, iaFalsa, ocrLento);
+
+        long inicio = System.nanoTime();
+        var r = comIa.ler(new MockMultipartFile("arquivo", "foto.png", "image/png", imagemEmBranco()));
+
+        assertTrue(TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - inicio) < 10, "o OCR deveria ter parado cedo");
+        assertEquals("IA", r.metodo());
+        assertEquals(4, r.campos().identificados());
+        assertFalse(ocrDeTextoChamado.get(), "a IA já leu os 4 campos: a passada de OCR do texto é desnecessária");
+    }
+
+    @Test
     @DisplayName("Com o limite de leituras simultâneas atingido, a próxima recebe 'servidor ocupado'")
     void limiteDeLeiturasSimultaneas() throws Exception {
         CountDownLatch dentroDoOcr = new CountDownLatch(1);
@@ -187,7 +225,7 @@ class LeitorBoletoServicoTest {
         // OCR falso que segura a primeira leitura até o teste liberar
         OcrLocalServico ocrLento = new OcrLocalServico(validador, "tesseract-inexistente.exe") {
             @Override public boolean disponivel() { return true; }
-            @Override public java.util.Optional<String> lerLinhaDigitavel(BufferedImage imagem) {
+            @Override public java.util.Optional<String> lerLinhaDigitavel(BufferedImage imagem, java.util.function.BooleanSupplier continuar) {
                 dentroDoOcr.countDown();
                 try { liberar.await(10, TimeUnit.SECONDS); } catch (InterruptedException ignored) { }
                 return java.util.Optional.empty();

@@ -39,7 +39,7 @@ humana.
 | OCR | Tesseract OCR 5 (processo local; idiomas: dígitos e português) |
 | Dados externos | BrasilAPI (CNPJ, Receita Federal), sem chave |
 | IA (opcional) | OpenAI (`gpt-4o-mini`), chamada direta via `RestClient` |
-| Testes | JUnit 5 — **112 testes**, todos passando |
+| Testes | JUnit 5 — **113 testes**, todos passando |
 | Nuvem (preparado) | Docker + Render (`render.yaml`); ainda não publicado |
 
 ---
@@ -198,13 +198,13 @@ V3 (denúncias). MER/DER e dicionário: `docs/MODELO_DE_DADOS.md`.
 
 ---
 
-## 8. Testes automatizados (112, todos passando)
+## 8. Testes automatizados (113, todos passando)
 
 | Classe | Testes | Cobre |
 |---|---|---|
 | `MotorRiscoServicoTest` | 17 | Regras de pontuação, CNPJ (ativo, baixado, não encontrado, nome diferente, indisponível, desatualizado), instituição, denúncias, vencimento só informado, ausência do termo "codificado" |
 | `BoletoValidadorTest` | 12 | Dígitos verificadores, formatos, bloqueios, arrecadação |
-| `LeitorBoletoServicoTest` | 12 | Código de barras, PDF textual com campos, IA completando o que a leitura local não leu, limite de leituras simultâneas, Tesseract real (quando instalado), arrecadação por imagem |
+| `LeitorBoletoServicoTest` | 13 | Código de barras, PDF textual com campos, IA completando o que a leitura local não leu, IA em paralelo interrompendo o OCR lento, limite de leituras simultâneas, Tesseract real (quando instalado), arrecadação por imagem |
 | `ExtratorCamposBoletoTest` | 8 | Campos de PDF e de OCR, CPF do pagador ignorado, rótulo vizinho, data impossível |
 | `ConsultaCnpjServicoTest` | 7 | Servidor falso: 200 com cache, CPF não consultado, 404, 500, 429 com cache vencido, timeout, disjuntor |
 | `LeitorIaServicoTest` | 7 | Linha e campos lidos pela IA, descarte do que não passa nas conferências, prioridade da leitura local, sem chave |

@@ -239,7 +239,8 @@
   if (!API.requireAuth()) {}
 
   const TAMANHO_MAXIMO = 10 * 1024 * 1024;
-  const TEMPO_LIMITE_MS = 90000;
+  // Maior que o prazo do servidor (80 s no Render) mais uma passada do Tesseract já iniciada
+  const TEMPO_LIMITE_MS = 130000;
   const NOMES_FONTE = {
     TEXTO_PDF: 'Lido do texto do PDF',
     CODIGO_BARRAS: 'Lido do código de barras',

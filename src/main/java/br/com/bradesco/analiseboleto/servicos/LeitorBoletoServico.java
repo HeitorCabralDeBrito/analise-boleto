@@ -41,7 +41,13 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeoutException;
+import java.util.function.BooleanSupplier;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,9 +60,13 @@ import java.util.regex.Pattern;
  *   PDF digital → texto do PDF (PDFBox) procurando a linha digitável impressa
  *   PDF/imagem  → código de barras ITF de 44 dígitos (ZXing) e reconstrução da linha
  *   PDF/imagem  → OCR local (Tesseract) dos números impressos, para prints de baixa resolução
- *   PDF/imagem  → IA (OpenAI), só se tudo acima falhar e houver chave configurada
+ *   PDF/imagem  → IA (OpenAI), se houver chave configurada
  * Campos impressos: texto do PDF ou, se não houver texto, uma passada de OCR local; o que faltar em fotos,
  * prints e PDFs escaneados a IA completa (mesma chamada da linha), sem substituir o que já foi lido.
+ *
+ * Se o código de barras falhar, a IA começa logo, em paralelo com o Tesseract (que é lento em CPU fraca, como
+ * no plano gratuito da nuvem); as passadas de OCR que a IA já resolveu deixam de rodar. Se o código de barras
+ * funcionar, a IA só é chamada no fim, e só se faltar algum campo.
  *
  * Proteções: tipo verificado pela assinatura do arquivo, limites de tamanho, pixels e páginas
  * (ArquivoBoletoValidador), no máximo N leituras ao mesmo tempo, prazo total por leitura e tempo limite
@@ -84,6 +94,9 @@ public class LeitorBoletoServico {
         HINTS.put(DecodeHintType.ALLOWED_LENGTHS, new int[]{44});
         HINTS.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
     }
+
+    // Chamadas à IA em paralelo com o OCR: só esperam a rede, então threads virtuais bastam
+    private static final ExecutorService EXECUTOR_IA = Executors.newVirtualThreadPerTaskExecutor();
 
     private final BoletoValidador validador;
     private final LeitorIaServico leitorIa;
@@ -162,27 +175,40 @@ public class LeitorBoletoServico {
                 imagemOcr = imagem;
             }
 
-            // Plano B: OCR local dos números impressos (barras finas demais em prints de baixa resolução)
+            // Fotos, prints e PDFs escaneados têm imagem; PDF com texto e linha lida não precisa de OCR nem IA
+            boolean temImagem = imagemOcr != null;
+
+            // Plano C adiantado: sem código de barras, a IA começa já e trabalha enquanto o Tesseract tenta
+            CompletableFuture<Optional<LeitorIaServico.LeituraIa>> ia = null;
+            if (linha.isEmpty() && temImagem && leitorIa.disponivel()) {
+                ia = iniciarIa(arquivo, imagemOcr);
+            }
+            final CompletableFuture<Optional<LeitorIaServico.LeituraIa>> iaAdiantada = ia;
+
+            // Plano B: OCR local dos números impressos (barras finas demais em prints de baixa resolução).
+            // Para entre as passadas se o prazo acabar ou se a IA já tiver lido a linha.
+            BooleanSupplier continuarOcr = () -> System.nanoTime() < limite && !iaLeu(iaAdiantada, true);
             if (linha.isEmpty() && ocrLocal.disponivel() && dentroDoPrazo(limite, avisos)) {
-                linha = ocrLocal.lerLinhaDigitavel(imagemOcr).map(l -> new Leitura(l, Fonte.OCR_LOCAL));
+                linha = ocrLocal.lerLinhaDigitavel(imagemOcr, continuarOcr).map(l -> new Leitura(l, Fonte.OCR_LOCAL));
             }
 
             // Campos impressos de imagens e PDFs escaneados: uma passada de OCR do texto todo
-            if (campos.identificados() == 0 && imagemOcr != null && ocrLocal.disponivel() && dentroDoPrazo(limite, avisos)) {
+            if (campos.identificados() == 0 && temImagem && ocrLocal.disponivel() && dentroDoPrazo(limite, avisos)
+                    && !iaLeu(iaAdiantada, false)) {
                 campos = ocrLocal.lerTexto(imagemOcr).map(t -> extrator.extrair(t, Fonte.OCR_LOCAL)).orElse(campos);
             }
 
-            // Plano C: IA lê o que ficou faltando (linha digitável e/ou campos impressos), em fotos, prints e
-            // PDFs escaneados. PDF com texto não precisa: o que não está no texto também não está impresso.
+            // Plano C: se a IA ainda não foi chamada, entra agora, e só se faltar algo
             boolean faltaAlgo = linha.isEmpty() || campos.identificados() < 4;
-            boolean temImagem = !arquivo.pdf() || imagemOcr != null;
-            if (faltaAlgo && temImagem && leitorIa.disponivel() && dentroDoPrazo(limite, avisos)) {
-                byte[] imagemIa = arquivo.pdf() ? comoPng(imagemOcr) : arquivo.bytes();
-                String mime = arquivo.pdf() || arquivo.tipo() == ArquivoBoletoValidador.Tipo.PNG ? "image/png" : "image/jpeg";
-                Optional<LeitorIaServico.LeituraIa> ia = leitorIa.ler(imagemIa, mime);
-                if (ia.isPresent()) {
-                    if (linha.isEmpty()) linha = ia.get().linhaDigitavel().map(l -> new Leitura(l, Fonte.IA));
-                    campos = completar(campos, ia.get().campos());
+            if (ia == null && faltaAlgo && temImagem && leitorIa.disponivel() && dentroDoPrazo(limite, avisos)) {
+                ia = iniciarIa(arquivo, imagemOcr);
+            }
+            // A leitura local tem prioridade; a IA só preenche o que faltou
+            if (ia != null) {
+                Optional<LeitorIaServico.LeituraIa> lidoPelaIa = aguardarIa(ia, limite, avisos);
+                if (lidoPelaIa.isPresent()) {
+                    if (linha.isEmpty()) linha = lidoPelaIa.get().linhaDigitavel().map(l -> new Leitura(l, Fonte.IA));
+                    campos = completar(campos, lidoPelaIa.get().campos());
                 }
             }
 
@@ -217,6 +243,37 @@ public class LeitorBoletoServico {
     // texto do PDF ela é exata. OCR e IA passaram nos DVs, mas ainda pedem conferência visual.
     private static Confianca confiancaDaLinha(Fonte fonte) {
         return fonte == Fonte.CODIGO_BARRAS || fonte == Fonte.TEXTO_PDF ? Confianca.ALTA : Confianca.MEDIA;
+    }
+
+    private CompletableFuture<Optional<LeitorIaServico.LeituraIa>> iniciarIa(ArquivoBoleto arquivo, BufferedImage imagem)
+            throws IOException {
+        byte[] bytes = arquivo.pdf() ? comoPng(imagem) : arquivo.bytes();
+        String mime = arquivo.pdf() || arquivo.tipo() == ArquivoBoletoValidador.Tipo.PNG ? "image/png" : "image/jpeg";
+        return CompletableFuture.supplyAsync(() -> leitorIa.ler(bytes, mime), EXECUTOR_IA);
+    }
+
+    /** A IA (já terminada) leu a linha digitável, ou, com {@code linha} falso, os quatro campos impressos? */
+    private static boolean iaLeu(CompletableFuture<Optional<LeitorIaServico.LeituraIa>> ia, boolean linha) {
+        if (ia == null || !ia.isDone() || ia.isCompletedExceptionally()) return false;
+        return ia.join().map(l -> linha ? l.linhaDigitavel().isPresent() : l.campos().identificados() == 4).orElse(false);
+    }
+
+    /** Espera a IA até o fim do prazo (no mínimo alguns segundos, se ela foi chamada no fim). */
+    private Optional<LeitorIaServico.LeituraIa> aguardarIa(CompletableFuture<Optional<LeitorIaServico.LeituraIa>> ia,
+                                                         long limite, List<String> avisos) {
+        long espera = Math.max(limite - System.nanoTime(), TimeUnit.SECONDS.toNanos(5));
+        try {
+            return ia.get(espera, TimeUnit.NANOSECONDS);
+        } catch (TimeoutException e) {
+            ia.cancel(true);
+            String aviso = "A leitura atingiu o tempo limite; alguns dados podem não ter sido lidos.";
+            if (!avisos.contains(aviso)) avisos.add(aviso);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            log.warn("Falha na leitura por IA: {}", e.getCause() == null ? e.getMessage() : e.getCause().getMessage());
+        }
+        return Optional.empty();
     }
 
     /** A leitura local tem prioridade; a IA só preenche os campos que ficaram sem leitura. */

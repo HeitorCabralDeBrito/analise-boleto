@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -62,6 +63,14 @@ public class OcrLocalServico {
 
     /** Retorna a linha digitável (47 dígitos válidos) lida da imagem, ou vazio. */
     public Optional<String> lerLinhaDigitavel(BufferedImage imagem) {
+        return lerLinhaDigitavel(imagem, () -> true);
+    }
+
+    /**
+     * Igual ao anterior, mas consulta {@code continuar} antes de cada passada: o leitor para quando o prazo acaba
+     * ou quando a IA, rodando em paralelo, já leu a linha. Em CPU fraca cada passada pode levar dezenas de segundos.
+     */
+    public Optional<String> lerLinhaDigitavel(BufferedImage imagem, BooleanSupplier continuar) {
         if (!disponivel() || imagem == null) return Optional.empty();
 
         // Texto pequeno de print: ampliar com suavização e trocar o modo de leitura
@@ -71,6 +80,7 @@ public class OcrLocalServico {
         for (int fator : fatores) {
             BufferedImage preparada = prepararImagem(imagem, fator);
             for (String modo : List.of("6", "11")) {
+                if (!continuar.getAsBoolean()) return Optional.empty();
                 Optional<String> linha = executarTesseract(preparada, "--psm", modo,
                         "-c", "tessedit_char_whitelist=0123456789. ")
                     .flatMap(this::extrairLinha);
