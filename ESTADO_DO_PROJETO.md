@@ -38,9 +38,9 @@ humana.
 | Código de barras | ZXing 3.5.3 (ITF, 44 dígitos) |
 | OCR | Tesseract OCR 5 (processo local; idiomas: dígitos e português) |
 | Dados externos | BrasilAPI (CNPJ, Receita Federal), sem chave |
-| IA (opcional) | OpenAI (`gpt-4o-mini`), chamada direta via `RestClient` |
+| IA (opcional) | OpenAI, chamada direta via `RestClient`: `gpt-4o` na leitura de imagens difíceis, `gpt-4o-mini` na explicação |
 | Testes | JUnit 5 — **115 testes**, todos passando |
-| Nuvem (preparado) | Docker + Render (`render.yaml`); ainda não publicado |
+| Nuvem | Docker + Render (Blueprint `render.yaml`), publicado em 23/11/2026: https://boleto-seguro-ca8q.onrender.com |
 
 ---
 
@@ -78,7 +78,12 @@ humana.
 
 ### 4.3 Importação prioritária e leitura inteligente (Etapa 2)
 - Linha digitável, nesta ordem: texto do PDF → código de barras (ZXing, também girado e ampliado) → OCR dos números
-  (Tesseract) → IA (último recurso, só com chave).
+  (Tesseract) → IA (só com chave).
+- **IA na leitura (`gpt-4o`):** numa só chamada lê a linha digitável e os quatro campos impressos. Só preenche o que a
+  leitura local não achou; prints pequenos são ampliados antes do envio; cada campo passa por conferência (DVs da linha e
+  do CPF/CNPJ, data e valor válidos), e valor/vencimento que divergem do código ficam com confiança baixa e aviso.
+  Quando o código de barras falha, a IA roda **em paralelo** com o Tesseract (lento na CPU do plano gratuito), e as
+  passadas de OCR que ela já resolveu deixam de rodar.
 - **Campos impressos** (beneficiário, CPF/CNPJ, valor, vencimento) extraídos do texto do PDF ou por uma passada de OCR em
   português, localizados pelos rótulos. O CPF/CNPJ só é procurado perto de "Beneficiário" (nunca o do pagador).
 - Cada campo volta com **fonte** (`TEXTO_PDF`, `CODIGO_BARRAS`, `OCR_LOCAL`, `IA`, `NAO_IDENTIFICADO`) e **confiança**
@@ -283,9 +288,10 @@ Usuários: Ag `0001` / Conta `12345-6` / `senha123` · Ag `0001` / Conta `98765-
 
 1. ~~Testes manuais pelo roteiro~~ — feitos pela equipe em 16/11/2026, sem defeitos abertos; dados de teste apagados do
    banco local na mesma data (backup guardado fora do repositório).
-2. Publicação no Render (tudo preparado: `Dockerfile`, `render.yaml`, `DEPLOY_RENDER.md`) — **a confirmar com a professora
-   se é necessária**; a apresentação pode ser feita a partir do notebook.
-3. Repositório próprio da equipe no GitHub.
+2. ~~Publicação no Render~~ — feita em 23/11/2026 com as duas identidades visuais (autorização da professora), a partir
+   de um repositório privado da equipe. O banco gratuito expira 30 dias depois de criado (por volta de 23/12/2026); o
+   site sai do ar depois da apresentação.
+3. ~~Repositório próprio da equipe no GitHub~~ — criado (privado) para o deploy.
 4. Teste com usuários de leitores de tela e TalkBack.
 5. Futuro (não implementado): agente com Spring AI usando o histórico; consulta a fontes oficiais de boletos registrados
    mediante convênio; boletos de arrecadação (ver Limitações).
@@ -310,6 +316,10 @@ Usuários: Ag `0001` / Conta `12345-6` / `senha123` · Ag `0001` / Conta `98765-
 | `a80c1fc` | Documentação final: README, arquitetura, modelo de dados, API, roteiro do vídeo |
 | `9dacf20`, `7e4ef5d` | Hifenização desligada; login mais limpo, dicas no celular e pergunta do banco |
 | `7f161bb` | Erros de requisição com status correto (400/405/413) e erros internos registrados no log |
-| (este) | Documentação: limitação das contas de consumo, equipe e post |
+| `4b94a91`…`14e58cc` | Documentação: limitação das contas de consumo, equipe; post e roteiro saem do repositório |
+| `ce0d62f` | Tema acadêmico Bradesco também no Render (logotipos no Git e na imagem Docker) |
+| `11e4bbb` | IA preenche também os campos impressos que a leitura local não achou |
+| `18a7192` | IA em paralelo com o Tesseract; prazos ajustados para a nuvem |
+| `5b8bd86` | Leitura por IA com `gpt-4o`, imagem ampliada e conferência com o código de barras |
 
 Checkpoint 2: `1f494e3`, `505c43a`, `4b21efd`, `6348205`, `50338e3`.

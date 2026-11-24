@@ -19,7 +19,7 @@ O repositório já tem tudo o que o Render precisa:
 | Leitura de PDF (texto) e de código de barras | ✅ |
 | OCR (Tesseract) de fotos e prints | ✅, porém **mais lento** no plano gratuito (pouca CPU) |
 | Consulta de CNPJ (BrasilAPI), instituição pelo código | ✅ |
-| IA (leitura difícil e explicação reescrita) | ✅ se `OPENAI_API_KEY` for preenchida |
+| IA (leitura difícil com `gpt-4o` e explicação reescrita com `gpt-4o-mini`) | ✅ se `OPENAI_API_KEY` estiver em **Environment** (veja os problemas comuns) |
 | Acessibilidade, voz, temas, celular (câmera) | ✅ (HTTPS do Render ajuda a câmera do celular) |
 | **Tema acadêmico Bradesco** | ✅ os logotipos (`marca-academica/`) vão na imagem; uso acadêmico autorizado pela professora, só para a apresentação. O site fica no ar só durante o período de apresentação |
 
@@ -71,6 +71,15 @@ No painel do serviço → **Logs**.
 | `Connection refused` / erro de banco | Banco ainda criando ou expirado (plano gratuito: 30 dias) |
 | Leitura de foto demorando ou "tempo limite" | Normal no plano gratuito; PDF e código de barras continuam rápidos |
 | `OutOfMemoryError` | Plano gratuito no limite: evite enviar várias fotos grandes ao mesmo tempo |
+| `cannot have more than one active free tier database` | O plano gratuito permite **um** banco por conta. Apague o banco antigo (se não servir mais) e clique em **Manual sync** no Blueprint |
+| Explicação sempre "das regras", IA nunca responde | Confira em **Environment** se `OPENAI_API_KEY` existe. No nosso deploy o valor digitado na criação do Blueprint não foi salvo; foi preciso **Add variable** → `OPENAI_API_KEY` → **Save, rebuild, and deploy** |
+| Erro 502 logo depois de um envio ao GitHub | O Render está trocando de versão (deploy automático a cada push na `main`); espere ficar **Live** |
+
+## Publicação feita (23/11/2026)
+
+- Endereço: https://boleto-seguro-ca8q.onrender.com — teste de fumaça 12/12 OK, explicação gerada pela IA.
+- Tempos medidos no plano gratuito: PDF ~6 s; foto nítida ~22 s; foto borrada (IA `gpt-4o` em paralelo com o OCR) ~40–50 s.
+  O navegador espera até 130 s; o servidor encerra a leitura em 80 s (`BOLETO_SEGURO_LEITURA_PRAZO_SEGUNDOS`).
 
 ## Segurança (o que já está feito)
 - Nenhum segredo no Git: senha do banco vem do Render, `JWT_SECRET` é gerada por ele, `OPENAI_API_KEY` é digitada no painel.
