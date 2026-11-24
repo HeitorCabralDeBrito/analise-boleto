@@ -86,6 +86,35 @@ class LeitorIaServicoTest {
     }
 
     @Test
+    @DisplayName("Print pequeno é ampliado antes de ir para a IA; imagem grande segue como está")
+    void ampliaImagemPequena() {
+        var pequena = new java.awt.image.BufferedImage(771, 360, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        var ampliada = LeitorIaServico.ampliarParaIa(pequena);
+        assertEquals(900, ampliada.getHeight());
+        assertTrue(ampliada.getWidth() <= LeitorIaServico.LADO_MAIOR_MAXIMO);
+
+        // Faixa larga: o limite do lado maior manda
+        var faixa = LeitorIaServico.ampliarParaIa(new java.awt.image.BufferedImage(1500, 200, java.awt.image.BufferedImage.TYPE_INT_RGB));
+        assertEquals(LeitorIaServico.LADO_MAIOR_MAXIMO, faixa.getWidth());
+
+        var grande = new java.awt.image.BufferedImage(1800, 1000, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        assertSame(grande, LeitorIaServico.ampliarParaIa(grande));
+    }
+
+    @Test
+    @DisplayName("Valor ou data lidos pela IA que divergem do código ficam com confiança baixa e aviso, sem trocar o valor")
+    void iaDivergenteDoCodigoPedeConferencia() {
+        Campos daIa = ia.interpretar("{\"valor\": \"150,00\", \"vencimento\": \"10/11/2023\"}").campos();
+        var codigo = new LeitorBoletoServico.DadosCodigo("237", "Bradesco", new java.math.BigDecimal("150.00"), "2026-11-10");
+
+        Campos conferidos = LeitorBoletoServico.conferirIaComCodigo(daIa, codigo);
+        assertEquals(Confianca.MEDIA, conferidos.valor().confianca(), "valor igual ao do código continua como está");
+        assertEquals("2023-11-10", conferidos.vencimento().valor(), "a data lida não é trocada");
+        assertEquals(Confianca.BAIXA, conferidos.vencimento().confianca());
+        assertNotNull(conferidos.vencimento().observacao());
+    }
+
+    @Test
     @DisplayName("A leitura local tem prioridade: a IA só preenche o que faltou")
     void completarSoPreencheVazios() {
         Campo local = new Campo("Nome Local", Fonte.OCR_LOCAL, Confianca.BAIXA, null);

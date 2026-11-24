@@ -13,6 +13,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.ObjectMapper;
 
+import javax.imageio.ImageIO;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -44,18 +50,24 @@ public class LeitorIaServico {
     static final String PROMPT = """
         Esta imagem é um boleto bancário brasileiro. Leia SOMENTE o que está impresso nele e responda em JSON, \
         exatamente com estas chaves:
-        {"linha_digitavel": "47 dígitos, só números",
+        {"linha_digitavel": "copiada COM a pontuação e os espaços impressos, no formato \
+        00000.00000 00000.000000 00000.000000 0 00000000000000 (5+5, 5+6, 5+6, 1 e 14 dígitos = 47)",
          "beneficiario_nome": "nome de quem RECEBE o pagamento (campo Beneficiário/Cedente)",
-         "beneficiario_documento": "CPF ou CNPJ do BENEFICIÁRIO, só números",
+         "beneficiario_documento": "CPF ou CNPJ do BENEFICIÁRIO, como impresso",
          "valor": "valor do documento, ex.: 1234,56",
-         "vencimento": "data de vencimento no formato DD/MM/AAAA"}
-        Regras: não confunda o beneficiário com o pagador/sacado; não invente nem complete dígitos; \
+         "vencimento": "data do campo Vencimento copiada exatamente como impressa, DD/MM/AAAA, com o ano de 4 dígitos"}
+        Regras: confira a quantidade de dígitos de cada grupo da linha digitável antes de responder; \
+        não confunda o beneficiário com o pagador/sacado; não invente nem complete dígitos; \
         use null em qualquer campo que não esteja legível com segurança.""";
 
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final DateTimeFormatter DATA_BR = DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
     private static final BigDecimal VALOR_MAXIMO = new BigDecimal("99999999.99");
     private static final int NOME_MAXIMO = 120;
+    // A OpenAI só reduz imagens (lado maior até 2048, menor até 768 no modo "high"); não amplia.
+    // Print pequeno chega com letras de poucos pixels: ampliamos antes, até o lado menor ter ~900 px.
+    static final int LADO_MENOR_ALVO = 900;
+    static final int LADO_MAIOR_MAXIMO = 2048;
 
     /** O que a IA leu e passou nas conferências. */
     public record LeituraIa(Optional<String> linhaDigitavel, Campos campos) { }
@@ -67,7 +79,7 @@ public class LeitorIaServico {
 
     public LeitorIaServico(BoletoValidador validador,
                            @Value("${boleto.seguro.openai.api-key:}") String apiKey,
-                           @Value("${boleto.seguro.openai.model:gpt-4o-mini}") String modelo) {
+                           @Value("${boleto.seguro.openai.model-leitura:gpt-4o}") String modelo) {
         this.validador = validador;
         this.apiKey = apiKey;
         this.modelo = modelo;
@@ -121,6 +133,41 @@ public class LeitorIaServico {
             log.warn("Falha ao consultar a IA para leitura do boleto: {}", e.getMessage());
         }
         return Optional.empty();
+    }
+
+    /**
+     * Imagem pronta para a IA: prints e fotos pequenas são ampliados (interpolação bicúbica) até o lado menor ter
+     * cerca de {@value #LADO_MENOR_ALVO} px, sem passar de {@value #LADO_MAIOR_MAXIMO} no lado maior.
+     * Imagem que já tem tamanho suficiente volta como está.
+     */
+    static BufferedImage ampliarParaIa(BufferedImage imagem) {
+        int w = imagem.getWidth(), h = imagem.getHeight();
+        double fator = Math.min((double) LADO_MAIOR_MAXIMO / Math.max(w, h), (double) LADO_MENOR_ALVO / Math.min(w, h));
+        if (fator <= 1.05) return imagem;
+        int nw = (int) Math.round(w * fator), nh = (int) Math.round(h * fator);
+        BufferedImage ampliada = new BufferedImage(nw, nh, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = ampliada.createGraphics();
+        try {
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g.drawImage(imagem, 0, 0, nw, nh, java.awt.Color.WHITE, null);
+        } finally {
+            g.dispose();
+        }
+        return ampliada;
+    }
+
+    /** Lê a partir da imagem já decodificada: amplia se for pequena e envia como PNG. */
+    public Optional<LeituraIa> ler(BufferedImage imagem) {
+        if (!disponivel() || imagem == null) return Optional.empty();
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ImageIO.write(ampliarParaIa(imagem), "png", out);
+            return ler(out.toByteArray(), "image/png");
+        } catch (IOException e) {
+            log.warn("Falha ao preparar a imagem para a IA: {}", e.getMessage());
+            return Optional.empty();
+        }
     }
 
     /** Converte a resposta JSON da IA, descartando tudo que não passar nas conferências. */

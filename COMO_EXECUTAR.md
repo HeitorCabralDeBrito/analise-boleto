@@ -166,7 +166,8 @@ O `application.properties` lê a variável: `boleto.seguro.openai.api-key=${OPEN
 
 Opcional no `application.properties`:
 ```properties
-boleto.seguro.openai.model=gpt-4o-mini
+boleto.seguro.openai.model=gpt-4o-mini          # explicação do risco
+boleto.seguro.openai.model-leitura=gpt-4o       # leitura de imagens difíceis
 boleto.seguro.openai.explicacao.habilitada=true        # false = sempre o texto das regras
 boleto.seguro.openai.explicacao.timeout-segundos=20
 ```

@@ -32,7 +32,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -181,7 +180,7 @@ public class LeitorBoletoServico {
             // Plano C adiantado: sem código de barras, a IA começa já e trabalha enquanto o Tesseract tenta
             CompletableFuture<Optional<LeitorIaServico.LeituraIa>> ia = null;
             if (linha.isEmpty() && temImagem && leitorIa.disponivel()) {
-                ia = iniciarIa(arquivo, imagemOcr);
+                ia = iniciarIa(imagemOcr);
             }
             final CompletableFuture<Optional<LeitorIaServico.LeituraIa>> iaAdiantada = ia;
 
@@ -201,7 +200,7 @@ public class LeitorBoletoServico {
             // Plano C: se a IA ainda não foi chamada, entra agora, e só se faltar algo
             boolean faltaAlgo = linha.isEmpty() || campos.identificados() < 4;
             if (ia == null && faltaAlgo && temImagem && leitorIa.disponivel() && dentroDoPrazo(limite, avisos)) {
-                ia = iniciarIa(arquivo, imagemOcr);
+                ia = iniciarIa(imagemOcr);
             }
             // A leitura local tem prioridade; a IA só preenche o que faltou
             if (ia != null) {
@@ -211,6 +210,8 @@ public class LeitorBoletoServico {
                     campos = completar(campos, lidoPelaIa.get().campos());
                 }
             }
+            // O que a IA leu do papel e diverge do código gravado na linha vira "confira" com aviso
+            if (linha.isPresent()) campos = conferirIaComCodigo(campos, dadosDoCodigo(linha.get().linha()));
 
             if (linha.isEmpty() && campos.identificados() == 0) {
                 throw new BoletoInvalidoException(
@@ -245,11 +246,9 @@ public class LeitorBoletoServico {
         return fonte == Fonte.CODIGO_BARRAS || fonte == Fonte.TEXTO_PDF ? Confianca.ALTA : Confianca.MEDIA;
     }
 
-    private CompletableFuture<Optional<LeitorIaServico.LeituraIa>> iniciarIa(ArquivoBoleto arquivo, BufferedImage imagem)
-            throws IOException {
-        byte[] bytes = arquivo.pdf() ? comoPng(imagem) : arquivo.bytes();
-        String mime = arquivo.pdf() || arquivo.tipo() == ArquivoBoletoValidador.Tipo.PNG ? "image/png" : "image/jpeg";
-        return CompletableFuture.supplyAsync(() -> leitorIa.ler(bytes, mime), EXECUTOR_IA);
+    // A imagem é preparada (ampliada se pequena) dentro da tarefa, sem atrasar o OCR
+    private CompletableFuture<Optional<LeitorIaServico.LeituraIa>> iniciarIa(BufferedImage imagem) {
+        return CompletableFuture.supplyAsync(() -> leitorIa.ler(imagem), EXECUTOR_IA);
     }
 
     /** A IA (já terminada) leu a linha digitável, ou, com {@code linha} falso, os quatro campos impressos? */
@@ -274,6 +273,28 @@ public class LeitorBoletoServico {
             log.warn("Falha na leitura por IA: {}", e.getCause() == null ? e.getMessage() : e.getCause().getMessage());
         }
         return Optional.empty();
+    }
+
+    /**
+     * Valor e vencimento lidos pela IA que divergem dos gravados no código ficam com confiança baixa e um aviso.
+     * O valor não é trocado: a divergência entre papel e código também é sinal de golpe, e o usuário decide.
+     */
+    static Campos conferirIaComCodigo(Campos campos, DadosCodigo codigo) {
+        Campo valor = campos.valor();
+        if (valor.fonte() == Fonte.IA && codigo.valor() != null && valor.valor() != null) {
+            BigDecimal lido = new BigDecimal(valor.valor().replace(".", "").replace(',', '.'));
+            if (lido.compareTo(codigo.valor()) != 0) {
+                valor = new Campo(valor.valor(), Fonte.IA, Confianca.BAIXA,
+                    "O valor lido pela IA é diferente do gravado no código de barras. Confira no boleto.");
+            }
+        }
+        Campo vencimento = campos.vencimento();
+        if (vencimento.fonte() == Fonte.IA && codigo.vencimento() != null && vencimento.valor() != null
+                && !vencimento.valor().equals(codigo.vencimento())) {
+            vencimento = new Campo(vencimento.valor(), Fonte.IA, Confianca.BAIXA,
+                "A data lida pela IA é diferente da gravada no código de barras. Confira no boleto.");
+        }
+        return new Campos(campos.nomeBeneficiario(), campos.documentoBeneficiario(), valor, vencimento);
     }
 
     /** A leitura local tem prioridade; a IA só preenche os campos que ficaram sem leitura. */
@@ -330,12 +351,6 @@ public class LeitorBoletoServico {
         double pixels = caixa.getWidth() * escala * caixa.getHeight() * escala;
         if (pixels > PIXELS_MAXIMO_RENDER) escala *= Math.sqrt(PIXELS_MAXIMO_RENDER / pixels);
         return new PDFRenderer(doc).renderImage(pagina, (float) escala, tipo);
-    }
-
-    private static byte[] comoPng(BufferedImage imagem) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ImageIO.write(imagem, "png", out);
-        return out.toByteArray();
     }
 
     private Optional<Leitura> lerCodigoBarras(BufferedImage imagem) {
